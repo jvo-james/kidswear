@@ -575,19 +575,6 @@ a:focus, button:focus, input:focus, select:focus, textarea:focus{
   width: calc(100% - 32px);
   max-width: 520px;
 }
-  /* Make header fixed at top */
-.site-header {
-  position: fixed !important;
-  top: 0;
-  left: 0;
-  right: 0;
-  width: 100%;
-  z-index: 9999; /* keep it above other elements */
-  box-shadow: 0 8px 24px rgba(12,18,28,0.08);
-}
-
-/* ensure the mobile nav is visually below fixed header */
-#mobile-nav { margin-top: 0; }
 
 </style>
 </head>
@@ -1034,11 +1021,7 @@ function toast(msg, timeout = 2500) {
   }, timeout);
 }
 
-/* ======================= PRODUCTS (explicit 50 items) =======================
-   These are written as a single `products` array so you can edit each entry.
-   Images expected at paths like: images/dress-1.jpg, images/dress-1-2.jpg, etc.
-   If a product lacks secondary images, just keep one path in the `images` array.
-*/
+
 const products = [
   { id: "DRESS-001", title: "Floral Ruffles", price: 45.00, description: "One-of-a-kind floral ruffle dress", sizes: ["4","5"], ageCategory: "4-5", images: ["IMG_5700.JPG","images/dress-1-2.jpg"], available: true, createdAt: new Date(Date.now()-1*86400000).toISOString() },
   { id: "DRESS-002", title: "Sunshine Dress", price: 39.50, description: "Bright yellow play dress", sizes: ["6","7"], ageCategory: "6-7", images: ["IMG_5701.JPG"], available: true, createdAt: new Date(Date.now()-2*86400000).toISOString() },
@@ -1627,29 +1610,10 @@ function init() {
 }
 document.addEventListener('DOMContentLoaded', init);
 
-/* ===================== ADMIN NOTE =====================
-   - Products are saved in localStorage under STORAGE_KEYS.PRODUCTS (tiny_products_v1).
-   - Orders saved under STORAGE_KEYS.ORDERS (tiny_orders_v1) for admin.html to read.
-   - Cart under STORAGE_KEYS.CART.
-   Admin.html can access these keys to build the dashboard (no backend required).
-   ===================================================== */
+  
 </script>
 
-<script> 
-/* ensure main has top padding equal to header height */
-function syncHeaderSpacing(){
-  const header = document.querySelector('.site-header');
-  const main = document.querySelector('main');
-  if (!header || !main) return;
-  const h = header.getBoundingClientRect().height;
-  main.style.paddingTop = h + 'px';
-}
-/* run on load and resize */
-window.addEventListener('load', syncHeaderSpacing);
-window.addEventListener('resize', syncHeaderSpacing);
-syncHeaderSpacing();
 
-</script>
 
 </body>
 </html>
