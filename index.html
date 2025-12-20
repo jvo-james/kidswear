@@ -545,7 +545,51 @@ a:focus, button:focus, input:focus, select:focus, textarea:focus{
    END
    -------------------------*/
 </style>
+<style> /* HERO: force hero slider to occupy half the viewport */
+:root {
+  --header-space: 84px; /* change if your header-inner height differs */
+}
 
+.hero-slider {
+  height: 50vh !important;       /* half the viewport */
+  min-height: 220px;             /* fallback on very small screens */
+  max-height: 60vh;
+  border-radius: var(--radius-lg);
+  display: block;
+  overflow: hidden;
+}
+
+/* make slide children fill that height */
+.hero-slider .slide,
+.hero-slider .slide-inner,
+.hero-media,
+.hero-media img {
+  height: 100% !important;
+}
+
+/* adjust caption positioning to fit smaller height */
+.hero-caption {
+  bottom: 12px;
+  left: 12px;
+  padding: 14px;
+  width: calc(100% - 32px);
+  max-width: 520px;
+}
+  /* Make header fixed at top */
+.site-header {
+  position: fixed !important;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  z-index: 9999; /* keep it above other elements */
+  box-shadow: 0 8px 24px rgba(12,18,28,0.08);
+}
+
+/* ensure the mobile nav is visually below fixed header */
+#mobile-nav { margin-top: 0; }
+
+</style>
 </head>
 <body>
   <!-- SITE HEADER -->
@@ -1653,7 +1697,21 @@ document.addEventListener('DOMContentLoaded', init);
 
 
 </script>
+<script> 
+/* ensure main has top padding equal to header height */
+function syncHeaderSpacing(){
+  const header = document.querySelector('.site-header');
+  const main = document.querySelector('main');
+  if (!header || !main) return;
+  const h = header.getBoundingClientRect().height;
+  main.style.paddingTop = h + 'px';
+}
+/* run on load and resize */
+window.addEventListener('load', syncHeaderSpacing);
+window.addEventListener('resize', syncHeaderSpacing);
+syncHeaderSpacing();
 
+</script>
 
 </body>
 </html>
