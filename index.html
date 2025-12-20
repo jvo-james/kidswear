@@ -13,26 +13,143 @@
   <!-- STYLE: full page styles (place inside <head> or a CSS file) -->
 <style>
 
+/* ====== APRIL BLOSSOMS PALETTE & THEME OVERRIDES ====== */
 :root{
-  --brand-1: #ff6b8a;        /* playful pink */
-  --brand-2: #ffd166;        /* sunny yellow */
-  --accent:   #6ee7b7;       /* mint accent */
-  --bg:       #fffaf6;
-  --muted:    #6b7280;
-  --card:     #ffffff;
-  --glass:    rgba(255,255,255,0.6);
-  --shadow:   0 8px 24px rgba(23,23,23,0.08);
+  /* sampled from the logo */
+  --brand-pink:   #ff3b8f;   /* strong magenta/pink */
+  --brand-orange: #ffb000;   /* sunny orange */
+  --brand-green:  #14b37f;   /* mint/teal */
+  --brand-blue:   #2b8cff;   /* vivid blue */
+  --brand-purple: #a04bff;   /* purple accent */
+
+  /* composite variables used by the site */
+  --brand-1: linear-gradient(90deg, var(--brand-pink), var(--brand-orange));
+  --brand-2: linear-gradient(90deg, var(--brand-green), var(--brand-blue));
+  --brand-gradient: linear-gradient(90deg, var(--brand-pink), var(--brand-orange), var(--brand-green), var(--brand-blue), var(--brand-purple));
+
+  --accent: var(--brand-green);
+  --bg: #fffaf6;
+  --muted: #5b6471;
+  --card: #ffffff;
+  --glass: rgba(255,255,255,0.6);
+  --shadow: 0 8px 24px rgba(23,23,23,0.06);
   --radius-lg: 18px;
   --radius-md: 12px;
   --radius-sm: 8px;
   --max-width: 1200px;
-  --transition-fast: 180ms;
-  --transition: 280ms;
-  --elev: 0 10px 30px rgba(16,24,40,0.08);
-  --focus: 0 0 0 4px rgba(110,231,183,0.18);
+  --transition-fast: 160ms;
+  --transition: 260ms;
+  --focus: 0 0 0 4px rgba(34,197,94,0.12);
   --text: #0f172a;
   --success: #10b981;
 }
+
+/* LOGO specifics */
+.logo{display:flex;align-items:center;gap:12px;text-decoration:none}
+.site-logo{
+  display:block;
+  height:46px;           /* desktop size */
+  width:auto;
+  object-fit:contain;
+  filter: drop-shadow(0 6px 18px rgba(0,0,0,0.08));
+  transition: transform var(--transition);
+}
+.logo:hover .site-logo{ transform: translateY(-3px) scale(1.02); }
+
+/* If you want a small text label next to the logo (optional) */
+.brand-name{
+  font-weight:800;
+  font-size:1.05rem;
+  color:var(--text);
+  letter-spacing:0.2px;
+}
+
+/* Make header background more neutral but still bright */
+.site-header{
+  background: linear-gradient(180deg, rgba(255,255,255,0.95), rgba(255,255,255,0.85));
+  border-bottom:1px solid rgba(15,23,42,0.03);
+}
+
+/* Buttons use the multi-color brand gradient by default */
+.btn{
+  background: var(--brand-gradient);
+  color: white;
+  box-shadow: 0 10px 30px rgba(34,34,34,0.08);
+  border-radius: 12px;
+  font-weight:800;
+  text-shadow: 0 1px 0 rgba(0,0,0,0.06);
+}
+.btn.outline{
+  background:transparent;
+  border:1px solid rgba(15,23,42,0.06);
+  color:var(--text);
+}
+.btn.accent{
+  background: linear-gradient(90deg, var(--brand-green), var(--brand-blue));
+  color: white;
+}
+
+/* badges & tags use the logo gradient */
+.badge{
+  background: linear-gradient(90deg, var(--brand-pink), var(--brand-orange));
+  box-shadow: 0 8px 20px rgba(255,107,138,0.08);
+}
+
+/* Product tag (One-of-a-kind / Sold) */
+.product-tag{
+  background: var(--brand-gradient);
+  color: white;
+  border-radius: 999px;
+  padding:6px 10px;
+  font-weight:800;
+  box-shadow: 0 8px 24px rgba(16,24,40,0.06);
+}
+
+/* Hero caption uses a soft pastel gradient with brand colors */
+.hero-caption{
+  background: linear-gradient(180deg, rgba(255,255,255,0.95), rgba(250,246,255,0.86));
+  border-radius: 14px;
+  padding: 18px;
+  box-shadow: 0 12px 40px rgba(16,24,40,0.06);
+  border: 1px solid rgba(170,150,255,0.06);
+}
+.hero-caption h1, .hero-caption h2{ color: var(--text); }
+
+/* hero controls (prev/next) styled to match palette */
+.hero-prev, .hero-next{
+  background: linear-gradient(90deg, rgba(255,255,255,0.95), rgba(255,255,255,0.9));
+  border-radius: 12px;
+  box-shadow: 0 12px 30px rgba(16,24,40,0.06);
+  color: var(--text);
+}
+
+/* hero dots use the brand palette */
+.hero-dots .dot{ background: rgba(12,18,28,0.10); }
+.hero-dots .dot.active{ background: linear-gradient(90deg,var(--brand-pink),var(--brand-blue)); }
+
+/* Modal primary action uses brand gradient */
+#modal-add, #modal-buy{ background: var(--brand-gradient); color: white; }
+
+/* Cart CTA */
+.checkout{ background: linear-gradient(90deg, var(--brand-orange), var(--brand-green)); color: white; }
+
+/* Footer accents */
+.site-footer{ background: linear-gradient(180deg,#fffefc,#fffbf8); border-top: 1px solid rgba(15,23,42,0.03); }
+.footer-logo i{ color: var(--brand-pink); }
+
+/* Micro interactions */
+.btn:hover{ transform: translateY(-3px); box-shadow: 0 18px 44px rgba(16,24,40,0.08); }
+.product-card:hover{ box-shadow: 0 22px 60px rgba(16,24,40,0.08); transform: translateY(-8px); }
+
+/* MOBILE ADJUSTMENTS for logo */
+@media (max-width:520px){
+  .site-logo{ height:38px; }
+  .hero-caption{ width:calc(100% - 28px); left:14px; bottom:14px; }
+}
+
+/* If you want the brand color applied to links and small accents */
+a, .kv i{ color: var(--brand-blue); }
+
 
 /* quick reset */
 *{box-sizing:border-box}
@@ -582,10 +699,12 @@ a:focus, button:focus, input:focus, select:focus, textarea:focus{
   <!-- SITE HEADER -->
   <header class="site-header" role="banner">
     <div class="container header-inner">
-      <a href="#" class="logo" aria-label="Kidswear brand">
-        <i class="fa fa-heart logo-ico" aria-hidden="true"></i>
-        <span class="brand-name">Tiny Threads</span>
-      </a>
+     <!-- Replace the old logo <a> in your header with this -->
+<a href="#" class="logo" aria-label="April Blossoms">
+  <img src="logo.jpg" alt="April Blossoms logo" class="site-logo" />
+  <span class="brand-name sr-only">April Blossoms</span>
+</a>
+
 
   <nav class="main-nav" role="navigation" aria-label="Primary">
     <ul class="nav-list">
