@@ -479,6 +479,100 @@ body{
 .newsletter-form input{padding:8px;border-radius:10px;border:1px solid rgba(15,23,42,0.06);flex:1}
 .footer-bottom{display:flex;justify-content:space-between;align-items:center;padding-top:12px;border-top:1px dashed rgba(15,23,42,0.03);gap:8px}
 
+  /* ---- HERO: enhanced styles & micro-animations ---- */
+
+/* Caption layout */
+.hero-caption{
+  position:absolute;
+  left:16px;
+  bottom:18px;
+  z-index:3;
+  width:calc(100% - 36px);
+  max-width:640px;
+  padding:18px;
+  border-radius:16px;
+  backface-visibility: hidden;
+  transform-origin: left bottom;
+  transition: transform 450ms cubic-bezier(.2,.9,.2,1), opacity 420ms ease;
+  opacity:0;
+  will-change: transform, opacity;
+  border: 1px solid rgba(15,23,42,0.04);
+}
+
+/* animate-in state */
+.slide.active .hero-caption{ transform: translateY(0) scale(1); opacity:1; }
+
+/* label flag */
+.label-flag{ display:inline-block; margin-bottom:8px; }
+.label-flag span{
+  display:inline-flex; align-items:center; gap:8px;
+  padding:6px 10px;border-radius:999px;font-weight:800;
+  background: linear-gradient(90deg, rgba(255,107,138,0.14), rgba(255,176,64,0.12));
+  color:var(--brand-pink); font-size:0.86rem;
+  box-shadow: 0 6px 20px rgba(16,24,40,0.04);
+}
+
+/* headings */
+.hero-caption h1, .hero-caption h2{
+  margin:6px 0 8px 0; line-height:1.02; font-size:1.4rem;
+}
+.hero-caption h1 strong, .hero-caption h2 strong{ font-weight:900; color:var(--text) }
+.hero-caption .accent{ color: var(--brand-blue); font-weight:800 }
+
+/* description */
+.hero-caption p{ margin:0 0 12px 0; color:var(--muted) }
+
+/* features chips */
+.hero-features{ display:flex; gap:10px; flex-wrap:wrap; margin:8px 0 12px 0; padding:0; list-style:none }
+.hero-features li{
+  display:inline-flex; align-items:center; gap:8px; padding:6px 10px; border-radius:999px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,255,255,0.95));
+  border:1px solid rgba(15,23,42,0.03);
+  box-shadow: 0 8px 18px rgba(16,24,40,0.04);
+  font-weight:700; color:var(--muted); font-size:0.9rem;
+  transform: translateY(12px); opacity:0;
+  transition: transform 420ms cubic-bezier(.2,.9,.2,1), opacity 420ms ease;
+}
+.slide.active .hero-features li{ transform: translateY(0); opacity:1; }
+.hero-features li i{ color:var(--brand-pink); font-size:14px }
+
+/* CTA spacing */
+.hero-cta{ display:flex; gap:10px; margin-top:6px; flex-wrap:wrap }
+.hero-cta .btn.large strong{ font-weight:900 }
+
+/* thumb strip */
+.slide-thumbs{ display:flex; gap:8px; margin-top:12px; align-items:center }
+.slide-thumbs .thumb{
+  border:0;background:transparent;padding:0;border-radius:10px;overflow:hidden;cursor:pointer;box-shadow:0 8px 22px rgba(12,18,28,0.06);
+  transform: translateY(12px); opacity:0; transition: all 420ms ease;
+}
+.slide.active .slide-thumbs .thumb{ transform: translateY(0); opacity:1; }
+.slide-thumbs img{ width:56px; height:56px; object-fit:cover; display:block }
+
+/* floating decorative shapes */
+.floating.shape{
+  position:absolute; border-radius:999px; opacity:0.18; filter: blur(6px); z-index:2;
+  animation: floaty 6s ease-in-out infinite;
+}
+.shape-1{ width:120px;height:120px; right:18%; top:8%; background: linear-gradient(90deg,var(--brand-pink),var(--brand-orange)); transform: translateZ(0) }
+.shape-2{ width:80px;height:80px; left:6%; top:6%; background: linear-gradient(90deg,var(--brand-green),var(--brand-blue)); animation-duration:7s }
+.shape-3{ width:140px;height:140px; right:4%; top:22%; background: linear-gradient(90deg,var(--brand-purple),var(--brand-pink)); animation-duration:8s }
+.shape-4{ width:90px;height:90px; left:10%; top:22%; background: linear-gradient(90deg,var(--brand-orange),var(--brand-green)); animation-duration:5.6s }
+
+@keyframes floaty{
+  0%{ transform: translateY(0) rotate(0deg) }
+  50%{ transform: translateY(-10px) rotate(6deg) }
+  100%{ transform: translateY(0) rotate(0deg) }
+}
+
+/* small device adjustments */
+@media (max-width:520px){
+  .hero-caption{ left:12px; bottom:12px; padding:14px; width:calc(100% - 28px); max-width:100%; border-radius:14px }
+  .hero-caption h1, .hero-caption h2{ font-size:1.15rem }
+  .slide-thumbs img{ width:48px; height:48px }
+  .shape-1, .shape-3{ display:none } /* simplify shapes on small screens */
+}
+
 /* -------------------------
    TOAST
    -------------------------*/
@@ -653,55 +747,113 @@ a:focus, button:focus, input:focus, select:focus, textarea:focus{
   <main id="main" role="main">
 
 <!-- HERO / SLIDESHOW -->
-<section id="hero" class="hero">
+<section id="hero" class="hero" aria-label="Featured">
   <div class="hero-slider" data-slides="3" aria-roledescription="carousel">
+    <!-- SLIDE 1 -->
     <div class="slide" data-slide="1" role="group" aria-roledescription="slide" aria-label="Slide 1 of 3">
       <div class="slide-inner">
         <picture class="hero-media">
-          <img src="hero-1.jpg" alt="Bright kids dresses on display">
+          <img src="hero-1.jpg" alt="Bright kids dresses on display" />
         </picture>
+
+        <!-- Floating decorative shapes -->
+        <div class="floating shape shape-1" aria-hidden="true"></div>
+        <div class="floating shape shape-2" aria-hidden="true"></div>
+
         <div class="hero-caption">
-          <h1>Unique Dresses — Only One of Each</h1>
-          <p>Handmade kids' dresses. Once it's sold, it's gone. Find the one that fits her best.</p>
+          <div class="label-flag"><span>Limited • One-of-a-kind</span></div>
+          <h1><strong>Unique Dresses</strong> — <span class="accent">Only one per design</span></h1>
+          <p>Handmade with love. Snag the perfect dress for parties, playdates, and portraits.</p>
+
+          <ul class="hero-features">
+            <li><i class="fa fa-seedling"></i> Natural fabrics</li>
+            <li><i class="fa fa-handshake"></i> Ethically made</li>
+            <li><i class="fa fa-shipping-fast"></i> Fast local shipping</li>
+          </ul>
+
           <div class="hero-cta">
-            <a class="btn large" href="#shop"><i class="fa fa-shopping-bag"></i> Shop Now</a>
-            <a class="btn outline" href="#about"><i class="fa fa-info-circle"></i> Learn More</a>
+            <a class="btn large" href="#shop"><i class="fa fa-shopping-bag"></i> <strong>Shop Now</strong></a>
+            <a class="btn outline" href="#about"><i class="fa fa-info-circle"></i> Learn more</a>
+          </div>
+
+          <div class="slide-thumbs" aria-hidden="true">
+            <button class="thumb" data-product="DRESS-001"><img src="IMG_5701.JPG" alt="Dress 1" /></button>
+            <button class="thumb" data-product="DRESS-002"><img src="IMG_5702.JPG" alt="Dress 2" /></button>
+            <button class="thumb" data-product="DRESS-003"><img src="IMG_5703.JPG" alt="Dress 3" /></button>
           </div>
         </div>
       </div>
     </div>
 
+    <!-- SLIDE 2 -->
     <div class="slide" data-slide="2" role="group" aria-roledescription="slide" aria-label="Slide 2 of 3">
       <div class="slide-inner">
         <picture class="hero-media">
-          <img src="hero-2.jpg" alt="Child wearing a floral dress">
+          <img src="hero-2.jpg" alt="Child wearing a floral dress" />
         </picture>
+
+        <div class="floating shape shape-3" aria-hidden="true"></div>
+
         <div class="hero-caption">
-          <h2>Playful, Pretty & Practical</h2>
-          <p>Comfortable fabrics, joyful designs — perfect for parties and play dates.</p>
+          <div class="label-flag"><span>New Drop</span></div>
+          <h2><strong>Playful, Pretty & Practical</strong></h2>
+          <p>Every piece encourages movement and joy — built for play and polished for parties.</p>
+
+          <ul class="hero-features">
+            <li><i class="fa fa-star"></i> Party-ready</li>
+            <li><i class="fa fa-tshirt"></i> Comfortable fit</li>
+            <li><i class="fa fa-heart"></i> Loved by parents</li>
+          </ul>
+
           <div class="hero-cta">
-            <a class="btn large" href="#shop"><i class="fa fa-star"></i> Browse Styles</a>
+            <a class="btn large" href="#shop"><i class="fa fa-star"></i> <strong>Browse Styles</strong></a>
+            <a class="btn outline" href="#contact"><i class="fa fa-phone"></i> Contact us</a>
+          </div>
+
+          <div class="slide-thumbs" aria-hidden="true">
+            <button class="thumb" data-product="DRESS-014"><img src="IMG_5705.JPG" alt="Dress 14" /></button>
+            <button class="thumb" data-product="DRESS-015"><img src="IMG_5706.JPG" alt="Dress 15" /></button>
+            <button class="thumb" data-product="DRESS-016"><img src="IMG_5707.JPG" alt="Dress 16" /></button>
           </div>
         </div>
       </div>
     </div>
 
+    <!-- SLIDE 3 -->
     <div class="slide" data-slide="3" role="group" aria-roledescription="slide" aria-label="Slide 3 of 3">
       <div class="slide-inner">
         <picture class="hero-media">
-          <img src="hero-3.jpg" alt="Close-up detail of dress fabric">
+          <img src="hero-4.jpg" alt="Close-up detail of dress fabric" />
         </picture>
+
+        <div class="floating shape shape-4" aria-hidden="true"></div>
+
         <div class="hero-caption">
-          <h2>Limited Editions</h2>
-          <p>Each dress is one-of-a-kind — grab it before it's gone.</p>
+          <div class="label-flag"><span>Limited Edition</span></div>
+          <h2><strong>Limited Editions</strong> — <span class="accent">Grab it before it's gone</span></h2>
+          <p>Each dress is photographed and listed as a single item. No restock guarantees — be the one to own it.</p>
+
+          <ul class="hero-features">
+            <li><i class="fa fa-gem"></i> Artisan details</li>
+            <li><i class="fa fa-bolt"></i> Limited quantities</li>
+            <li><i class="fa fa-check-circle"></i> Quality assured</li>
+          </ul>
+
           <div class="hero-cta">
-            <a class="btn large" href="#shop"><i class="fa fa-bolt"></i> Limited Picks</a>
+            <a class="btn large" href="#shop"><i class="fa fa-bolt"></i> <strong>Limited Picks</strong></a>
+            <a class="btn outline" href="#about"><i class="fa fa-info"></i> Story</a>
+          </div>
+
+          <div class="slide-thumbs" aria-hidden="true">
+            <button class="thumb" data-product="DRESS-025"><img src="IMG_5710.JPG" alt="Dress 25" /></button>
+            <button class="thumb" data-product="DRESS-026"><img src="IMG_5711.JPG" alt="Dress 26" /></button>
+            <button class="thumb" data-product="DRESS-027"><img src="IMG_5712.JPG" alt="Dress 27" /></button>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- hero controls (JS will hook these) -->
+    <!-- hero controls -->
     <div class="hero-controls">
       <button class="hero-prev" aria-label="Previous slide"><i class="fa fa-chevron-left"></i></button>
       <button class="hero-next" aria-label="Next slide"><i class="fa fa-chevron-right"></i></button>
@@ -709,6 +861,7 @@ a:focus, button:focus, input:focus, select:focus, textarea:focus{
     </div>
   </div>
 </section>
+
 
 <!-- CATEGORIES (AGE RANGES) -->
 <section class="categories" aria-label="Age categories">
@@ -1633,7 +1786,120 @@ document.addEventListener('DOMContentLoaded', init);
 
   
 </script>
+<script>
+  /* Enhanced heroInit: animates caption elements when slide becomes active,
+   adds small parallax on pointer move, and wire thumbs to quick product modal.
+*/
+function heroInit() {
+  const slider = document.querySelector('.hero-slider');
+  if (!slider) return;
+  const slides = Array.from(slider.querySelectorAll('.slide'));
+  const dotsWrap = slider.querySelector('.hero-dots');
+  const nextBtn = slider.querySelector('.hero-next');
+  const prevBtn = slider.querySelector('.hero-prev');
+  let idx = 0;
+  const total = slides.length;
+  let timer = null;
 
+  // show slide at index i
+  function show(i) {
+    slides.forEach((s, n) => {
+      if (n === i) {
+        s.classList.add('active');
+        s.style.display = '';
+        // animate: small stagger for chips and thumbs
+        const chips = s.querySelectorAll('.hero-features li, .slide-thumbs .thumb');
+        chips.forEach((el, k) => {
+          el.style.transitionDelay = `${k * 70}ms`;
+        });
+      } else {
+        s.classList.remove('active');
+        s.style.display = 'none';
+      }
+    });
+    // rebuild dots
+    dotsWrap.innerHTML = '';
+    for (let d = 0; d < total; d++) {
+      const b = document.createElement('button');
+      b.className = 'dot' + (d === i ? ' active' : '');
+      b.setAttribute('aria-label', `Go to slide ${d+1}`);
+      b.addEventListener('click', () => {
+        idx = d; resetTimer(); show(idx);
+      });
+      dotsWrap.appendChild(b);
+    }
+  }
+
+  function next() { idx = (idx + 1) % total; show(idx); }
+  function prev() { idx = (idx - 1 + total) % total; show(idx); }
+
+  nextBtn.addEventListener('click', (e) => { e.preventDefault(); resetTimer(); next(); });
+  prevBtn.addEventListener('click', (e) => { e.preventDefault(); resetTimer(); prev(); });
+
+  // thumbnail click behavior: open product modal (if modal exists)
+  slider.addEventListener('click', (ev) => {
+    const t = ev.target.closest('.thumb');
+    if (!t) return;
+    const pid = t.dataset.product;
+    if (!pid) return;
+    // open the product modal if the function exists
+    if (typeof openProductModal === 'function') {
+      openProductModal(pid);
+    } else {
+      // fallback: scroll to shop and highlight product card
+      const card = document.querySelector(`[data-product-id="${pid}"]`);
+      if (card) {
+        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        card.classList.add('pop');
+        setTimeout(() => card.classList.remove('pop'), 900);
+      }
+    }
+  });
+
+  // subtle parallax on pointer move (mobile uses device orientation via tiny offset)
+  slider.addEventListener('pointermove', (e) => {
+    const rect = slider.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const dx = (e.clientX - cx) / rect.width;
+    const dy = (e.clientY - cy) / rect.height;
+    const active = slider.querySelector('.slide.active .hero-caption');
+    if (active) {
+      active.style.transform = `translate3d(${dx * 8}px, ${dy * 8}px, 0)`;
+    }
+    const shapes = slider.querySelectorAll('.floating.shape');
+    shapes.forEach((s, i) => {
+      const move = (i % 2 === 0 ? 1 : -1);
+      s.style.transform = `translate3d(${dx * 12 * move}px, ${Math.sin(dx * Math.PI) * 6}px, 0)`;
+    });
+  });
+
+  // reset parallax on leave
+  slider.addEventListener('pointerleave', () => {
+    const active = slider.querySelector('.slide.active .hero-caption');
+    if (active) active.style.transform = '';
+    slider.querySelectorAll('.floating.shape').forEach(s => s.style.transform = '');
+  });
+
+  function resetTimer() {
+    if (timer) clearInterval(timer);
+    timer = setInterval(next, 5000);
+  }
+
+  // init
+  show(0);
+  resetTimer();
+}
+
+// replace the previous heroInit with this one
+// ensure this runs after DOMContentLoaded or call it inside your init()
+document.addEventListener('DOMContentLoaded', () => {
+  // if your script previously defined heroInit and called it, remove duplicate calls.
+  // call the enhanced heroInit:
+  if (typeof heroInit === 'function') heroInit();
+});
+
+</script>
 
 
 </body>
