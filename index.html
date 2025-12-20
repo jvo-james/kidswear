@@ -1001,26 +1001,27 @@ a:focus, button:focus, input:focus, select:focus, textarea:focus{
     </div>
   </template>
 
-  <!-- SCRIPT: interactive behaviour, products, cart, modal, hero, filters, Paystack checkout -->
+<!-- SCRIPT: full interactive behaviour with an explicit `products` array of 50 items
+     Replace the PAYSTACK_PUBLIC_KEY with your real key. Delete your old <script> block
+     and paste this entire block in its place. This script WILL overwrite the products
+     data in localStorage with the explicit list below so the shop uses these 50 items.
+-->
 <script>
-  
-/* ========== CONFIG ========== */
+/* ======================= CONFIG ======================= */
 const PAYSTACK_PUBLIC_KEY = 'YOUR_PAYSTACK_PUBLIC_KEY_HERE'; // <-- set this
 const STORAGE_KEYS = {
   PRODUCTS: 'tiny_products_v1',
   CART: 'tiny_cart_v1',
   ORDERS: 'tiny_orders_v1'
 };
-const PRODUCTS_TOTAL = 50; // expected count (generated below if not in storage)
 const LOAD_BATCH = 10;
 
-/* ========== UTIL ========== */
+/* ======================= HELPERS ======================= */
 const $ = (sel, el = document) => el.querySelector(sel);
 const $$ = (sel, el = document) => Array.from(el.querySelectorAll(sel));
 const formatPrice = (p) => `₵${Number(p).toFixed(2)}`;
 const nowISO = () => new Date().toISOString();
 
-/* Simple toast for feedback */
 function toast(msg, timeout = 2500) {
   let t = document.createElement('div');
   t.className = 'tiny-toast';
@@ -1033,75 +1034,74 @@ function toast(msg, timeout = 2500) {
   }, timeout);
 }
 
-/* ========== DATA: products array generator (replace images & data with real ones) ========== */
-function generateProducts(n = PRODUCTS_TOTAL) {
-  const ageCats = ['0-3','4-5','5-6','6-7','7-8','8-9','9-10','10-12','adult'];
-  const sizesByCat = {
-    '0-3': ['0-3M','3-6M','6-12M'],
-    '4-5': ['4','5'],
-    '5-6': ['5','6'],
-    '6-7': ['6','7'],
-    '7-8': ['7','8'],
-    '8-9': ['8','9'],
-    '9-10': ['9','10'],
-    '10-12': ['10','12'],
-    'adult': ['S','M','L']
-  };
+/* ======================= PRODUCTS (explicit 50 items) =======================
+   These are written as a single `products` array so you can edit each entry.
+   Images expected at paths like: images/dress-1.jpg, images/dress-1-2.jpg, etc.
+   If a product lacks secondary images, just keep one path in the `images` array.
+*/
+const products = [
+  { id: "DRESS-001", title: "Floral Ruffles", price: 45.00, description: "One-of-a-kind floral ruffle dress", sizes: ["4","5"], ageCategory: "4-5", images: ["IMG_5700.JPG","images/dress-1-2.jpg"], available: true, createdAt: new Date(Date.now()-1*86400000).toISOString() },
+  { id: "DRESS-002", title: "Sunshine Dress", price: 39.50, description: "Bright yellow play dress", sizes: ["6","7"], ageCategory: "6-7", images: ["IMG_5701.JPG"], available: true, createdAt: new Date(Date.now()-2*86400000).toISOString() },
+  { id: "DRESS-003", title: "Party Bow Dress", price: 60.00, description: "Elegant dress for special occasions", sizes: ["7","8"], ageCategory: "7-8", images: ["IMG_5702.JPG","images/dress-3-2.jpg"], available: true, createdAt: new Date(Date.now()-3*86400000).toISOString() },
+  { id: "DRESS-004", title: "Polka Play", price: 48.00, description: "Polka-dot twirl dress", sizes: ["0-3M","3-6M"], ageCategory: "0-3", images: ["IMG_5703.JPG"], available: true, createdAt: new Date(Date.now()-4*86400000).toISOString() },
+  { id: "DRESS-005", title: "Candy Stripes", price: 35.00, description: "Soft striped cotton dress", sizes: ["4","5"], ageCategory: "4-5", images: ["IMG_5704.JPG","images/dress-5-2.jpg"], available: true, createdAt: new Date(Date.now()-5*86400000).toISOString() },
+  { id: "DRESS-006", title: "Meadow Tiny", price: 42.00, description: "Hand-stitched meadow pattern", sizes: ["5","6"], ageCategory: "5-6", images: ["IMG_5705.JPG"], available: true, createdAt: new Date(Date.now()-6*86400000).toISOString() },
+  { id: "DRESS-007", title: "Lace Halo", price: 50.00, description: "Lace-trim party dress", sizes: ["6","7"], ageCategory: "6-7", images: ["IMG_5706.JPG","images/dress-7-2.jpg"], available: true, createdAt: new Date(Date.now()-7*86400000).toISOString() },
+  { id: "DRESS-008", title: "Seaside Sundress", price: 44.00, description: "Cool and breezy sun dress", sizes: ["7","8"], ageCategory: "7-8", images: ["IMG_5707.JPG"], available: true, createdAt: new Date(Date.now()-8*86400000).toISOString() },
+  { id: "DRESS-009", title: "Minty Bow", price: 47.00, description: "Mint green dress with bow", sizes: ["8","9"], ageCategory: "8-9", images: ["IMG_5708.JPG","images/dress-9-2.jpg"], available: true, createdAt: new Date(Date.now()-9*86400000).toISOString() },
+  { id: "DRESS-010", title: "Rosette Charm", price: 38.00, description: "Rosette detailing, comfy fit", sizes: ["9","10"], ageCategory: "9-10", images: ["IMG_5709.JPG"], available: true, createdAt: new Date(Date.now()-10*86400000).toISOString() },
 
-  const arr = [];
-  for (let i = 1; i <= n; i++) {
-    const cat = ageCats[(i - 1) % ageCats.length];
-    const id = `DRESS-${String(i).padStart(3, '0')}`;
-    const title = `Delicate Dress ${i}`;
-    const price = (Math.round((15 + (i % 20) * 2 + Math.random() * 10) * 100) / 100); // variety
-    const imgs = [
-      `images/dress-${i}.jpg`,
-      `images/dress-${i}-2.jpg`,
-      `images/dress-${i}-3.jpg`
-    ]; // replace these with actual images you uploaded
-    arr.push({
-      id,
-      title,
-      price,
-      description: `One-of-a-kind handmade dress — model ${i}. Lovely fabric, great for special days.`,
-      sizes: sizesByCat[cat].slice(),
-      ageCategory: cat, // use same filter keys as chips data-filter
-      images: imgs,
-      available: true,
-      createdAt: new Date(Date.now() - i * 86400000).toISOString() // spaced created dates
-    });
-  }
-  return arr;
-}
+  { id: "DRESS-011", title: "Blossom Day", price: 33.00, description: "Lightweight blossom print dress", sizes: ["10","12"], ageCategory: "10-12", images: ["IMG_5710.JPG","images/dress-11-2.jpg"], available: true, createdAt: new Date(Date.now()-11*86400000).toISOString() },
+  { id: "DRESS-012", title: "Vintage Coral", price: 52.00, description: "Retro coral dress with pockets", sizes: ["S","M"], ageCategory: "adult", images: ["IMG_5711.JPG"], available: true, createdAt: new Date(Date.now()-12*86400000).toISOString() },
+  { id: "DRESS-013", title: "Petal Puff", price: 41.00, description: "Petal-pattern puff sleeve dress", sizes: ["4","5"], ageCategory: "4-5", images: ["IMG_5712.JPG","images/dress-13-2.jpg"], available: true, createdAt: new Date(Date.now()-13*86400000).toISOString() },
+  { id: "DRESS-014", title: "Lemon Drop", price: 49.00, description: "Yellow lemon print", sizes: ["5","6"], ageCategory: "5-6", images: ["IMG_5713.JPG"], available: true, createdAt: new Date(Date.now()-14*86400000).toISOString() },
+  { id: "DRESS-015", title: "Bluebell Classic", price: 46.00, description: "Timeless bluebell dress", sizes: ["6","7"], ageCategory: "6-7", images: ["IMG_5714.JPG","images/dress-15-2.jpg"], available: true, createdAt: new Date(Date.now()-15*86400000).toISOString() },
+  { id: "DRESS-016", title: "Gingham Girl", price: 51.00, description: "Cute gingham for playdates", sizes: ["7","8"], ageCategory: "7-8", images: ["IMG_5715.JPG"], available: true, createdAt: new Date(Date.now()-16*86400000).toISOString() },
+  { id: "DRESS-017", title: "Velvet Holiday", price: 59.00, description: "Velvet holiday edition", sizes: ["8","9"], ageCategory: "8-9", images: ["IMG_5716.JPG","images/dress-17-2.jpg"], available: true, createdAt: new Date(Date.now()-17*86400000).toISOString() },
+  { id: "DRESS-018", title: "Daisy Chain", price: 37.00, description: "Daisy print with soft lining", sizes: ["9","10"], ageCategory: "9-10", images: ["IMG_5717.JPG"], available: true, createdAt: new Date(Date.now()-18*86400000).toISOString() },
+  { id: "DRESS-019", title: "Sunset Ombre", price: 36.00, description: "Ombre fade summer dress", sizes: ["10","12"], ageCategory: "10-12", images: ["IMG_5718.JPG","images/dress-19-2.jpg"], available: true, createdAt: new Date(Date.now()-19*86400000).toISOString() },
+  { id: "DRESS-020", title: "Coral Petals", price: 43.00, description: "Coral floral with ruffled hem", sizes: ["S","M"], ageCategory: "adult", images: ["IMG_5719.JPG"], available: true, createdAt: new Date(Date.now()-20*86400000).toISOString() },
 
-/* ========== PERSISTENCE ========== */
-function saveProducts(products) {
-  localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(products));
-}
-function loadProducts() {
-  const raw = localStorage.getItem(STORAGE_KEYS.PRODUCTS);
-  if (!raw) {
-    const prod = generateProducts(PRODUCTS_TOTAL);
-    saveProducts(prod);
-    return prod;
-  }
-  try {
-    return JSON.parse(raw);
-  } catch(e) {
-    const prod = generateProducts(PRODUCTS_TOTAL);
-    saveProducts(prod);
-    return prod;
-  }
-}
+  { id: "DRESS-021", title: "Lavender Mist", price: 54.00, description: "Soft lavender cotton dress", sizes: ["4","5"], ageCategory: "4-5", images: ["IMG_5720.JPG","images/dress-21-2.jpg"], available: true, createdAt: new Date(Date.now()-21*86400000).toISOString() },
+  { id: "DRESS-022", title: "Plaid Picnic", price: 29.99, description: "Cute plaid button dress", sizes: ["5","6"], ageCategory: "5-6", images: ["IMG_5720.JPG"], available: true, createdAt: new Date(Date.now()-22*86400000).toISOString() },
+  { id: "DRESS-023", title: "Rosebud Twirl", price: 32.00, description: "Lightweight twirl skirt", sizes: ["6","7"], ageCategory: "6-7", images: ["IMG_5721.JPG","images/dress-23-2.jpg"], available: true, createdAt: new Date(Date.now()-23*86400000).toISOString() },
+  { id: "DRESS-024", title: "Mint Sprig", price: 40.00, description: "Refreshingly cool mint dress", sizes: ["7","8"], ageCategory: "7-8", images: ["IMG_5722.JPG"], available: true, createdAt: new Date(Date.now()-24*86400000).toISOString() },
+  { id: "DRESS-025", title: "Buttercup", price: 56.00, description: "Premium buttercup fabric", sizes: ["8","9"], ageCategory: "8-9", images: ["IMG_5723.JPG","images/dress-25-2.jpg"], available: true, createdAt: new Date(Date.now()-25*86400000).toISOString() },
+  { id: "DRESS-026", title: "Peach Dream", price: 58.00, description: "Soft peach party dress", sizes: ["9","10"], ageCategory: "9-10", images: ["IMG_5724.JPG"], available: true, createdAt: new Date(Date.now()-26*86400000).toISOString() },
+  { id: "DRESS-027", title: "Ivy Garden", price: 61.00, description: "Ivy print with tiny pleats", sizes: ["10","12"], ageCategory: "10-12", images: ["IMG_5725.JPG","images/dress-27-2.jpg"], available: true, createdAt: new Date(Date.now()-27*86400000).toISOString() },
+  { id: "DRESS-028", title: "Ocean Breeze", price: 62.50, description: "Nautical details and stripes", sizes: ["S","M"], ageCategory: "adult", images: ["IMG_5726.JPG"], available: true, createdAt: new Date(Date.now()-28*86400000).toISOString() },
+  { id: "DRESS-029", title: "Lilac Lace", price: 30.00, description: "Delicate lilac lace overlay", sizes: ["4","5"], ageCategory: "4-5", images: ["IMG_5727.JPG","images/dress-29-2.jpg"], available: true, createdAt: new Date(Date.now()-29*86400000).toISOString() },
+  { id: "DRESS-030", title: "Maple Sweet", price: 34.00, description: "Warm tones for autumn play", sizes: ["5","6"], ageCategory: "5-6", images: ["IMG_5728.JPG"], available: true, createdAt: new Date(Date.now()-30*86400000).toISOString() },
 
-function saveCart(cart) {
-  localStorage.setItem(STORAGE_KEYS.CART, JSON.stringify(cart));
-}
-function loadCart() {
-  const raw = localStorage.getItem(STORAGE_KEYS.CART);
-  return raw ? JSON.parse(raw) : [];
-}
+  { id: "DRESS-031", title: "Cherry Puff", price: 39.00, description: "Cherry prints and puff sleeves", sizes: ["6","7"], ageCategory: "6-7", images: ["IMG_5729.JPG","images/dress-31-2.jpg"], available: true, createdAt: new Date(Date.now()-31*86400000).toISOString() },
+  { id: "DRESS-032", title: "Starry Night", price: 53.00, description: "Dark blue with star pattern", sizes: ["7","8"], ageCategory: "7-8", images: ["IMG_5730.JPG"], available: true, createdAt: new Date(Date.now()-32*86400000).toISOString() },
+  { id: "DRESS-033", title: "Palm Picnic", price: 35.50, description: "Tropical print for sunny days", sizes: ["8","9"], ageCategory: "8-9", images: ["IMG_5731.JPG","images/dress-33-2.jpg"], available: true, createdAt: new Date(Date.now()-33*86400000).toISOString() },
+  { id: "DRESS-034", title: "Velvet Ribbon", price: 45.50, description: "Lux velvet with ribbon tie", sizes: ["9","10"], ageCategory: "9-10", images: ["IMG_5732.JPG"], available: true, createdAt: new Date(Date.now()-34*86400000).toISOString() },
+  { id: "DRESS-035", title: "Rose Quartz", price: 48.50, description: "Soft pink, comfy cotton", sizes: ["10","12"], ageCategory: "10-12", images: ["IMG_5733.JPG","images/dress-35-2.jpg"], available: true, createdAt: new Date(Date.now()-35*86400000).toISOString() },
+  { id: "DRESS-036", title: "Star Bloom", price: 49.99, description: "Star bloom pattern, breezy", sizes: ["S","M"], ageCategory: "adult", images: ["IMG_5734.JPG"], available: true, createdAt: new Date(Date.now()-36*86400000).toISOString() },
+  { id: "DRESS-037", title: "Meadow Stitch", price: 31.00, description: "Detailed stitching, floral", sizes: ["4","5"], ageCategory: "4-5", images: ["IMG_5735.JPG","images/dress-37-2.jpg"], available: true, createdAt: new Date(Date.now()-37*86400000).toISOString() },
+  { id: "DRESS-038", title: "Denim Dolly", price: 33.50, description: "Soft denim dress with buttons", sizes: ["5","6"], ageCategory: "5-6", images: ["IMG_5736.JPG"], available: true, createdAt: new Date(Date.now()-38*86400000).toISOString() },
+  { id: "DRESS-039", title: "Citrine Bloom", price: 27.00, description: "Sunny citrine color", sizes: ["6","7"], ageCategory: "6-7", images: ["IMG_5737.JPG","images/dress-39-2.jpg"], available: true, createdAt: new Date(Date.now()-39*86400000).toISOString() },
+  { id: "DRESS-040", title: "Cloud Puff", price: 28.00, description: "Puffy clouds print", sizes: ["7","8"], ageCategory: "7-8", images: ["IMG_5738.JPG"], available: true, createdAt: new Date(Date.now()-40*86400000).toISOString() },
 
+  { id: "DRESS-041", title: "Mint Melody", price: 26.50, description: "Light mint with trims", sizes: ["8","9"], ageCategory: "8-9", images: ["IMG_5739.JPG","images/dress-41-2.jpg"], available: true, createdAt: new Date(Date.now()-41*86400000).toISOString() },
+  { id: "DRESS-042", title: "Petite Pearl", price: 25.00, description: "Pearl button detail", sizes: ["9","10"], ageCategory: "9-10", images: ["IMG_5740.JPG"], available: true, createdAt: new Date(Date.now()-42*86400000).toISOString() },
+  { id: "DRESS-043", title: "Coral Breeze", price: 24.99, description: "Soft coral shade", sizes: ["10","12"], ageCategory: "10-12", images: ["IMG_5741.JPG","images/dress-43-2.jpg"], available: true, createdAt: new Date(Date.now()-43*86400000).toISOString() },
+  { id: "DRESS-044", title: "Pineapple Pop", price: 23.00, description: "Fun pineapple print", sizes: ["4","5"], ageCategory: "4-5", images: ["IMG_5742.JPG"], available: true, createdAt: new Date(Date.now()-44*86400000).toISOString() },
+  { id: "DRESS-045", title: "Willow Whisper", price: 22.50, description: "Earthy willow tones", sizes: ["5","6"], ageCategory: "5-6", images: ["IMG_5743.JPG","images/dress-45-2.jpg"], available: true, createdAt: new Date(Date.now()-45*86400000).toISOString() },
+  { id: "DRESS-046", title: "Sunbeam Tuck", price: 21.00, description: "Tucked waist, sunny print", sizes: ["6","7"], ageCategory: "6-7", images: ["IMG_5744.JPG"], available: true, createdAt: new Date(Date.now()-46*86400000).toISOString() },
+  { id: "DRESS-047", title: "Peppermint Twist", price: 20.00, description: "Mint stripes and soft collar", sizes: ["7","8"], ageCategory: "7-8", images: ["IMG_5745.JPG","images/dress-47-2.jpg"], available: true, createdAt: new Date(Date.now()-47*86400000).toISOString() },
+  { id: "DRESS-048", title: "Dotted Dreams", price: 19.50, description: "Subtle dotted pattern", sizes: ["8","9"], ageCategory: "8-9", images: ["IMG_5746.JPG"], available: true, createdAt: new Date(Date.now()-48*86400000).toISOString() },
+  { id: "DRESS-049", title: "Little Luxe", price: 18.00, description: "Tiny luxe finish", sizes: ["9","10"], ageCategory: "9-10", images: ["IMG_5747.JPG","images/dress-49-2.jpg"], available: true, createdAt: new Date(Date.now()-49*86400000).toISOString() },
+  { id: "DRESS-050", title: "Pocket Garden", price: 17.50, description: "Playful pockets and cotton", sizes: ["10","12"], ageCategory: "10-12", images: ["IMG_5748.JPG"], available: true, createdAt: new Date(Date.now()-50*86400000).toISOString() }
+];
+
+/* persist products so the rest of the script reads them */
+localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(products));
+
+/* ======================= PERSISTENCE: CART & ORDERS ======================= */
+function saveCart(cart) { localStorage.setItem(STORAGE_KEYS.CART, JSON.stringify(cart)); }
+function loadCart() { const raw = localStorage.getItem(STORAGE_KEYS.CART); return raw ? JSON.parse(raw) : []; }
 function pushOrder(order) {
   const raw = localStorage.getItem(STORAGE_KEYS.ORDERS);
   const arr = raw ? JSON.parse(raw) : [];
@@ -1109,19 +1109,14 @@ function pushOrder(order) {
   localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(arr));
 }
 
-/* ========== APP STATE ========== */
-let products = loadProducts();
+/* ======================= APP STATE ======================= */
 let cart = loadCart();
-let currentBatchIndex = 0; // each batch = LOAD_BATCH; used by load more
+let currentBatchIndex = 0;
 let activeFilters = { ageCategory: null, search: '', sort: 'featured' };
 
-/* ========== RENDER: products ========== */
+/* ======================= RENDER: PRODUCTS ======================= */
 const productGrid = $('#product-grid');
 const productTemplate = $('#product-card-template').content;
-
-function clearGrid() {
-  productGrid.innerHTML = '';
-}
 
 function createProductCard(product) {
   const node = document.importNode(productTemplate, true);
@@ -1164,29 +1159,25 @@ function createProductCard(product) {
   return node;
 }
 
-/* Render visibleProducts up to currentBatchIndex * LOAD_BATCH */
 function getFilteredSortedProducts() {
   let list = products.slice();
 
-  // filter by availability (only show available)
+  // show only available
   list = list.filter(p => p.available);
 
-  // filter by category
   if (activeFilters.ageCategory) {
     list = list.filter(p => p.ageCategory === activeFilters.ageCategory);
   }
 
-  // search
   const q = (activeFilters.search || '').trim().toLowerCase();
   if (q) {
-    list = list.filter(p => 
+    list = list.filter(p =>
       p.title.toLowerCase().includes(q) ||
       p.id.toLowerCase().includes(q) ||
-      p.description.toLowerCase().includes(q)
+      (p.description && p.description.toLowerCase().includes(q))
     );
   }
 
-  // sort
   switch (activeFilters.sort) {
     case 'newest':
       list.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
@@ -1198,7 +1189,6 @@ function getFilteredSortedProducts() {
       list.sort((a,b) => b.price - a.price);
       break;
     default:
-      // featured: leave as is (created order)
       break;
   }
 
@@ -1225,7 +1215,6 @@ function renderProductsBatch(reset = false) {
   });
 
   currentBatchIndex++;
-  // show/hide load more
   const loadMore = $('#load-more');
   if (end >= filtered.length) {
     loadMore.style.display = 'none';
@@ -1234,18 +1223,16 @@ function renderProductsBatch(reset = false) {
   }
 }
 
-/* ========== FILTERS / SEARCH / SORT UI ========== */
+/* ======================= FILTERS / SEARCH / SORT ======================= */
 const chips = $$('.category-chips .chip');
 chips.forEach(chip => {
   chip.addEventListener('click', (e) => {
     const key = chip.dataset.filter;
-    // toggle
     if (activeFilters.ageCategory === key) {
       activeFilters.ageCategory = null;
       chip.classList.remove('active');
     } else {
       activeFilters.ageCategory = key;
-      // reset others
       chips.forEach(c => c.classList.remove('active'));
       chip.classList.add('active');
     }
@@ -1255,7 +1242,6 @@ chips.forEach(chip => {
 
 $('#search-input').addEventListener('input', (e) => {
   activeFilters.search = e.target.value;
-  // quick debounce
   clearTimeout(window.__searchTimer);
   window.__searchTimer = setTimeout(() => renderProductsBatch(true), 220);
 });
@@ -1264,18 +1250,16 @@ $('#search-clear').addEventListener('click', () => {
   activeFilters.search = '';
   renderProductsBatch(true);
 });
-
 $('#sort-select').addEventListener('change', (e) => {
   activeFilters.sort = e.target.value;
   renderProductsBatch(true);
 });
-
 $('#load-more').addEventListener('click', (e) => {
   e.preventDefault();
   renderProductsBatch(false);
 });
 
-/* ========== PRODUCT MODAL ========== */
+/* ======================= MODAL ======================= */
 const modal = $('#product-modal');
 const modalGallery = $('#modal-gallery');
 const modalThumbs = $('#modal-thumbs');
@@ -1292,7 +1276,6 @@ function openProductModal(productId) {
   if (!p) return;
   modalCurrentProduct = p;
 
-  // gallery
   modalGallery.innerHTML = '';
   modalThumbs.innerHTML = '';
   p.images.forEach((src, idx) => {
@@ -1310,7 +1293,6 @@ function openProductModal(productId) {
     t.className = 'thumb';
     t.dataset.idx = idx;
     t.addEventListener('click', () => {
-      // swap gallery
       $$('.modal-main-img', modalGallery).forEach(img => img.style.display = 'none');
       modalGallery.querySelector(`img[data-idx="${idx}"]`).style.display = '';
     });
@@ -1319,12 +1301,11 @@ function openProductModal(productId) {
 
   modalTitle.textContent = p.title;
   modalPrice.textContent = formatPrice(p.price);
-  modalDesc.textContent = p.description;
+  modalDesc.textContent = p.description || '';
   modalIdSpan.textContent = p.id;
 
-  // sizes
   modalSizeSelect.innerHTML = `<option value="">Select size</option>`;
-  p.sizes.forEach(s => {
+  (p.sizes || []).forEach(s => {
     const o = document.createElement('option');
     o.value = s;
     o.textContent = s;
@@ -1333,7 +1314,6 @@ function openProductModal(productId) {
 
   modalQty.value = 1;
 
-  // availability
   if (!p.available) {
     $('.availability', modal).textContent = 'Sold';
     $('#modal-add').disabled = true;
@@ -1363,7 +1343,6 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') closeProductModal();
 });
 
-/* Modal add to cart + buy now */
 $('#modal-add').addEventListener('click', () => {
   if (!modalCurrentProduct) return;
   const size = modalSizeSelect.value;
@@ -1376,19 +1355,17 @@ $('#modal-buy').addEventListener('click', () => {
   if (!modalCurrentProduct) return;
   const size = modalSizeSelect.value;
   if (!size) { toast('Please choose a size'); return; }
-  // temporarily ensure cart has only this item
   const single = { id: modalCurrentProduct.id, qty: Number(modalQty.value || 1), size };
   startCheckout([single]);
 });
 
-/* ========== CART ========== */
+/* ======================= CART ======================= */
 const cartPanel = $('#cart-panel');
 const cartBadge = $('#cart-badge');
 const cartContents = $('#cart-contents');
 const cartSubtotalEl = $('#cart-subtotal');
 
 function updateCartUI() {
-  // rebuild cart panel
   cartContents.innerHTML = '';
   if (cart.length === 0) {
     cartContents.innerHTML = `<div class="cart-empty">
@@ -1413,7 +1390,6 @@ function updateCartUI() {
     el.querySelector('.cart-item-qty').value = item.qty;
     el.querySelector('.item-price').textContent = formatPrice((prod.price || 0) * item.qty);
 
-    // qty change
     el.querySelector('.cart-item-qty').addEventListener('change', (e) => {
       const v = Number(e.target.value || 1);
       if (v < 1) e.target.value = 1;
@@ -1425,7 +1401,6 @@ function updateCartUI() {
       }
     });
 
-    // remove
     el.querySelector('.cart-item-remove').addEventListener('click', () => {
       removeFromCart(item.id);
       updateCartUI();
@@ -1434,7 +1409,6 @@ function updateCartUI() {
     cartContents.appendChild(el);
   });
 
-  // subtotal
   const subtotal = cart.reduce((s, it) => {
     const prod = products.find(p => p.id === it.id);
     return s + (prod ? prod.price * it.qty : 0);
@@ -1443,18 +1417,15 @@ function updateCartUI() {
 }
 
 function addToCart(productId, qty = 1, size = '') {
-  // ensure product exists and available
   const p = products.find(x => x.id === productId);
   if (!p || !p.available) {
     toast('Sorry — this dress is no longer available.');
     return;
   }
-  // ensure not already in cart (one-of-a-kind)
   if (cart.some(c => c.id === productId)) {
     toast('This dress is already in your cart.');
     return;
   }
-  // if size not provided and product has sizes, prompt user via modal
   if (!size && p.sizes && p.sizes.length) {
     openProductModal(productId);
     toast('Please choose a size.');
@@ -1465,7 +1436,6 @@ function addToCart(productId, qty = 1, size = '') {
   saveCart(cart);
   updateCartUI();
   toast('Added to cart');
-  // optionally open cart
   openCart();
 }
 
@@ -1475,12 +1445,10 @@ function removeFromCart(productId) {
   updateCartUI();
 }
 
-/* CART panel toggles */
 $('#cart-toggle').addEventListener('click', () => {
   const open = cartPanel.getAttribute('aria-hidden') === 'false';
   if (open) closeCart(); else openCart();
 });
-
 function openCart() {
   cartPanel.setAttribute('aria-hidden', 'false');
   cartPanel.classList.add('open');
@@ -1493,8 +1461,6 @@ function closeCart() {
 document.querySelectorAll('[data-action="close-cart"]').forEach(btn => {
   btn.addEventListener('click', closeCart);
 });
-
-/* Clear cart */
 $('#clear-cart').addEventListener('click', (e) => {
   e.preventDefault();
   cart = [];
@@ -1503,26 +1469,22 @@ $('#clear-cart').addEventListener('click', (e) => {
   toast('Cart cleared');
 });
 
-/* ========== CHECKOUT (Paystack frontend-only) ========== */
+/* ======================= CHECKOUT (Paystack) ======================= */
 $('#checkout-btn').addEventListener('click', (e) => {
   e.preventDefault();
   if (cart.length === 0) { toast('Your cart is empty'); return; }
   startCheckout(cart);
 });
 
-/* Prepare a simple checkout flow. `items` is an array of {id, qty, size} */
 function startCheckout(items) {
-  // basic buyer prompt for email (simplified)
   const buyerEmail = prompt('Enter buyer email for receipt and payment (required):');
   if (!buyerEmail || !buyerEmail.includes('@')) { toast('Valid email required'); return; }
 
-  // compute total
   const total = items.reduce((s, it) => {
     const p = products.find(pp => pp.id === it.id);
     return s + (p ? p.price * it.qty : 0);
   }, 0);
 
-  // guard: ensure items still available
   for (const it of items) {
     const p = products.find(pp => pp.id === it.id);
     if (!p || !p.available) {
@@ -1531,18 +1493,15 @@ function startCheckout(items) {
     }
   }
 
-  // Paystack inline flow
   if (!window.PaystackPop || !PAYSTACK_PUBLIC_KEY || PAYSTACK_PUBLIC_KEY === 'YOUR_PAYSTACK_PUBLIC_KEY_HERE') {
-    // fallback: simulate payment success (for dev) OR instruct to include key
     const proceed = confirm('Paystack is not configured. Click OK to simulate a successful payment (dev mode). Cancel to abort.');
     if (!proceed) return;
-    // simulate success:
     const fakeRef = 'SIM-' + Math.random().toString(36).slice(2, 10).toUpperCase();
     handleSuccessfulPayment(fakeRef, buyerEmail, items, total);
     return;
   }
 
-  const amountMinor = Math.round(total * 100); // multiply to smallest unit (adjust if needed)
+  const amountMinor = Math.round(total * 100);
   const handler = PaystackPop.setup({
     key: PAYSTACK_PUBLIC_KEY,
     email: buyerEmail,
@@ -1552,27 +1511,21 @@ function startCheckout(items) {
         { display_name: "Cart items", variable_name: "cart", value: JSON.stringify(items) }
       ]
     },
-    onClose: function() {
-      toast('Payment window closed');
-    },
+    onClose: function() { toast('Payment window closed'); },
     callback: function(response) {
-      // response.reference
       handleSuccessfulPayment(response.reference, buyerEmail, items, total);
     }
   });
   handler.openIframe();
 }
 
-
 function handleSuccessfulPayment(reference, buyerEmail, items, total) {
-  // mark items as sold
   items.forEach(it => {
     const prod = products.find(p => p.id === it.id);
     if (prod) prod.available = false;
   });
-  saveProducts(products);
+  localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(products));
 
-  // create order record
   const order = {
     reference,
     buyerEmail,
@@ -1583,22 +1536,19 @@ function handleSuccessfulPayment(reference, buyerEmail, items, total) {
   };
   pushOrder(order);
 
-  // remove purchased items from cart
   const purchasedIds = items.map(i => i.id);
   cart = cart.filter(c => !purchasedIds.includes(c.id));
   saveCart(cart);
 
-  // reflect changes in UI
   updateCartUI();
-  renderProductsBatch(true); // re-render grid (sold items removed)
+  renderProductsBatch(true);
   closeCart();
   closeProductModal();
 
   toast('Payment successful — thank you!');
-  // you might want to open admin.html or notify owner externally; admin will read orders from localStorage
 }
 
-/* ========== HERO SLIDESHOW ========== */
+/* ======================= HERO SLIDER ======================= */
 (function heroInit(){
   const slider = document.querySelector('.hero-slider');
   if (!slider) return;
@@ -1612,15 +1562,12 @@ function handleSuccessfulPayment(reference, buyerEmail, items, total) {
     slides.forEach(s => s.style.display = 'none');
     slides[i].style.display = '';
     slides[i].classList.add('active');
-    // dots
     dotsWrap.innerHTML = '';
     for (let d = 0; d < total; d++) {
       const b = document.createElement('button');
       b.className = 'dot' + (d === i ? ' active' : '');
       b.setAttribute('aria-label', `Go to slide ${d+1}`);
-      b.addEventListener('click', () => {
-        idx = d; resetTimer(); show(idx);
-      });
+      b.addEventListener('click', () => { idx = d; resetTimer(); show(idx); });
       dotsWrap.appendChild(b);
     }
   }
@@ -1637,7 +1584,7 @@ function handleSuccessfulPayment(reference, buyerEmail, items, total) {
   resetTimer();
 })();
 
-/* ========== MOBILE NAV / HAMBURGER ========== */
+/* ======================= MOBILE NAV ======================= */
 $('#mobile-toggle').addEventListener('click', () => {
   const mobileNav = $('#mobile-nav');
   const expanded = $('#mobile-toggle').getAttribute('aria-expanded') === 'true';
@@ -1650,32 +1597,19 @@ $('#mobile-toggle').addEventListener('click', () => {
     mobileNav.classList.add('open');
   }
 });
-
-/* Close mobile nav when clicking a link */
 $$('#mobile-nav a').forEach(a => a.addEventListener('click', () => {
   $('#mobile-toggle').setAttribute('aria-expanded','false');
   $('#mobile-nav').setAttribute('aria-hidden','true');
   $('#mobile-nav').classList.remove('open');
 }));
 
-/* ========== INIT ========== */
+/* ======================= INIT ======================= */
 function init() {
-  // year in footer
-  const y = new Date().getFullYear();
-  document.getElementById('year').textContent = y;
-
-  // initial render
-  // ensure products variable is in memory (loaded earlier)
-  saveProducts(products); // ensure persisted structure exists
+  document.getElementById('year').textContent = new Date().getFullYear();
   renderProductsBatch(true);
-
-  // cart UI
   updateCartUI();
-
-  // admin link: open in new tab
   document.querySelectorAll('a[href="admin.html"]').forEach(a => a.setAttribute('target','_blank'));
 
-  // contact form basic handler (no server: just toast)
   const contactForm = $('#contact-form');
   contactForm.addEventListener('submit', (e) => {
     e.preventDefault();
@@ -1683,7 +1617,6 @@ function init() {
     contactForm.reset();
   });
 
-  // newsletter
   $('#newsletter')?.addEventListener('submit', (e) => {
     e.preventDefault();
     const em = $('#newsletter input[type="email"]')?.value;
@@ -1694,9 +1627,14 @@ function init() {
 }
 document.addEventListener('DOMContentLoaded', init);
 
-
-
+/* ===================== ADMIN NOTE =====================
+   - Products are saved in localStorage under STORAGE_KEYS.PRODUCTS (tiny_products_v1).
+   - Orders saved under STORAGE_KEYS.ORDERS (tiny_orders_v1) for admin.html to read.
+   - Cart under STORAGE_KEYS.CART.
+   Admin.html can access these keys to build the dashboard (no backend required).
+   ===================================================== */
 </script>
+
 <script> 
 /* ensure main has top padding equal to header height */
 function syncHeaderSpacing(){
