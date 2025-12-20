@@ -479,6 +479,83 @@ body{
 .newsletter-form input{padding:8px;border-radius:10px;border:1px solid rgba(15,23,42,0.06);flex:1}
 .footer-bottom{display:flex;justify-content:space-between;align-items:center;padding-top:12px;border-top:1px dashed rgba(15,23,42,0.03);gap:8px}
 
+  /* ---------- Compact mobile header: only logo + cart + hamburger ---------- */
+@media (max-width: 720px) {
+
+  /* tighten header height and spacing */
+  .header-inner {
+    height: 60px;
+    padding: 6px 0;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* push logo to the left and icons to the right */
+  .header-inner { display:flex; align-items:center; justify-content:space-between; }
+
+  /* hide the desktop nav */
+  .main-nav { display: none !important; }
+
+  /* hide all header-actions children by default, show only cart & hamburger */
+  .header-actions > * { display: none !important; }
+  .header-actions { gap: 4px; }
+
+  /* show cart + mobile toggle */
+  .header-actions #cart-toggle,
+  .header-actions #mobile-toggle,
+  .header-actions .hamburger {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* make logo slightly smaller on phones */
+  .site-logo { height:40px; }
+
+  /* make the hamburger compact and visible */
+  .hamburger{
+    display:inline-flex !important;
+    padding:8px;
+    border-radius:10px;
+  }
+
+  /* ensure the mobile nav container is available but collapsed by max-height
+     (we override inline display:none if present) */
+  #mobile-nav { display: flex !important; }
+
+  /* keep mobile-nav closed by default (max-height 0). When JS adds "open" it reveals */
+  #mobile-nav { max-height: 0; overflow: hidden; transition: max-height 280ms ease; }
+  #mobile-nav.open { max-height: 420px; }
+
+  /* visually emphasize the cart icon */
+  #cart-toggle { background: rgba(255,255,255,0.95); border-radius:10px; padding:8px; box-shadow: 0 6px 18px rgba(12,18,28,0.06); }
+  #cart-toggle .badge { transform: translateY(-2px); }
+
+  /* Reduce hero caption size a little so it doesn't crowd */
+  .hero-caption { padding:12px; bottom:10px; left:10px; width:calc(100% - 20px); max-width:400px; }
+
+  /* hide search field & large CTAs on mobile; keep layout neat */
+  .search-wrap, .shop-controls .sort-wrap { display: none !important; }
+
+  /* hide secondary header icons (search, etc.) that might remain */
+  .icon-btn[aria-label="Search"], .header-actions .icon-btn:not(#cart-toggle) { display: none !important; }
+
+  /* make product grid comfortable on narrow phones */
+  .product-grid { gap:10px; grid-template-columns: 1fr; }
+
+  /* reduce hero min-height on very small screens */
+  .hero-slider { min-height: 220px; height: 45vh; }
+}
+
+/* optional: make the header compact also apply exactly at the breakpoint via a class
+   (JS will toggle the 'compact-header' class for better control) */
+.compact-header .main-nav { display: none !important; }
+.compact-header .header-actions > * { display: none !important; }
+.compact-header .header-actions #cart-toggle,
+.compact-header .header-actions #mobile-toggle,
+.compact-header .header-actions .hamburger { display:inline-flex !important; }
+.compact-header .site-logo { height:40px; }
+
 /* -------------------------
    TOAST
    -------------------------*/
@@ -1632,6 +1709,76 @@ function init() {
 document.addEventListener('DOMContentLoaded', init);
 
   
+</script>
+<script>
+(function(){
+  const MOBILE_BREAKPOINT = 720;
+
+  function applyCompactMode() {
+    if (window.innerWidth <= MOBILE_BREAKPOINT) {
+      document.body.classList.add('compact-header');
+      // ensure hamburger is visible (if HTML has inline style display:none)
+      const mobileToggle = document.getElementById('mobile-toggle');
+      if (mobileToggle) {
+        mobileToggle.style.display = 'inline-flex';
+        mobileToggle.setAttribute('aria-hidden', 'false');
+      }
+      // hide desktop nav role from assistive tech
+      const mainNav = document.querySelector('.main-nav');
+      if (mainNav) mainNav.setAttribute('aria-hidden', 'true');
+    } else {
+      document.body.classList.remove('compact-header');
+      const mobileToggle = document.getElementById('mobile-toggle');
+      if (mobileToggle) {
+        mobileToggle.style.display = '';
+        mobileToggle.setAttribute('aria-hidden', 'true');
+      }
+      const mainNav = document.querySelector('.main-nav');
+      if (mainNav) mainNav.setAttribute('aria-hidden', 'false');
+      // ensure mobile nav closed when switching to desktop
+      const mobileNav = document.getElementById('mobile-nav');
+      if (mobileNav) {
+        mobileNav.classList.remove('open');
+        mobileNav.setAttribute('aria-hidden', 'true');
+        document.getElementById('mobile-toggle')?.setAttribute('aria-expanded', 'false');
+      }
+    }
+  }
+
+  // run on load
+  applyCompactMode();
+  // run on resize (debounced)
+  let rTO;
+  window.addEventListener('resize', () => {
+    clearTimeout(rTO);
+    rTO = setTimeout(applyCompactMode, 120);
+  });
+
+  // keep existing mobile-toggle click handler but guard if missing
+  const mobileToggle = document.getElementById('mobile-toggle');
+  if (mobileToggle) {
+    mobileToggle.addEventListener('click', (ev) => {
+      const mobileNav = document.getElementById('mobile-nav');
+      if (!mobileNav) return;
+      const isOpen = mobileNav.classList.contains('open');
+      mobileNav.classList.toggle('open', !isOpen);
+      mobileNav.setAttribute('aria-hidden', isOpen ? 'true' : 'false');
+      mobileToggle.setAttribute('aria-expanded', (!isOpen).toString());
+    });
+  }
+
+  // small accessibility nicety: close mobile nav when clicking an item
+  document.querySelectorAll('#mobile-nav a').forEach(a => {
+    a.addEventListener('click', () => {
+      const mobileNav = document.getElementById('mobile-nav');
+      if (mobileNav) {
+        mobileNav.classList.remove('open');
+        mobileNav.setAttribute('aria-hidden', 'true');
+        mobileToggle?.setAttribute('aria-expanded', 'false');
+      }
+    });
+  });
+})();
 </script>
 
 
