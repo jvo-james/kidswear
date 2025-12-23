@@ -10,6 +10,7 @@
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-4Q5GR0GCN9"></script>
   <!-- Paystack inline -->
   <script src="https://js.paystack.co/v1/inline.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <!-- STYLE: full page styles (place inside <head> or a CSS file) -->
 <style>
 
@@ -479,6 +480,20 @@ body{
 .newsletter-form input{padding:8px;border-radius:10px;border:1px solid rgba(15,23,42,0.06);flex:1}
 .footer-bottom{display:flex;justify-content:space-between;align-items:center;padding-top:12px;border-top:1px dashed rgba(15,23,42,0.03);gap:8px}
 
+  /* Checkout modal specifics (stacked, polished) */
+.checkout-modal { display:flex; align-items:center; justify-content:center; }
+.checkout-modal .modal-inner { border-radius:18px; box-shadow:0 30px 60px rgba(10,20,30,0.22); }
+.checkout-modal .checkout-item { display:flex; gap:10px; align-items:center; padding:8px; border-radius:10px; background:linear-gradient(180deg,#fff,#fffefc); box-shadow:var(--shadow); }
+.checkout-modal .checkout-item img { width:64px; height:64px; object-fit:cover; border-radius:8px; }
+.checkout-modal .checkout-item .meta { display:flex; flex-direction:column; gap:4px; }
+.checkout-modal .checkout-item .meta .title { font-weight:800; }
+.checkout-modal .checkout-item .meta .sub { color:var(--muted); font-size:13px; }
+.checkout-modal .checkout-summary small { color:var(--muted); font-size:12px; }
+
+  /* Ensure buynow modal matches checkout modal style */
+#buynow-modal.checkout-modal .checkout-item { align-items:center; }
+#buynow-modal .modal-inner { max-width:980px; }
+
   /* ---------- Compact mobile header: only logo + cart + hamburger ---------- */
 @media (max-width: 720px) {
 
@@ -602,6 +617,10 @@ body{
   .header-inner{height:76px}
   .main-nav .nav-list{gap:18px}
 }
+.cart-item-title.clickable { cursor: pointer; display:inline-block; }
+.cart-item-title.clickable:hover { text-decoration: underline; color: var(--brand-1); }
+.cart-item-thumb { cursor: pointer; }
+.cart-item[role="group"]:focus { outline: none; box-shadow: var(--focus); border-radius: 10px; }
 
 @media (min-width:880px){
   .product-grid{grid-template-columns: repeat(3, 1fr)}
@@ -620,6 +639,19 @@ body{
 /* Accessibility focus states */
 a:focus, button:focus, input:focus, select:focus, textarea:focus{
   outline:none;box-shadow:var(--focus);
+}
+/* small header checkout button */
+.cart-header .checkout-header-btn {
+  padding: 8px 10px;
+  border-radius: 10px;
+  font-weight: 700;
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+}
+.cart-header .checkout-header-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 /* -------------------------
@@ -673,6 +705,50 @@ a:focus, button:focus, input:focus, select:focus, textarea:focus{
 }
 
 </style>
+  <style>
+    :root {
+  /* keep your fallback — JS will update this on load */
+  --header-space: 84px;
+}
+
+/* make header fixed at the top (replaces previous sticky behavior) */
+.site-header{
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 120; /* above most UI elements */
+  backdrop-filter: blur(6px);
+  background: linear-gradient(180deg, rgba(255,255,255,0.95), rgba(255,255,255,0.85));
+  border-bottom: 1px solid rgba(15,23,42,0.04);
+  box-shadow: 0 6px 18px rgba(18,24,36,0.03);
+}
+
+/* push page content below the fixed header */
+body {
+  /* keep the existing rules, but add this line: */
+  padding-top: var(--header-space);
+}
+
+/* cart panel should start below the header and span the rest of the viewport */
+.cart-panel{
+  position: fixed;
+  right: 0;
+  top: var(--header-space);                  /* start below header */
+  height: calc(100% - var(--header-space));  /* full height minus header */
+  width: 100%;
+  max-width: 420px;
+  background: linear-gradient(180deg,#fff,#fffefc);
+  box-shadow: -20px 0 60px rgba(10,20,30,0.16);
+  transform: translateX(110%);
+  transition: transform 260ms cubic-bezier(.2,.9,.2,1);
+  z-index: 110;
+  display: flex;
+  flex-direction: column;
+}
+.cart-panel.open{ transform: translateX(0); }
+
+  </style>
 </head>
 <body>
   <!-- SITE HEADER -->
@@ -936,10 +1012,16 @@ a:focus, button:focus, input:focus, select:focus, textarea:focus{
 
 <!-- CART PANEL (slide-out) -->
 <aside id="cart-panel" class="cart-panel" aria-hidden="true" role="region" aria-label="Shopping cart">
-  <div class="cart-header">
+ <div class="cart-header">
     <h3><i class="fa fa-shopping-cart"></i> Your Cart</h3>
-    <button class="cart-close icon-btn" aria-label="Close cart" data-action="close-cart"><i class="fa fa-times"></i></button>
+    <div class="cart-header-actions" style="display:flex;align-items:center;gap:8px">
+      <button id="cart-header-checkout" class="btn tiny checkout-header-btn" data-action="checkout" aria-label="Checkout" disabled>
+        <i class="fa fa-credit-card"></i> Checkout
+      </button>
+      <button class="cart-close icon-btn" aria-label="Close cart" data-action="close-cart"><i class="fa fa-times"></i></button>
+    </div>
   </div>
+
 
   <div id="cart-contents" class="cart-contents">
     <!-- JS will inject cart items here -->
@@ -1065,32 +1147,129 @@ a:focus, button:focus, input:focus, select:focus, textarea:focus{
     <li><a href="#">Privacy</a></li>
   </ul>
 </div>
-```
+
 
   </footer>
 
   <!-- TEMPLATES FOR CART ITEMS -->
 
-  <template id="cart-item-template">
-    <div class="cart-item" data-product-id="">
-      <img src="" alt="" class="cart-item-thumb" />
-      <div class="cart-item-info">
-        <strong class="cart-item-title"></strong>
-        <small class="cart-item-meta"></small>
-        <div class="cart-item-actions">
-          <input type="number" min="1" value="1" class="cart-item-qty" />
-          <button class="icon-btn cart-item-remove" aria-label="Remove item"><i class="fa fa-trash"></i></button>
+ <template id="cart-item-template">
+  <div class="cart-item" data-product-id="" tabindex="0" role="group" aria-label="Cart item">
+    <img src="" alt="" class="cart-item-thumb" />
+    <div class="cart-item-info">
+      <strong class="cart-item-title clickable"></strong>
+      <small class="cart-item-meta"></small>
+
+      <div class="cart-item-price-row" style="display:flex;gap:10px;align-items:center;margin:6px 0;">
+        <span class="unit-price" aria-hidden="true" style="font-size:0.95rem;color:var(--muted)"></span>
+        <span class="line-price" style="margin-left:auto;"><strong class="item-price"></strong></span>
+      </div>
+
+      <div class="cart-item-actions" style="display:flex;gap:8px;align-items:center;">
+        <input type="number" min="1" value="1" class="cart-item-qty" aria-label="Quantity" />
+        <button class="icon-btn cart-item-remove" aria-label="Remove item"><i class="fa fa-trash"></i></button>
+      </div>
+    </div>
+  </div>
+</template>
+
+  <!-- CHECKOUT MODAL -->
+<div id="checkout-modal" class="modal checkout-modal" role="dialog" aria-modal="true" aria-hidden="true" style="z-index:130;display:none;">
+  <div class="modal-inner" style="max-width:980px; padding:18px;">
+    <button class="modal-close" aria-label="Close checkout" data-action="close-checkout" style="right:16px;top:12px">
+      <i class="fa fa-times"></i>
+    </button>
+    <div style="display:grid;grid-template-columns:1fr 340px;gap:16px;">
+      <!-- LEFT: items list -->
+      <div style="padding:8px 6px; max-height:60vh; overflow:auto;">
+        <h2 style="margin:0 0 8px 0; font-size:1.1rem;"><i class="fa fa-receipt"></i> Order & items</h2>
+        <div id="checkout-items" aria-live="polite" style="display:flex;flex-direction:column;gap:10px;margin-top:10px;">
+          <!-- JS will inject item rows: thumbnail, title, size, qty, unit, line -->
         </div>
       </div>
-      <div class="cart-item-price"><strong class="item-price"></strong></div>
-    </div>
-  </template>
 
-<!-- SCRIPT: full interactive behaviour with an explicit `products` array of 50 items
-     Replace the PAYSTACK_PUBLIC_KEY with your real key. Delete your old <script> block
-     and paste this entire block in its place. This script WILL overwrite the products
-     data in localStorage with the explicit list below so the shop uses these 50 items.
--->
+      <!-- RIGHT: buyer details + summary -->
+      <aside style="padding:8px 12px; background:linear-gradient(180deg,#fff,#fffefc); border-radius:12px; box-shadow:var(--shadow);">
+        <h3 style="margin:0 0 8px 0;">Your details</h3>
+        <form id="checkout-form" novalidate>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <label class="sr-only" for="checkout-name">Full name</label>
+            <input id="checkout-name" name="name" type="text" placeholder="Full name" required style="padding:8px;border-radius:8px;border:1px solid rgba(15,23,42,0.06)" />
+
+            <label class="sr-only" for="checkout-email">Email</label>
+            <input id="checkout-email" name="email" type="email" placeholder="Email (for receipt)" required style="padding:8px;border-radius:8px;border:1px solid rgba(15,23,42,0.06)" />
+
+            <label class="sr-only" for="checkout-phone">Phone</label>
+            <input id="checkout-phone" name="phone" type="tel" placeholder="Phone number (WhatsApp preferred)" style="padding:8px;border-radius:8px;border:1px solid rgba(15,23,42,0.06)" />
+          </div>
+
+          <hr style="margin:12px 0;border:none;border-top:1px solid rgba(15,23,42,0.04)" />
+
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <div style="display:flex;justify-content:space-between"><span>Subtotal</span><strong id="checkout-subtotal">₵0.00</strong></div>
+            <div style="display:flex;justify-content:space-between"><span>Processing fee <small>(1.95% + 1%)</small></span><strong id="checkout-fee">₵0.00</strong></div>
+            <div style="display:flex;justify-content:space-between;font-size:1.05rem;margin-top:6px;"><span>Total</span><strong id="checkout-total">₵0.00</strong></div>
+          </div>
+
+          <div style="display:flex;gap:8px;margin-top:12px;">
+            <button id="checkout-pay" class="btn large" type="button"><i class="fa fa-credit-card"></i> Pay</button>
+            <button id="checkout-cancel" class="btn outline" type="button"><i class="fa fa-times"></i> Cancel</button>
+          </div>
+        </form>
+      </aside>
+    </div>
+  </div>
+</div>
+
+<!-- BUY NOW (single product) MODAL -->
+<div id="buynow-modal" class="modal checkout-modal" role="dialog" aria-modal="true" aria-hidden="true" style="z-index:130;display:none;">
+  <div class="modal-inner" style="max-width:980px; padding:18px;">
+    <button class="modal-close" aria-label="Close buy now" data-action="close-buynow" style="right:16px;top:12px">
+      <i class="fa fa-times"></i>
+    </button>
+    <div style="display:grid;grid-template-columns:1fr 340px;gap:16px;">
+      <!-- LEFT: single product preview -->
+      <div style="padding:8px 6px; max-height:60vh; overflow:auto;">
+        <h2 style="margin:0 0 8px 0; font-size:1.1rem;"><i class="fa fa-bolt"></i> Buy this item</h2>
+        <div id="buynow-item" aria-live="polite" style="display:flex;flex-direction:column;gap:10px;margin-top:10px;">
+          <!-- JS injects single item row (thumbnail, title, size, qty, price) -->
+        </div>
+      </div>
+
+      <!-- RIGHT: buyer details + summary -->
+      <aside style="padding:8px 12px; background:linear-gradient(180deg,#fff,#fffefc); border-radius:12px; box-shadow:var(--shadow);">
+        <h3 style="margin:0 0 8px 0;">Your details</h3>
+        <form id="buynow-form" novalidate>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <label class="sr-only" for="buynow-name">Full name</label>
+            <input id="buynow-name" name="name" type="text" placeholder="Full name" required style="padding:8px;border-radius:8px;border:1px solid rgba(15,23,42,0.06)" />
+
+            <label class="sr-only" for="buynow-email">Email</label>
+            <input id="buynow-email" name="email" type="email" placeholder="Email (for receipt)" required style="padding:8px;border-radius:8px;border:1px solid rgba(15,23,42,0.06)" />
+
+            <label class="sr-only" for="buynow-phone">Phone</label>
+            <input id="buynow-phone" name="phone" type="tel" placeholder="Phone number (WhatsApp preferred)" style="padding:8px;border-radius:8px;border:1px solid rgba(15,23,42,0.06)" />
+          </div>
+
+          <hr style="margin:12px 0;border:none;border-top:1px solid rgba(15,23,42,0.04)" />
+
+          <div style="display:flex;flex-direction:column;gap:6px;">
+           <div style="display:flex;justify-content:space-between"><span>Subtotal</span><strong id="buynow-subtotal">₵0.00</strong></div>
+            <div style="display:flex;justify-content:space-between"><span>Processing fee <small>(1.95% + 1%)</small></span><strong id="buynow-fee">₵0.00</strong></div>
+            <div style="display:flex;justify-content:space-between;font-size:1.05rem;margin-top:6px;"><span>Total</span><strong id="buynow-total">₵0.00</strong></div>
+          </div>
+
+          <div style="display:flex;gap:8px;margin-top:12px;">
+            <button id="buynow-pay" class="btn large" type="button"><i class="fa fa-credit-card"></i> Pay</button>
+            <button id="buynow-cancel" class="btn outline" type="button"><i class="fa fa-times"></i> Cancel</button>
+          </div>
+        </form>
+      </aside>
+    </div>
+  </div>
+</div>
+
+
 <script>
 /* ======================= CONFIG ======================= */
 const PAYSTACK_PUBLIC_KEY = 'YOUR_PAYSTACK_PUBLIC_KEY_HERE'; // <-- set this
@@ -1119,6 +1298,36 @@ function toast(msg, timeout = 2500) {
   }, timeout);
 }
 
+  function setProductButtonState(productId, inCart) {
+  // update product card button
+  const card = document.querySelector(`.product-card[data-product-id="${productId}"]`);
+  if (card) {
+    const addBtn = card.querySelector('[data-action="add-to-cart"]');
+    if (addBtn) {
+      if (inCart) {
+        addBtn.innerHTML = '<i class="fa fa-times-circle"></i> Remove';
+        addBtn.classList.add('in-cart');
+        addBtn.setAttribute('aria-pressed', 'true');
+      } else {
+        addBtn.innerHTML = '<i class="fa fa-shopping-cart"></i> Add';
+        addBtn.classList.remove('in-cart');
+        addBtn.setAttribute('aria-pressed', 'false');
+      }
+    }
+  }
+
+  // update modal button if modal open for this product
+  const modalAddBtn = document.getElementById('modal-add');
+  if (modalAddBtn && modalCurrentProduct && modalCurrentProduct.id === productId) {
+    if (inCart) {
+      modalAddBtn.innerHTML = '<i class="fa fa-times-circle"></i> Remove from cart';
+      modalAddBtn.dataset.state = 'remove';
+    } else {
+      modalAddBtn.innerHTML = '<i class="fa fa-shopping-cart"></i> Add to cart';
+      modalAddBtn.dataset.state = 'add';
+    }
+  }
+}
 
 const products = [
   { id: "DRESS-001", title: "Floral Ruffles", price: 40.00, description: "One-of-a-kind floral ruffle dress", sizes: ["4","5"], ageCategory: "4-5", images: ["IMG_5700.JPG","IMG_5700.JPG"], available: true, createdAt: new Date(Date.now()-1*86400000).toISOString() },
@@ -1224,10 +1433,29 @@ function createProductCard(product) {
     addBtn.textContent = 'Sold';
   }
 
+   const inCart = cart.some(c => c.id === product.id);
+  setProductButtonState(product.id, inCart);
+
+  // toggle add/remove from the product card
   addBtn.addEventListener('click', (e) => {
     e.preventDefault();
-    addToCart(product.id);
+    const nowInCart = cart.some(c => c.id === product.id);
+    if (nowInCart) {
+      // remove
+      removeFromCart(product.id);
+      setProductButtonState(product.id, false);
+      toast('Removed from cart');
+    } else {
+      // open modal to select size if needed, or add directly for products with no sizes
+      if (product.sizes && product.sizes.length) {
+        openProductModal(product.id);
+      } else {
+        addToCart(product.id, 1, '');
+      }
+      setProductButtonState(product.id, true);
+    }
   });
+ 
   moreBtn.addEventListener('click', (e) => {
     e.preventDefault();
     openProductModal(product.id);
@@ -1291,8 +1519,10 @@ function renderProductsBatch(reset = false) {
   }
 
   batch.forEach(p => {
-    const node = createProductCard(p);
+   const node = createProductCard(p);
     productGrid.appendChild(node);
+    // ensure button state matches cart on initial render
+    setProductButtonState(p.id, cart.some(c => c.id === p.id));
   });
 
   currentBatchIndex++;
@@ -1412,6 +1642,7 @@ function openProductModal(productId) {
 function closeProductModal() {
   modal.setAttribute('aria-hidden', 'true');
   modal.classList.remove('open');
+  clearModalEditState();
   modalCurrentProduct = null;
 }
 
@@ -1427,8 +1658,37 @@ document.addEventListener('keydown', (e) => {
 $('#modal-add').addEventListener('click', () => {
   if (!modalCurrentProduct) return;
   const size = modalSizeSelect.value;
-  if (!size) { toast('Please choose a size'); return; }
-  addToCart(modalCurrentProduct.id, Number(modalQty.value || 1), size);
+  const qty = Number(modalQty.value || 1);
+
+  const modalEl = document.getElementById('product-modal');
+  const editId = modalEl && modalEl.getAttribute('data-edit-cart-id');
+
+  // If modal is opened as an "edit from cart" flow, preserve update behavior
+  if (editId) {
+    if (!size) { toast('Please choose a size'); return; }
+    updateCartItem(editId, qty, size);
+    clearModalEditState();
+    closeProductModal();
+    return;
+  }
+
+  // If the product is already in the cart (not edit mode), treat as Remove
+  const alreadyInCart = cart.some(c => c.id === modalCurrentProduct.id);
+  if (alreadyInCart) {
+    removeFromCart(modalCurrentProduct.id);
+    clearModalEditState();
+    closeProductModal();
+    toast('Removed from cart');
+    return;
+  }
+
+  // Otherwise normal add flow
+  if (!size && modalCurrentProduct.sizes && modalCurrentProduct.sizes.length) {
+    toast('Please choose a size');
+    return;
+  }
+  addToCart(modalCurrentProduct.id, qty, size);
+  clearModalEditState();
   closeProductModal();
 });
 
@@ -1437,7 +1697,7 @@ $('#modal-buy').addEventListener('click', () => {
   const size = modalSizeSelect.value;
   if (!size) { toast('Please choose a size'); return; }
   const single = { id: modalCurrentProduct.id, qty: Number(modalQty.value || 1), size };
-  startCheckout([single]);
+  startCheckout([single]); // opens checkout modal for this single product
 });
 
 /* ======================= CART ======================= */
@@ -1446,12 +1706,54 @@ const cartBadge = $('#cart-badge');
 const cartContents = $('#cart-contents');
 const cartSubtotalEl = $('#cart-subtotal');
 
+/* ======= Enhanced updateCartUI + cart → modal edit support ======= */
+function openProductModalFromCart(productId, cartItem) {
+  // Reuse your existing openProductModal but also pre-fill size/qty and
+  // set modal into 'edit' mode so "Add to cart" updates existing cart entry.
+  openProductModal(productId);
+  // Mark the modal as editing a cart-item (so the Add button will Update instead of Add)
+  const modalEl = document.getElementById('product-modal');
+  modalEl.setAttribute('data-edit-cart-id', productId);
+
+  // set modal fields to cart values after a small timeout (modal DOM built in openProductModal)
+  setTimeout(() => {
+    // Set size and qty from the cart item (if present)
+    if (cartItem && cartItem.size) {
+      const sizeOpt = Array.from(modalSizeSelect.options).find(o => o.value === cartItem.size);
+      if (sizeOpt) modalSizeSelect.value = cartItem.size;
+    }
+    if (cartItem && cartItem.qty) modalQty.value = Number(cartItem.qty);
+    // change add button label visually to indicate update
+    const modalAddBtn = document.getElementById('modal-add');
+    if (modalAddBtn) modalAddBtn.innerHTML = '<i class="fa fa-save"></i> Update cart';
+  }, 40);
+}
+
+function clearModalEditState() {
+  const modalEl = document.getElementById('product-modal');
+  if (!modalEl) return;
+  modalEl.removeAttribute('data-edit-cart-id');
+  const modalAddBtn = document.getElementById('modal-add');
+  if (modalAddBtn) modalAddBtn.innerHTML = '<i class="fa fa-shopping-cart"></i> Add to cart';
+}
+
+function updateCartItem(productId, qty = 1, size = '') {
+  const idx = cart.findIndex(c => c.id === productId);
+  if (idx === -1) return toast('Item not in cart');
+  cart[idx].qty = Math.max(1, Number(qty));
+  if (size) cart[idx].size = size;
+  saveCart(cart);
+  updateCartUI();
+  toast('Cart updated');
+}
+
 function updateCartUI() {
   cartContents.innerHTML = '';
   if (cart.length === 0) {
     cartContents.innerHTML = `<div class="cart-empty">
       <i class="fa fa-box-open fa-3x"></i>
       <p>Your cart is empty. Add a dress you love!</p>
+      <div style="margin-top:10px"><a href="#shop" class="btn">Continue shopping</a></div>
     </div>`;
     cartBadge.textContent = 0;
     cartSubtotalEl.textContent = '₵0.00';
@@ -1465,24 +1767,52 @@ function updateCartUI() {
     const tpl = $('#cart-item-template').content.cloneNode(true);
     const el = tpl.querySelector('.cart-item');
     el.dataset.productId = item.id;
-    el.querySelector('.cart-item-thumb').src = (prod.images && prod.images[0]) || '';
-    el.querySelector('.cart-item-title').textContent = prod.title || item.id;
+
+    const thumb = el.querySelector('.cart-item-thumb');
+    thumb.src = (prod.images && prod.images[0]) || '';
+    thumb.alt = prod.title || item.id;
+
+    const titleEl = el.querySelector('.cart-item-title');
+    titleEl.textContent = prod.title || item.id;
+
     el.querySelector('.cart-item-meta').textContent = `${item.size || ''} • ${prod.id || ''}`;
+
+    const unitPriceEl = el.querySelector('.unit-price');
+    unitPriceEl.textContent = `Unit: ${formatPrice(prod.price || 0)}`;
+
     el.querySelector('.cart-item-qty').value = item.qty;
     el.querySelector('.item-price').textContent = formatPrice((prod.price || 0) * item.qty);
 
+    // clicking thumbnail or title opens the product modal in "edit" mode
+    const openFromCart = () => openProductModalFromCart(item.id, item);
+    thumb.addEventListener('click', (e) => { e.preventDefault(); openFromCart(); });
+    titleEl.addEventListener('click', (e) => { e.preventDefault(); openFromCart(); });
+
+    // keyboard friendly (Enter to open)
+    el.addEventListener('keydown', (ev) => {
+      if (ev.key === 'Enter') openFromCart();
+    });
+
     el.querySelector('.cart-item-qty').addEventListener('change', (e) => {
-      const v = Number(e.target.value || 1);
-      if (v < 1) e.target.value = 1;
+      let v = Number(e.target.value || 1);
+      if (v < 1) { v = 1; e.target.value = 1; }
       const idx = cart.findIndex(c => c.id === item.id);
       if (idx >= 0) {
-        cart[idx].qty = Number(e.target.value);
+        cart[idx].qty = v;
         saveCart(cart);
-        updateCartUI();
+        // update line price quickly without re-rendering whole cart
+        el.querySelector('.item-price').textContent = formatPrice((prod.price || 0) * v);
+        // update subtotal
+        const subtotal = cart.reduce((s, it) => {
+          const p = products.find(pp => pp.id === it.id);
+          return s + (p ? p.price * it.qty : 0);
+        }, 0);
+        cartSubtotalEl.textContent = formatPrice(subtotal);
       }
     });
 
-    el.querySelector('.cart-item-remove').addEventListener('click', () => {
+    el.querySelector('.cart-item-remove').addEventListener('click', (ev) => {
+      ev.preventDefault();
       removeFromCart(item.id);
       updateCartUI();
     });
@@ -1490,12 +1820,21 @@ function updateCartUI() {
     cartContents.appendChild(el);
   });
 
+  // subtotal calculation (same as before)
   const subtotal = cart.reduce((s, it) => {
     const prod = products.find(p => p.id === it.id);
     return s + (prod ? prod.price * it.qty : 0);
   }, 0);
   cartSubtotalEl.textContent = formatPrice(subtotal);
+
+  // enable/disable the header & footer checkout buttons depending on cart content
+  const headerBtn = $('#cart-header-checkout');
+  const footerBtn = $('#checkout-btn');
+  const disabled = cart.length === 0;
+  if (headerBtn) headerBtn.disabled = disabled;
+  if (footerBtn) footerBtn.disabled = disabled;
 }
+
 
 function addToCart(productId, qty = 1, size = '') {
   const p = products.find(x => x.id === productId);
@@ -1504,7 +1843,7 @@ function addToCart(productId, qty = 1, size = '') {
     return;
   }
   if (cart.some(c => c.id === productId)) {
-    toast('This dress is already in your cart.');
+    // already in cart — ignore (UI toggles removal elsewhere)
     return;
   }
   if (!size && p.sizes && p.sizes.length) {
@@ -1516,6 +1855,7 @@ function addToCart(productId, qty = 1, size = '') {
   cart.push(item);
   saveCart(cart);
   updateCartUI();
+  setProductButtonState(productId, true);
   toast('Added to cart');
   openCart();
 }
@@ -1524,6 +1864,7 @@ function removeFromCart(productId) {
   cart = cart.filter(c => c.id !== productId);
   saveCart(cart);
   updateCartUI();
+  setProductButtonState(productId, false);
 }
 
 $('#cart-toggle').addEventListener('click', () => {
@@ -1550,7 +1891,19 @@ $('#clear-cart').addEventListener('click', (e) => {
   toast('Cart cleared');
 });
 
-/* ======================= CHECKOUT (Paystack) ======================= */
+
+
+  // header checkout button (duplicate behavior for convenience)
+const headerCheckoutBtn = $('#cart-header-checkout');
+if (headerCheckoutBtn) {
+  headerCheckoutBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (cart.length === 0) { toast('Your cart is empty'); return; }
+    startCheckout(cart);
+  });
+}
+
+/* ======================= CHECKOUT: open modal & process payment ======================= */
 $('#checkout-btn').addEventListener('click', (e) => {
   e.preventDefault();
   if (cart.length === 0) { toast('Your cart is empty'); return; }
@@ -1558,14 +1911,12 @@ $('#checkout-btn').addEventListener('click', (e) => {
 });
 
 function startCheckout(items) {
-  const buyerEmail = prompt('Enter buyer email for receipt and payment (required):');
-  if (!buyerEmail || !buyerEmail.includes('@')) { toast('Valid email required'); return; }
+  // open styled checkout modal populated with items
+  openCheckoutModal(items);
+}
 
-  const total = items.reduce((s, it) => {
-    const p = products.find(pp => pp.id === it.id);
-    return s + (p ? p.price * it.qty : 0);
-  }, 0);
-
+function openCheckoutModal(items) {
+  // ensure items array is valid and items available
   for (const it of items) {
     const p = products.find(pp => pp.id === it.id);
     if (!p || !p.available) {
@@ -1574,44 +1925,159 @@ function startCheckout(items) {
     }
   }
 
+  const modalEl = document.getElementById('checkout-modal');
+  const itemsWrap = document.getElementById('checkout-items');
+  const subtotalEl = document.getElementById('checkout-subtotal');
+  const feeEl = document.getElementById('checkout-fee');
+  const totalEl = document.getElementById('checkout-total');
+
+ if (!modalEl || !itemsWrap) return;
+  itemsWrap.innerHTML = '';
+
+  const enriched = items.map(it => {
+    const p = products.find(pp => pp.id === it.id) || {};
+    const unit = p.price || 0;
+    const qty = Number(it.qty || 1);
+    const line = unit * qty;
+    return {
+      id: it.id,
+      title: p.title || it.id,
+     image: (p.images && p.images[0]) || '',
+      size: it.size || '',
+      qty,
+      unit,
+      line
+    };
+  });
+
+  const subtotal = enriched.reduce((s, x) => s + x.line, 0);
+  // processing fee = 1.95% + 1% of subtotal -> combined 2.95% (0.0295)
+  const fee = +(subtotal * 0.0295).toFixed(2);
+  const total = +(subtotal + fee).toFixed(2);
+
+  enriched.forEach(it => {
+   const row = document.createElement('div');
+    row.className = 'checkout-item';
+    row.innerHTML = `
+      <img src="${it.image}" alt="${it.title}" />
+      <div class="meta">
+        <div class="title">${it.title}</div>
+        <div class="sub">${it.size ? `Size: ${it.size} • ` : ''}Qty: ${it.qty}</div>
+      </div>
+      <div style="margin-left:auto;text-align:right;">
+        <div style="font-weight:800">${formatPrice(it.unit)}</div>
+        <div style="color:var(--muted)">${formatPrice(it.line)}</div>
+      </div>
+    `;
+    itemsWrap.appendChild(row);
+  });
+
+  subtotalEl.textContent = formatPrice(subtotal);
+  feeEl.textContent = formatPrice(fee);
+  totalEl.textContent = formatPrice(total);
+
+  // show modal and wire buttons (Pay / Cancel)
+  modalEl.setAttribute('aria-hidden', 'false');
+  modalEl.classList.add('open');
+  modalEl.style.display = 'flex';
+
+  // store the items snapshot (we'll read them when the user pays)
+  modalEl._checkoutItems = enriched;
+  modalEl._checkoutSubtotal = subtotal;
+  modalEl._checkoutFee = fee;
+  modalEl._checkoutTotal = total;
+
+  // populate email if we have one from previous flows
+  const emailInput = document.getElementById('checkout-email');
+  if (emailInput && window.__lastBuyerEmail) emailInput.value = window.__lastBuyerEmail;
+
+  // wire buttons
+  document.getElementById('checkout-cancel').onclick = () => closeCheckoutModal();
+  document.querySelector('#checkout-modal .modal-close')?.addEventListener('click', closeCheckoutModal);
+  document.getElementById('checkout-pay').onclick = () => processCheckoutPayment();
+}
+
+function closeCheckoutModal() {
+  const modalEl = document.getElementById('checkout-modal');
+  if (!modalEl) return;
+  modalEl.setAttribute('aria-hidden', 'true');
+  modalEl.classList.remove('open');
+  modalEl.style.display = 'none';
+}
+
+function processCheckoutPayment() {
+  const modalEl = document.getElementById('checkout-modal');
+  if (!modalEl) return;
+  const form = document.getElementById('checkout-form');
+  const name = (document.getElementById('checkout-name')?.value || '').trim();
+  const email = (document.getElementById('checkout-email')?.value || '').trim();
+  const phone = (document.getElementById('checkout-phone')?.value || '').trim();
+
+  if (!email || !email.includes('@')) { toast('Please provide a valid email'); return; }
+  if (!name) { toast('Please provide your full name'); return; }
+
+  const items = modalEl._checkoutItems || [];
+  const subtotal = modalEl._checkoutSubtotal || 0;
+  const fee = modalEl._checkoutFee || 0;
+  const total = modalEl._checkoutTotal || subtotal + fee;
+
+  // keep buyer email for future convenience
+  window.__lastBuyerEmail = email;
+
+  // Validate availability before charging
+  for (const it of items) {
+    const prod = products.find(p => p.id === it.id);
+    if (!prod || !prod.available) { toast(`${it.id} is no longer available`); return; }
+  }
+
   if (!window.PaystackPop || !PAYSTACK_PUBLIC_KEY || PAYSTACK_PUBLIC_KEY === 'YOUR_PAYSTACK_PUBLIC_KEY_HERE') {
-    const proceed = confirm('Paystack is not configured. Click OK to simulate a successful payment (dev mode). Cancel to abort.');
+    const proceed = confirm(`Paystack not configured. Simulate payment of ${formatPrice(total)}?`);
     if (!proceed) return;
     const fakeRef = 'SIM-' + Math.random().toString(36).slice(2, 10).toUpperCase();
-    handleSuccessfulPayment(fakeRef, buyerEmail, items, total);
-    return;
-  }
+    // call the shared success handler (include buyer details)
+    handleSuccessfulPayment(fakeRef, email, items.map(it => ({ id: it.id, qty: it.qty, size: it.size })), total, { name, phone });
+   closeCheckoutModal();
+   return;
+ }
 
   const amountMinor = Math.round(total * 100);
   const handler = PaystackPop.setup({
     key: PAYSTACK_PUBLIC_KEY,
-    email: buyerEmail,
+    email,
     amount: amountMinor,
     metadata: {
       custom_fields: [
+        { display_name: "Buyer name", variable_name: "buyer_name", value: name },
+        { display_name: "Phone", variable_name: "phone", value: phone },
         { display_name: "Cart items", variable_name: "cart", value: JSON.stringify(items) }
       ]
     },
     onClose: function() { toast('Payment window closed'); },
     callback: function(response) {
-      handleSuccessfulPayment(response.reference, buyerEmail, items, total);
+      handleSuccessfulPayment(response.reference, email, items.map(it => ({ id: it.id, qty: it.qty, size: it.size })), total, { name, phone });
+      closeCheckoutModal();
     }
   });
   handler.openIframe();
 }
 
-function handleSuccessfulPayment(reference, buyerEmail, items, total) {
+ function handleSuccessfulPayment(reference, buyerEmail, items, total, buyerDetails = {}) {
+  // mark purchased products as unavailable
   items.forEach(it => {
     const prod = products.find(p => p.id === it.id);
     if (prod) prod.available = false;
   });
   localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(products));
 
+   // compute processing fee (if not already provided)
+  const processingFee = (order && order.processingFee) ? order.processingFee : undefined;
   const order = {
     reference,
     buyerEmail,
+    buyerDetails,      // { name, phone } if provided
     items,
     total,
+    processingFee,
     paidAt: nowISO(),
     status: 'paid'
   };
@@ -1627,8 +2093,333 @@ function handleSuccessfulPayment(reference, buyerEmail, items, total) {
   closeProductModal();
 
   toast('Payment successful — thank you!');
+    // generate invoice PDF (open in new tab & download)
+  try {
+   generateInvoicePDF(order).catch(err => {
+      console.error('Invoice generation failed', err);
+      toast('Payment recorded — invoice generation failed (see console).');
+    });
+  } catch (e) {
+    console.error(e);
+  }
+ }
+
+/* =======================
+   INVOICE / PDF GENERATION (jsPDF)
+   ======================= */
+async function fetchImageAsDataURL(url) {
+  if (!url) return null;
+  try {
+    // try to fetch the resource and convert to base64 data URL
+    const res = await fetch(url, {cache: "no-cache"});
+    if (!res.ok) return null;
+    const blob = await res.blob();
+    return await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);+    });
+  } catch (err) {
+    // could be CORS or not found — skip image
+    return null;
+  }
 }
 
+async function generateInvoicePDF(order) {
+  // order: { reference, buyerEmail, buyerDetails, items, total, paidAt }
+  if (!order) throw new Error('Order missing');
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+  const left = 40;
+  let y = 40;
+  const lineHeight = 18;
+  const pageWidth = doc.internal.pageSize.getWidth();
+
+  // Try to load logo first (logo.jpg) — fallback to text header
+ let logoData = null;
+  try { logoData = await fetchImageAsDataURL('logo.jpg'); } catch(e){ logoData = null; }
+
+  // Header: logo + shop name + invoice title
+  if (logoData) {
+    // limit logo width to 120pt
+    doc.addImage(logoData, 'JPEG', left, y, 120, 48);
+  }
+  doc.setFontSize(16);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Tiny Threads', left + (logoData ? 140 : 0), y + 18);
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+  doc.text('One-of-a-kind kids dresses', left + (logoData ? 140 : 0), y + 36);
+
+  // Invoice meta (ref, date, email)
+  const metaX = pageWidth - 260;
+  doc.setFontSize(12);
+  doc.setFont('helvetica', 'bold');
+  doc.text('INVOICE', metaX, y + 18);
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+  doc.text(`Ref: ${order.reference}`, metaX, y + 36);
+  doc.text(`Date: ${new Date(order.paidAt).toLocaleString()}`, metaX, y + 36 + lineHeight);
+  doc.text(`Email: ${order.buyerEmail}`, metaX, y + 36 + (lineHeight*2));
+
+  y += 80;
+
+  // Buyer details
+  doc.setFontSize(11);
+  doc.setFont('helvetica', 'bold');
+  doc.text('BILL TO', left, y);
+  doc.setFont('helvetica', 'normal');
+  const buyerName = (order.buyerDetails && order.buyerDetails.name) ? order.buyerDetails.name : '';
+  const buyerPhone = (order.buyerDetails && order.buyerDetails.phone) ? order.buyerDetails.phone : '';
+  doc.text(buyerName || '---', left, y + lineHeight);
+  doc.text(`${order.buyerEmail || '---'}` , left, y + lineHeight*2);
+  if (buyerPhone) doc.text(buyerPhone, left, y + lineHeight*3);
+
+  y += 18 * 4;
+
+  // Items header
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(11);
+  doc.text('Item', left, y);
+  doc.text('Details', left + 160, y);
+  doc.text('Qty', pageWidth - 160, y);
+  doc.text('Unit', pageWidth - 100, y);
+  doc.text('Total', pageWidth - 40, y);
+  y += lineHeight;
+  doc.setDrawColor(220);
+  doc.line(left, y - 8, pageWidth - left, y - 8);
+  y += 6;
+  doc.setFont('helvetica', 'normal');
+
+  // Add each item with thumbnail on the left if available
+  for (const it of order.items) {
+    // Get product data (title, img, price)
+    const prod = products.find(p => p.id === it.id) || {};
+    let imgData = null;
+    try { imgData = await fetchImageAsDataURL(prod.images && prod.images[0]); } catch(e) { imgData = null; }
+
+    // If not enough space on page, add new page
+    if (y > doc.internal.pageSize.getHeight() - 140) {
+      doc.addPage();
+      y = 40;
+    }
+
+    const imgX = left;
+    const imgW = 56;
+    const imgH = 56;
+    if (imgData) {
+      try { doc.addImage(imgData, 'JPEG', imgX, y - 6, imgW, imgH); } catch(e){ /* ignore image errors */ }
+    } else {
+      // draw placeholder box
+      doc.setDrawColor(200);
+      doc.rect(imgX, y - 6, imgW, imgH);
+    }
+
+    // details next to image
+    const detailsX = imgX + imgW + 10;
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.text(prod.title || it.id, detailsX, y + 6);
+    doc.setFont('helvetica', 'normal');
+    const subLine = `${it.size ? 'Size: ' + it.size + ' • ' : ''}ID: ${it.id}`;
+    doc.text(subLine, detailsX, y + 6 + lineHeight);
+
+    // qty / price / line
+    const qtyX = pageWidth - 160;
+    doc.text(String(it.qty), qtyX, y + 6);
+    doc.text(formatPrice(prod.price || 0), pageWidth - 100, y + 6);
+    const lineTotal = (prod.price || 0) * it.qty;
+    doc.text(formatPrice(lineTotal), pageWidth - 40, y + 6, { align: 'right' });
+
+    y += imgH + 8;
+  }
+
+  // Totals area (bottom right)
+  const totalsY = Math.max(y + 6, doc.internal.pageSize.getHeight() - 160);
+  doc.setDrawColor(220);
+  doc.line(left, totalsY - 8, pageWidth - left, totalsY - 8);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Subtotal', pageWidth - 160, totalsY + 6);
+  doc.text(formatPrice(order.total - (order.processingFee || 0) ), pageWidth - 40, totalsY + 6, { align: 'right' });
+  doc.setFont('helvetica', 'normal');
+  // if we stored processing fee on order include it, otherwise compute approx
+  const fee = (order.processingFee !== undefined) ? order.processingFee : +( (order.total * 0.0295).toFixed(2) );
+  doc.text('Processing fee', pageWidth - 160, totalsY + 6 + lineHeight);
+  doc.text(formatPrice(fee), pageWidth - 40, totalsY + 6 + lineHeight, { align: 'right' });
+  doc.setFont('helvetica', 'bold');
+  doc.text('Total', pageWidth - 160, totalsY + 6 + (lineHeight * 2));
+  doc.text(formatPrice(order.total), pageWidth - 40, totalsY + 6 + (lineHeight * 2), { align: 'right' });
+
+  // Footer
+  const footerY = doc.internal.pageSize.getHeight() - 40;
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+  doc.text('Thank you for shopping with Tiny Threads — contact: hello@tinythreads.example', left, footerY);
+
+  // Create blob & open in new tab + trigger download
+  try {
+    const pdfBlob = doc.output('blob');
+    const objUrl = URL.createObjectURL(pdfBlob);
+    window.open(objUrl, '_blank');
+    // trigger download
+    const a = document.createElement('a');
+    a.href = objUrl;
+    a.download = `Invoice-${order.reference}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    // revoke after a short delay
+    setTimeout(() => URL.revokeObjectURL(objUrl), 60000);
+  } catch (err) {
+    // fallback: save directly (some browsers may block open)
+    doc.save(`Invoice-${order.reference}.pdf`);
+  }
+  return Promise.resolve();
+}
+
+  /* ==========================
+   BUY NOW: single-product checkout modal (behaves like Checkout modal)
+   ========================== */
+function openBuyNowModal(singleItem) {
+  // singleItem: { id, qty, size }
+  const p = products.find(pp => pp.id === singleItem.id);
+  if (!p || !p.available) { toast('This item is no longer available'); return; }
+
+  const modalEl = document.getElementById('buynow-modal');
+  const wrap = document.getElementById('buynow-item');
+  const subtotalEl = document.getElementById('buynow-subtotal');
+const feeEl = document.getElementById('buynow-fee');
+  const totalEl = document.getElementById('buynow-total');
+  if (!modalEl || !wrap) return;
+  wrap.innerHTML = '';
+
+  const unit = p.price || 0;
+  const qty = Number(singleItem.qty || 1);
+  const line = +(unit * qty).toFixed(2);
+  const subtotal = line;
+  const fee = +(subtotal * 0.0295).toFixed(2);
+  const total = +(subtotal + fee).toFixed(2);
+
+  // create item row visually similar to checkout item layout
+  const row = document.createElement('div');
+  row.className = 'checkout-item';
+  row.innerHTML = `
+    <img src="${(p.images && p.images[0]) || ''}" alt="${p.title}" />
+    <div class="meta">
+      <div class="title">${p.title}</div>
+      <div class="sub">${singleItem.size ? 'Size: ' + singleItem.size + ' • ' : ''}Qty: ${qty}</div>
+    </div>
+    <div style="margin-left:auto;text-align:right;">
+      <div style="font-weight:800">${formatPrice(unit)}</div>
+      <div style="color:var(--muted)">${formatPrice(line)}</div>
+    </div>
+  `;
+  wrap.appendChild(row);
+
+  subtotalEl.textContent = formatPrice(subtotal);
+  feeEl.textContent = formatPrice(fee);
+  totalEl.textContent = formatPrice(total);
+
+  // show modal
+  modalEl.setAttribute('aria-hidden', 'false');
+  modalEl.classList.add('open');
+  modalEl.style.display = 'flex';
+
+  // store snapshot on modal for processing
+  modalEl._buynowItem = { id: singleItem.id, qty, size: singleItem.size, unit, line };
+  modalEl._buynowSubtotal = subtotal;
+  modalEl._buynowFee = fee;
+  modalEl._buynowTotal = total;
+
+  // populate any known email/name
+  if (window.__lastBuyerEmail) document.getElementById('buynow-email').value = window.__lastBuyerEmail;
+  if (window.__lastBuyerName) document.getElementById('buynow-name').value = window.__lastBuyerName;
+
+  // wire buttons
+  document.getElementById('buynow-cancel').onclick = () => closeBuyNowModal();
+  document.querySelector('#buynow-modal .modal-close')?.addEventListener('click', closeBuyNowModal);
+  document.getElementById('buynow-pay').onclick = () => processBuyNowPayment();
+}
+
+function closeBuyNowModal() {
+  const modalEl = document.getElementById('buynow-modal');
+  if (!modalEl) return;
+  modalEl.setAttribute('aria-hidden', 'true');
+  modalEl.classList.remove('open');
+  modalEl.style.display = 'none';
+}
+
+function processBuyNowPayment() {
+  const modalEl = document.getElementById('buynow-modal');
+  if (!modalEl) return;
+  const name = (document.getElementById('buynow-name')?.value || '').trim();
+  const email = (document.getElementById('buynow-email')?.value || '').trim();
+  const phone = (document.getElementById('buynow-phone')?.value || '').trim();
+
+  if (!email || !email.includes('@')) { toast('Please provide a valid email'); return; }
+  if (!name) { toast('Please provide your full name'); return; }
+
+  const item = modalEl._buynowItem;
+  if (!item) { toast('No item to purchase'); return; }
+
+  const items = [{ id: item.id, qty: item.qty, size: item.size }];
+  const subtotal = modalEl._buynowSubtotal || 0;
+  const fee = modalEl._buynowFee || 0;
+  const total = modalEl._buynowTotal || subtotal + fee;
+
+  // Save last buyer info
+  window.__lastBuyerEmail = email;
+  window.__lastBuyerName = name;
+
+  // Validate availability
+  const prod = products.find(p => p.id === item.id);
+  if (!prod || !prod.available) { toast('This item is no longer available'); return; }
+
+  if (!window.PaystackPop || !PAYSTACK_PUBLIC_KEY || PAYSTACK_PUBLIC_KEY === 'YOUR_PAYSTACK_PUBLIC_KEY_HERE') {
+    const proceed = confirm(`Paystack not configured. Simulate payment of ${formatPrice(total)}?`);
+    if (!proceed) return;
+    const fakeRef = 'SIM-' + Math.random().toString(36).slice(2, 10).toUpperCase();
+    handleSuccessfulPayment(fakeRef, email, items, total, { name, phone });
+    closeBuyNowModal();+    return;
+  }
+
+  const amountMinor = Math.round(total * 100);
+  const handler = PaystackPop.setup({
+    key: PAYSTACK_PUBLIC_KEY,
+    email,
+    amount: amountMinor,
+    metadata: {
+      custom_fields: [
+        { display_name: "Buyer name", variable_name: "buyer_name", value: name },
+        { display_name: "Phone", variable_name: "phone", value: phone },
+        { display_name: "Item", variable_name: "item", value: JSON.stringify(items[0]) }
+      ]
+    },
+    onClose: function() { toast('Payment window closed'); },
+    callback: function(response) {
+      handleSuccessfulPayment(response.reference, email, items, total, { name, phone });
+      closeBuyNowModal();
+    }
+  });
+  handler.openIframe();
+}
+
+// Wire product modal "Buy now" button to open this modal for the current product
+$('#modal-buy').addEventListener('click', () => {
+  if (!modalCurrentProduct) return;
+  const size = modalSizeSelect.value;
+  if (!size) { toast('Please choose a size'); return; }
+  const single = { id: modalCurrentProduct.id, qty: Number(modalQty.value || 1), size };
+  openBuyNowModal(single);
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    closeBuyNowModal();
+  }
+});
+
+
+  
 /* ======================= HERO SLIDER ======================= */
 (function heroInit(){
   const slider = document.querySelector('.hero-slider');
@@ -1781,6 +2572,29 @@ document.addEventListener('DOMContentLoaded', init);
 })();
 </script>
 
+<script>
+/* Keep CSS --header-space synced with the real header height so cart and body offset are correct */
+function syncHeaderSpace() {
+  const header = document.querySelector('.site-header');
+  if (!header) return;
+  const h = header.offsetHeight || 0;
+  // set css variable on :root so CSS uses it
+  document.documentElement.style.setProperty('--header-space', h + 'px');
+}
+
+/* call on load and on resize (debounced) */
+document.addEventListener('DOMContentLoaded', () => {
+  syncHeaderSpace();
+  // small delay to catch fonts/images that may change header height
+  setTimeout(syncHeaderSpace, 120);
+});
+
+let __headerResizeTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(__headerResizeTimer);
+  __headerResizeTimer = setTimeout(syncHeaderSpace, 120);
+});
+</script>
 
 
 </body>
