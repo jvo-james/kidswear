@@ -2118,7 +2118,8 @@ async function fetchImageAsDataURL(url) {
       const reader = new FileReader();
       reader.onloadend = () => resolve(reader.result);
       reader.onerror = reject;
-      reader.readAsDataURL(blob);+    });
+      reader.readAsDataURL(blob);
+    });
   } catch (err) {
     // could be CORS or not found — skip image
     return null;
@@ -2380,7 +2381,8 @@ function processBuyNowPayment() {
     if (!proceed) return;
     const fakeRef = 'SIM-' + Math.random().toString(36).slice(2, 10).toUpperCase();
     handleSuccessfulPayment(fakeRef, email, items, total, { name, phone });
-    closeBuyNowModal();+    return;
+    closeBuyNowModal();
+    return;
   }
 
   const amountMinor = Math.round(total * 100);
