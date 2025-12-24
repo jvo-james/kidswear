@@ -7,7 +7,32 @@
 
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<!-- Firebase (compat) - add this near the top of <head> BEFORE your app script -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 
+<script>
+// ---------- REPLACE with your Firebase config (copy from Firebase console) ----------
+const FIREBASE_CONFIG = {
+apiKey: "AIzaSyDkMmXNchhrC_Mfhwvqy7iSGOl-MABroJw",
+authDomain: "kidswear-ad8ca.firebaseapp.com",
+databaseURL: "https://kidswear-ad8ca-default-rtdb.firebaseio.com",
+projectId: "kidswear-ad8ca",
+storageBucket: "kidswear-ad8ca.firebasestorage.app",
+messagingSenderId: "784273336752",
+appId: "1:784273336752:web:fc82385f63b3ef50d74e75",
+measurementId: "G-32FT2N7BGG"
+};
+if (!window.firebase || !firebase.apps) {
+console.error('Firebase SDK load issue?');
+}
+if (!firebase.apps.length) {
+firebase.initializeApp(FIREBASE_CONFIG);
+}
+const db = firebase.database();
+const auth = firebase.auth();
+</script>
   <style>
     :root{
       --bg: #fffaf6;
@@ -60,11 +85,27 @@
         </div>
       </div>
 
-      <div class="actions">
-        <button id="export-btn" class="btn outline tiny" title="Export products to JSON"><i class="fa fa-download"></i> Export</button>
-        <button id="import-btn" class="btn tiny" title="Import from JSON (paste)"><i class="fa fa-upload"></i> Import</button>
-        <button id="new-btn" class="btn tiny" title="Add new product"><i class="fa fa-plus"></i> New product</button>
-      </div>
+     <div class="actions">
+  <button id="export-btn" class="btn outline tiny" title="Export products to JSON"><i class="fa fa-download"></i> Export</button>
+  <button id="import-btn" class="btn tiny" title="Import from JSON (paste)"><i class="fa fa-upload"></i> Import</button>
+  <button id="new-btn" class="btn tiny" title="Add new product"><i class="fa fa-plus"></i> New product</button>
+
+  <!-- Admin sign-in (UI) -->
+  <button id="show-login" class="btn outline tiny" title="Admin sign in"><i class="fa fa-user-lock"></i> Sign in</button>
+</div>
+
+<!-- Login modal (hidden by default) -->
+<div id="login-modal" style="display:none;padding:12px;background:#fff;border-radius:10px;box-shadow:var(--shadow);position:fixed;right:18px;top:72px;z-index:999;">
+  <h4 style="margin:0 0 6px 0">Admin sign-in</h4>
+  <input id="login-email" type="email" placeholder="email" style="display:block;margin-bottom:8px;padding:8px;border-radius:8px;border:1px solid #ddd" />
+  <input id="login-pass" type="password" placeholder="password" style="display:block;margin-bottom:8px;padding:8px;border-radius:8px;border:1px solid #ddd" />
+  <div style="display:flex;gap:8px">
+    <button id="login-btn" class="btn tiny">Sign in</button>
+    <button id="logout-btn" class="btn outline tiny" style="display:none">Sign out</button>
+  </div>
+  <small id="login-status" style="display:block;margin-top:8px;color:var(--muted)"></small>
+</div>
+
     </header>
 
     <div class="grid">
@@ -171,19 +212,14 @@
   </div>
 
 <script>
-/* Admin tool for managing tiny_products_v1 */
-const STORAGE_KEY = 'tiny_products_v1';
-const LAST_UPDATE_KEY = 'tiny_products_v1_last_update';
+/* Admin tool for managing tiny_products_v1 — Firebase-backed version */
+const STORAGE_KEY = 'tiny_products_v1'; // legacy fallback key (still used for export)
+const LAST_UPDATE_KEY = 'tiny_products_v1_last_update'; // local fallback (not primary)
 
+/* Short helpers */
 const $ = (sel, el=document) => el.querySelector(sel);
 const $$ = (sel, el=document) => Array.from(el.querySelectorAll(sel));
-
-let products = [];
-
-/* ---------- Utilities ---------- */
-function uid(prefix='P') {
-  return prefix + '-' + Math.random().toString(36).slice(2,9).toUpperCase();
-}
+function uid(prefix='P') { return prefix + '-' + Math.random().toString(36).slice(2,9).toUpperCase(); }
 function formatPrice(p){ return '₵' + Number(p||0).toFixed(2); }
 function nowISO(){ return new Date().toISOString(); }
 function toast(msg, t=2200){
@@ -203,27 +239,53 @@ function toast(msg, t=2200){
   setTimeout(()=> d.remove(), t);
 }
 
-/* ---------- Persistence ---------- */
-function loadProductsFromStorage(){
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return [];
-    return parsed;
-  } catch(e) {
-    console.error('Failed to parse products', e);
-    return [];
-  }
-}
-function saveProductsToStorage(arr){
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
-  // write a timestamp so other tabs can detect a change
-  localStorage.setItem(LAST_UPDATE_KEY, new Date().toISOString());
-  toast('Products saved to localStorage');
+/* ---------- DB helpers ---------- */
+/* Convert DB object {id:product,...} -> array */
+function dbObjToArray(obj) {
+  if (!obj) return [];
+  return Object.keys(obj).map(k => obj[k]);
 }
 
-/* ---------- Rendering ---------- */
+/* Load products once (useful on fresh load) */
+function loadProductsFromDBOnce(){
+  return db.ref('/products').once('value').then(snap => {
+    const val = snap.val();
+    return dbObjToArray(val);
+  }).catch(err => {
+    console.error('DB read failed', err);
+    return [];
+  });
+}
+
+/* Save array -> DB (stores as object keyed by id) */
+function saveProductsToDB(arr){
+  const obj = {};
+  arr.forEach(p => { obj[p.id] = p; });
+  return db.ref('/products').set(obj).then(() => {
+    // also update a local marker for compatibility with local-storage watchers if needed
+    try { localStorage.setItem(LAST_UPDATE_KEY, new Date().toISOString()); } catch(e){}
+    toast('Published to Firebase');
+  });
+}
+
+/* Attach realtime listener so UI updates when DB changes */
+let dbListenerAttached = false;
+function attachRealtimeListener() {
+  if (dbListenerAttached) return;
+  db.ref('/products').on('value', (snap) => {
+    const val = snap.val();
+    products = dbObjToArray(val);
+    renderProducts($('#search').value, $('#filter-availability').value);
+    console.log('Admin UI updated from DB — products:', products.length);
+  }, (err) => {
+    console.error('Realtime listener error', err);
+  });
+  dbListenerAttached = true;
+}
+
+/* ---------- Render / UI ---------- */
+let products = [];
+
 const tbody = $('#products-tbody');
 const emptyEl = $('#empty');
 
@@ -340,17 +402,6 @@ function renderImagesPreview(){
   });
 }
 
-/* read files and convert to data URLs */
-imagesInput.addEventListener('change', async (e) => {
-  const files = Array.from(e.target.files || []);
-  for (const f of files) {
-    const data = await fileToDataURL(f);
-    if (data) stagingImages.push(data);
-  }
-  renderImagesPreview();
-  imagesInput.value = '';
-});
-
 /* file -> dataURL */
 function fileToDataURL(file){
   return new Promise((resolve) => {
@@ -361,7 +412,18 @@ function fileToDataURL(file){
   });
 }
 
-/* form submit save */
+/* when images chosen */
+imagesInput.addEventListener('change', async (e) => {
+  const files = Array.from(e.target.files || []);
+  for (const f of files) {
+    const data = await fileToDataURL(f);
+    if (data) stagingImages.push(data);
+  }
+  renderImagesPreview();
+  imagesInput.value = '';
+});
+
+/* form submit save (local array) */
 form.addEventListener('submit', (ev) => {
   ev.preventDefault();
   const id = idInput.value || uid('DRESS');
@@ -391,34 +453,34 @@ form.addEventListener('submit', (ev) => {
 
   if (existingIdx === -1) {
     products.unshift(newProduct); // newest first
-    toast('Product created');
+    toast('Product created (local)');
   } else {
     products[existingIdx] = newProduct;
-    toast('Product updated');
+    toast('Product updated (local)');
   }
 
   renderProducts($('#search').value, $('#filter-availability').value);
   resetForm();
 });
 
-/* delete product */
+/* delete product local only until "Apply" is pressed */
 function deleteProduct(id){
   if (!confirm('Delete this product? This cannot be undone.')) return;
   products = products.filter(p => p.id !== id);
   renderProducts($('#search').value, $('#filter-availability').value);
-  toast('Product deleted');
+  toast('Product deleted (local)');
 }
 
-/* toggle availability */
+/* toggle availability local */
 function toggleAvailability(id){
   const idx = products.findIndex(p => p.id === id);
   if (idx === -1) return;
   products[idx].available = !products[idx].available;
   renderProducts($('#search').value, $('#filter-availability').value);
-  toast(`Availability: ${products[idx].available ? 'Available' : 'Unavailable'}`);
+  toast(`Availability: ${products[idx].available ? 'Available' : 'Unavailable'} (local)`);
 }
 
-/* ---------- Tools: import / export / clear / apply ---------- */
+/* ---------- Tools: export / import / apply / reload / clear ---------- */
 $('#export-btn').addEventListener('click', () => {
   const data = JSON.stringify(products, null, 2);
   const blob = new Blob([data], {type: 'application/json'});
@@ -439,39 +501,52 @@ $('#import-btn').addEventListener('click', async () => {
   try {
     const parsed = JSON.parse(txt);
     if (!Array.isArray(parsed)) { toast('Expected an array of products'); return; }
-    // simple validation: ensure each item has id/title/price
     const invalid = parsed.find(p => !p.id || !p.title || (p.price === undefined));
     if (invalid) { toast('One or more items missing id/title/price'); return; }
     products = parsed.slice();
     renderProducts();
-    toast('Imported products (not yet published). Click Apply to write to storage.');
+    toast('Imported products (local). Click Apply to publish to Firebase.');
   } catch(e) {
     console.error(e);
     toast('Invalid JSON');
   }
 });
 
-$('#apply-btn').addEventListener('click', () => {
-  // write to storage and notify
-  saveProductsToStorage(products);
-  toast('Published. Reload store to see changes (index.html).');
+$('#apply-btn').addEventListener('click', async () => {
+  // ensure user is signed in (DB rules also enforce this)
+  const user = auth.currentUser;
+  if (!user) {
+    toast('Please sign in as admin before publishing');
+    return;
+  }
+  try {
+    await saveProductsToDB(products);
+    toast('Published successfully.');
+  } catch (err) {
+    console.error(err);
+    toast('Publish failed — see console.');
+  }
 });
 
-$('#reload-btn').addEventListener('click', () => {
-  products = loadProductsFromStorage();
-  renderProducts($('#search').value, $('#filter-availability').value);
-  resetForm();
-  toast('Reloaded from storage');
+$('#reload-btn').addEventListener('click', async () => {
+  // reload from DB
+  try {
+    products = await loadProductsFromDBOnce();
+    renderProducts($('#search').value, $('#filter-availability').value);
+    resetForm();
+    toast('Reloaded from Firebase');
+  } catch (e) {
+    console.error(e);
+    toast('Reload failed');
+  }
 });
 
 $('#clear-storage-btn').addEventListener('click', () => {
-  if (!confirm('Clear all stored products? This will remove the products key from localStorage.')) return;
-  localStorage.removeItem(STORAGE_KEY);
-  localStorage.setItem(LAST_UPDATE_KEY, new Date().toISOString());
+  if (!confirm('Clear all stored products locally? This removes products only from this admin UI (not from DB).')) return;
   products = [];
   renderProducts();
   resetForm();
-  toast('Storage cleared');
+  toast('Cleared local product list (use Apply to push empty list to DB).');
 });
 
 /* new product button */
@@ -491,23 +566,92 @@ $('#filter-availability').addEventListener('change', (e) => {
 /* reset button */
 $('#reset-btn').addEventListener('click', (e) => { e.preventDefault(); resetForm(); });
 
-/* listen for external storage changes (other tab) and reload */
-window.addEventListener('storage', (ev) => {
-  if (ev.key === LAST_UPDATE_KEY) {
-    // another tab published changes — reload after a small delay
-    setTimeout(() => {
-      products = loadProductsFromStorage();
-      renderProducts($('#search').value, $('#filter-availability').value);
-      toast('Products updated from another tab');
-    }, 150);
+/* ---------- Auth UI & logic ---------- */
+const showLoginBtn = $('#show-login');
+const loginModal = $('#login-modal');
+const loginBtn = $('#login-btn');
+const logoutBtn = $('#logout-btn');
+const loginEmail = $('#login-email');
+const loginPass = $('#login-pass');
+const loginStatus = $('#login-status');
+const applyBtn = $('#apply-btn');
+
+showLoginBtn.addEventListener('click', () => {
+  loginModal.style.display = loginModal.style.display === 'none' ? 'block' : 'none';
+});
+
+loginBtn.addEventListener('click', async () => {
+  const email = loginEmail.value.trim();
+  const pass = loginPass.value;
+  if (!email || !pass) { toast('Provide email and password'); return; }
+  try {
+    const res = await auth.signInWithEmailAndPassword(email, pass);
+    loginStatus.textContent = `Signed in: ${res.user.email}`;
+    loginBtn.style.display = 'none';
+    logoutBtn.style.display = '';
+    loginModal.style.display = 'none';
+    // enable apply button
+    applyBtn.disabled = false;
+    // attach realtime listener
+    attachRealtimeListener();
+    // load once to populate (realtime will also update)
+    products = await loadProductsFromDBOnce();
+    renderProducts();
+    toast('Signed in');
+  } catch (err) {
+    console.error(err);
+    loginStatus.textContent = 'Sign-in failed';
+    toast('Sign-in failed (check credentials)');
   }
 });
 
-/* initialize */
+logoutBtn.addEventListener('click', async () => {
+  await auth.signOut();
+  loginStatus.textContent = 'Signed out';
+  loginBtn.style.display = '';
+  logoutBtn.style.display = 'none';
+  applyBtn.disabled = true;
+  toast('Signed out');
+});
+
+/* React to auth state changes (useful if already signed in) */
+auth.onAuthStateChanged(async (user) => {
+  if (user) {
+    loginStatus.textContent = `Signed in: ${user.email} (${user.uid})`;
+    loginBtn.style.display = 'none';
+    logoutBtn.style.display = '';
+    applyBtn.disabled = false;
+    // attach listener and load products
+    attachRealtimeListener();
+    products = await loadProductsFromDBOnce();
+    renderProducts();
+  } else {
+    loginStatus.textContent = 'Not signed in';
+    loginBtn.style.display = '';
+    logoutBtn.style.display = 'none';
+    applyBtn.disabled = true;
+  }
+});
+
+/* ---------- Realtime DB change reaction across tabs (optional) ---------- */
+/* Use DB listener (above) to update UI on changes made by others.
+   Older code used localStorage events — we rely on DB instead. */
+
+/* ---------- Initialize ---------- */
 (function init(){
-  products = loadProductsFromStorage();
-  renderProducts();
+  // start with Apply disabled until the admin signs in (DB rules require auth for writes)
+  try { applyBtn.disabled = true; } catch(e){}
+  // Attach the realtime listener only after sign-in or if public reads are ok; we'll attach when auth fires
+  // But we can also attach here to show products even without sign-in (read is allowed by our rules)
+  attachRealtimeListener();
+
+  // initial load (reads are allowed if DB.rules permit)
+  loadProductsFromDBOnce().then(arr => {
+    products = arr;
+    renderProducts();
+  }).catch(err => console.error(err));
 })();
 </script>
+
 </body>
 </html>
