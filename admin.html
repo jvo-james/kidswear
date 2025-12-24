@@ -7,32 +7,12 @@
 
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<!-- Firebase (compat) - add this near the top of <head> BEFORE your app script -->
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 
-<script>
-// ---------- REPLACE with your Firebase config (copy from Firebase console) ----------
-const FIREBASE_CONFIG = {
-apiKey: "AIzaSyDkMmXNchhrC_Mfhwvqy7iSGOl-MABroJw",
-authDomain: "kidswear-ad8ca.firebaseapp.com",
-databaseURL: "https://kidswear-ad8ca-default-rtdb.firebaseio.com",
-projectId: "kidswear-ad8ca",
-storageBucket: "kidswear-ad8ca.firebasestorage.app",
-messagingSenderId: "784273336752",
-appId: "1:784273336752:web:fc82385f63b3ef50d74e75",
-measurementId: "G-32FT2N7BGG"
-};
-if (!window.firebase || !firebase.apps) {
-console.error('Firebase SDK load issue?');
-}
-if (!firebase.apps.length) {
-firebase.initializeApp(FIREBASE_CONFIG);
-}
-const db = firebase.database();
-const auth = firebase.auth();
-</script>
+  <!-- Firebase (compat) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
   <style>
     :root{
       --bg: #fffaf6;
@@ -42,6 +22,8 @@ const auth = firebase.auth();
       --shadow: 0 10px 30px rgba(16,24,40,0.06);
       --radius: 12px;
       --max-width: 1100px;
+      --success: #10b981;
+      --danger: #ff6b6b;
     }
     html,body{height:100%;margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial;background:linear-gradient(180deg,#fffaf6, #fff7f0);color:#0f172a}
     .container{width:92%;max-width:var(--max-width);margin:26px auto}
@@ -52,99 +34,121 @@ const auth = firebase.auth();
     .btn{background:linear-gradient(90deg,var(--accent), #ffd166);border:0;padding:8px 12px;border-radius:10px;color:white;font-weight:700;cursor:pointer;box-shadow:var(--shadow)}
     .btn.outline{background:transparent;border:1px solid rgba(15,23,42,0.06);color:var(--muted);font-weight:700}
     .panel{background:var(--card);padding:14px;border-radius:var(--radius);box-shadow:var(--shadow)}
-    .grid{display:grid;grid-template-columns:1fr 360px;gap:14px}
+    .grid{display:grid;grid-template-columns:1fr 420px;gap:14px}
     .toolbar{display:flex;gap:8px;align-items:center;margin-bottom:12px}
     .search{padding:8px;border-radius:8px;border:1px solid rgba(15,23,42,0.06);min-width:220px}
     table{width:100%;border-collapse:collapse;font-size:0.95rem}
     thead th{text-align:left;padding:10px 8px;border-bottom:1px solid rgba(15,23,42,0.05);font-weight:700}
     tbody td{padding:10px 8px;border-bottom:1px dashed rgba(15,23,42,0.03);vertical-align:middle}
-    .thumb{width:64px;height:48px;object-fit:cover;border-radius:8px}
+    .thumb{width:72px;height:52px;object-fit:cover;border-radius:8px}
     .tiny{padding:6px 8px;border-radius:8px;font-weight:700}
     .muted{color:var(--muted)}
     .form-row{margin-bottom:8px}
     label{display:block;font-weight:700;margin-bottom:6px;font-size:0.85rem}
     input[type="text"], input[type="number"], textarea, select{width:100%;padding:8px;border-radius:8px;border:1px solid rgba(15,23,42,0.06)}
-    textarea{min-height:110px;resize:vertical}
+    textarea{min-height:90px;resize:vertical}
     .images-preview{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
     .images-preview .img-wrap{position:relative}
     .images-preview img{width:84px;height:64px;object-fit:cover;border-radius:8px}
     .img-remove{position:absolute;right:4px;top:4px;background:rgba(0,0,0,0.6);color:white;border-radius:999px;padding:4px;font-size:12px;border:0;cursor:pointer}
     footer{margin-top:18px;text-align:center;color:var(--muted);font-size:0.9rem}
     .empty{padding:28px;text-align:center;color:var(--muted)}
-    @media (max-width:980px){ .grid{grid-template-columns:1fr} .actions {flex-direction:row-reverse} }
+    .tabs{display:flex;gap:8px;margin-bottom:12px}
+    .tab{padding:8px 12px;border-radius:10px;background:linear-gradient(180deg,#fff,#fffefc);cursor:pointer}
+    .tab.active{box-shadow:var(--shadow);font-weight:800;background:linear-gradient(90deg,var(--accent),#ffd166);color:#fff}
+    .orders-table td{font-size:0.92rem}
+    .status-pill{padding:6px 8px;border-radius:999px;font-weight:700;font-size:0.85rem}
+    .status-paid{background:var(--success);color:#fff}
+    .status-pending{background:#ffd166;color:#000}
+    .signin-wrap{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(8,15,24,0.45);z-index:9999}
+    .signin-card{width:360px;background:white;border-radius:12px;padding:18px;box-shadow:0 30px 60px rgba(10,20,30,0.3)}
+    .small{font-size:0.9rem;color:var(--muted)}
+    @media (max-width:980px){ .grid{grid-template-columns:1fr} .actions {flex-direction:row-reverse} .signin-card{width:92%} }
   </style>
 </head>
 <body>
-  <div class="container">
+  <div class="container" id="app" aria-live="polite">
     <header>
       <div class="brand">
         <a href="index.html" class="btn outline" target="_blank" title="Open store (index.html)"><i class="fa fa-store"></i> Open Store</a>
         <div>
           <h1>Tiny Threads — Admin</h1>
-          <div class="muted">Manage products, images and availability (changes write to localStorage)</div>
+          <div class="muted small">Manage products & view orders. Changes publish to Firebase and will appear on index.html in realtime.</div>
         </div>
       </div>
 
-     <div class="actions">
-  <button id="export-btn" class="btn outline tiny" title="Export products to JSON"><i class="fa fa-download"></i> Export</button>
-  <button id="import-btn" class="btn tiny" title="Import from JSON (paste)"><i class="fa fa-upload"></i> Import</button>
-  <button id="new-btn" class="btn tiny" title="Add new product"><i class="fa fa-plus"></i> New product</button>
-
-  <!-- Admin sign-in (UI) -->
-  <button id="show-login" class="btn outline tiny" title="Admin sign in"><i class="fa fa-user-lock"></i> Sign in</button>
-</div>
-
-<!-- Login modal (hidden by default) -->
-<div id="login-modal" style="display:none;padding:12px;background:#fff;border-radius:10px;box-shadow:var(--shadow);position:fixed;right:18px;top:72px;z-index:999;">
-  <h4 style="margin:0 0 6px 0">Admin sign-in</h4>
-  <input id="login-email" type="email" placeholder="email" style="display:block;margin-bottom:8px;padding:8px;border-radius:8px;border:1px solid #ddd" />
-  <input id="login-pass" type="password" placeholder="password" style="display:block;margin-bottom:8px;padding:8px;border-radius:8px;border:1px solid #ddd" />
-  <div style="display:flex;gap:8px">
-    <button id="login-btn" class="btn tiny">Sign in</button>
-    <button id="logout-btn" class="btn outline tiny" style="display:none">Sign out</button>
-  </div>
-  <small id="login-status" style="display:block;margin-top:8px;color:var(--muted)"></small>
-</div>
-
+      <div class="actions" id="actions">
+        <button id="seed-btn" class="btn tiny" title="Write sample 50 products to /products"><i class="fa fa-bolt"></i> Seed DB</button>
+        <button id="export-btn" class="btn outline tiny" title="Export products"><i class="fa fa-download"></i> Export</button>
+        <button id="import-btn" class="btn tiny" title="Import products"><i class="fa fa-upload"></i> Import</button>
+        <button id="apply-btn" class="btn tiny" title="Publish changes to Firebase"><i class="fa fa-check"></i> Apply / Publish</button>
+        <button id="reload-btn" class="btn outline tiny" title="Reload from Firebase"><i class="fa fa-sync"></i> Reload</button>
+        <button id="signout-btn" class="btn outline tiny" title="Sign out" style="display:none"><i class="fa fa-sign-out-alt"></i> Sign out</button>
+      </div>
     </header>
 
     <div class="grid">
-      <!-- LEFT: product list -->
+      <!-- LEFT: products & orders -->
       <section class="panel">
-        <div class="toolbar">
-          <input id="search" class="search" placeholder="Search by id, title or description..." />
-          <select id="filter-availability" style="padding:8px;border-radius:8px;border:1px solid rgba(15,23,42,0.06)">
-            <option value="">All availability</option>
-            <option value="available">Available</option>
-            <option value="sold">Sold / Unavailable</option>
-          </select>
-          <div style="margin-left:auto" class="muted">Storage key: <strong>tiny_products_v1</strong></div>
+        <div class="tabs" role="tablist" aria-label="Admin tabs">
+          <div class="tab active" data-tab="products">Products</div>
+          <div class="tab" data-tab="orders">Products bought (Orders)</div>
         </div>
 
-        <div id="list-wrap">
-          <table id="products-table" aria-live="polite">
-            <thead>
-              <tr>
-                <th>Preview</th>
-                <th>Title & ID</th>
-                <th>Price</th>
-                <th>Sizes</th>
-                <th>Category</th>
-                <th>Created</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="products-tbody">
-              <!-- populated by JS -->
-            </tbody>
-          </table>
-          <div id="empty" class="empty" style="display:none">
-            No products found. Use <strong>New product</strong> to add, or <strong>Import</strong> JSON.
+        <div id="tab-products">
+          <div class="toolbar">
+            <input id="search" class="search" placeholder="Search by id, title or description..." />
+            <select id="filter-availability" style="padding:8px;border-radius:8px;border:1px solid rgba(15,23,42,0.06)">
+              <option value="">All availability</option>
+              <option value="available">Available</option>
+              <option value="sold">Sold / Unavailable</option>
+            </select>
+            <div style="margin-left:auto" class="muted small">Storage key: <strong>products (Firebase)</strong></div>
+          </div>
+
+          <div id="list-wrap">
+            <table id="products-table" aria-live="polite">
+              <thead>
+                <tr>
+                  <th>Preview</th>
+                  <th>Title & ID</th>
+                  <th>Price</th>
+                  <th>Sizes</th>
+                  <th>Category</th>
+                  <th>Created</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="products-tbody"></tbody>
+            </table>
+            <div id="empty" class="empty" style="display:none">No products found. Use <strong>Seed DB</strong> or <strong>Import</strong>.</div>
+          </div>
+        </div>
+
+        <div id="tab-orders" style="display:none">
+          <div class="toolbar" style="align-items:flex-start">
+            <div class="small muted">Orders read from <code>/orders</code></div>
+            <div style="margin-left:auto;display:flex;gap:8px">
+              <button id="refresh-orders" class="btn tiny outline">Refresh</button>
+              <button id="clear-orders" class="btn outline tiny" title="(admin only) Clear local orders view">Clear</button>
+            </div>
+          </div>
+
+          <div style="overflow:auto;max-height:540px">
+            <table class="orders-table" style="width:100%">
+              <thead>
+                <tr>
+                  <th>Ref</th><th>Buyer</th><th>Items</th><th>Total</th><th>Date</th><th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="orders-tbody"></tbody>
+            </table>
+            <div id="orders-empty" class="empty" style="display:none">No orders found.</div>
           </div>
         </div>
       </section>
 
-      <!-- RIGHT: product form / tools -->
+      <!-- RIGHT: product form -->
       <aside class="panel">
         <h3 id="form-title">Create product</h3>
 
@@ -198,148 +202,264 @@ const auth = firebase.auth();
         <hr style="margin:12px 0;border:none;border-top:1px solid rgba(15,23,42,0.06)" />
 
         <div style="display:flex;gap:8px;flex-direction:column">
-          <button id="apply-btn" class="btn" title="Write products to localStorage and notify other tabs"><i class="fa fa-check"></i> Apply / Publish changes</button>
-          <button id="reload-btn" class="btn outline" title="Reload products from storage">Reload from storage</button>
-          <button id="clear-storage-btn" class="btn outline" title="Clear stored products (use carefully)">Clear products</button>
+          <button id="publish-now" class="btn" title="Force publish to Firebase"><i class="fa fa-cloud-upload-alt"></i> Publish now</button>
+          <button id="clear-local" class="btn outline" title="Clear local editor list">Clear local</button>
         </div>
-
       </aside>
     </div>
 
     <footer>
-      <small>Changes update the page's localStorage key <strong>tiny_products_v1</strong>. To see changes on the store page, reload <code>index.html</code> or open it in a new tab.</small>
+      <small>Signed-in admin sees publish controls. Seed DB will write 50 sample products to <code>/products</code>. To see live changes open <code>index.html</code>.</small>
     </footer>
   </div>
 
+  <!-- SIGNUP / SIGNIN overlay shown on load -->
+  <div id="signin-overlay" class="signin-wrap" style="display:flex">
+    <div class="signin-card" id="signup-card">
+      <h3 style="margin:0 0 8px 0">Admin — Sign up</h3>
+      <p class="small muted">Create an admin account (email & password). After signup you'll be asked to sign in.</p>
+      <input id="su-email" type="email" placeholder="email" style="width:100%;padding:8px;border-radius:8px;border:1px solid #ddd;margin-top:10px" />
+      <input id="su-pass" type="password" placeholder="password (min 6)" style="width:100%;padding:8px;border-radius:8px;border:1px solid #ddd;margin-top:8px" />
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <button id="su-btn" class="btn tiny">Sign up</button>
+        <button id="to-signin" class="btn outline tiny">Already have account? Sign in</button>
+      </div>
+      <div id="su-msg" class="small muted" style="margin-top:8px"></div>
+    </div>
+
+    <div class="signin-card" id="signin-card" style="display:none">
+      <h3 style="margin:0 0 8px 0">Admin — Sign in</h3>
+      <input id="si-email" type="email" placeholder="email" style="width:100%;padding:8px;border-radius:8px;border:1px solid #ddd;margin-top:10px" />
+      <input id="si-pass" type="password" placeholder="password" style="width:100%;padding:8px;border-radius:8px;border:1px solid #ddd;margin-top:8px" />
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <button id="si-btn" class="btn tiny">Sign in</button>
+        <button id="to-signup" class="btn outline tiny">Create account</button>
+      </div>
+      <div id="si-msg" class="small muted" style="margin-top:8px"></div>
+    </div>
+  </div>
+
 <script>
-/* Admin tool for managing tiny_products_v1 — Firebase-backed version */
-const STORAGE_KEY = 'tiny_products_v1'; // legacy fallback key (still used for export)
-const LAST_UPDATE_KEY = 'tiny_products_v1_last_update'; // local fallback (not primary)
+/* ================== Firebase config — replace only if you have a different project ================== */
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyDkMmXNchhrC_Mfhwvqy7iSGOl-MABroJw",
+  authDomain: "kidswear-ad8ca.firebaseapp.com",
+  databaseURL: "https://kidswear-ad8ca-default-rtdb.firebaseio.com",
+  projectId: "kidswear-ad8ca",
+  storageBucket: "kidswear-ad8ca.firebasestorage.app",
+  messagingSenderId: "784273336752",
+  appId: "1:784273336752:web:fc82385f63b3ef50d74e75",
+  measurementId: "G-32FT2N7BGG"
+};
+if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
+const db = firebase.database();
+const auth = firebase.auth();
 
-/* Short helpers */
-const $ = (sel, el=document) => el.querySelector(sel);
-const $$ = (sel, el=document) => Array.from(el.querySelectorAll(sel));
-function uid(prefix='P') { return prefix + '-' + Math.random().toString(36).slice(2,9).toUpperCase(); }
-function formatPrice(p){ return '₵' + Number(p||0).toFixed(2); }
-function nowISO(){ return new Date().toISOString(); }
+/* ======= Helpers ======= */
+const $ = (s, el=document) => el.querySelector(s);
+const $$ = (s, el=document) => Array.from(el.querySelectorAll(s));
+const nowISO = () => new Date().toISOString();
+const uid = (p='P') => p + '-' + Math.random().toString(36).slice(2,9).toUpperCase();
 function toast(msg, t=2200){
-  const d = document.createElement('div');
-  d.textContent = msg;
-  d.style.position='fixed';
-  d.style.left='50%';
-  d.style.transform='translateX(-50%)';
-  d.style.bottom='30px';
-  d.style.background='rgba(10,10,10,0.9)';
-  d.style.color='white';
-  d.style.padding='10px 14px';
-  d.style.borderRadius='999px';
-  d.style.zIndex=9999;
-  document.body.appendChild(d);
-  setTimeout(()=> d.style.opacity = '0.0', t-300);
-  setTimeout(()=> d.remove(), t);
+  const d = document.createElement('div'); d.textContent = msg;
+  d.style.position='fixed'; d.style.left='50%'; d.style.transform='translateX(-50%)';
+  d.style.bottom='30px'; d.style.background='rgba(10,10,10,0.9)'; d.style.color='white';
+  d.style.padding='10px 14px'; d.style.borderRadius='999px'; d.style.zIndex=9999;
+  document.body.appendChild(d); setTimeout(()=> d.style.opacity='0', t-300); setTimeout(()=>d.remove(), t);
 }
 
-/* ---------- DB helpers ---------- */
-/* Convert DB object {id:product,...} -> array */
-function dbObjToArray(obj) {
-  if (!obj) return [];
-  return Object.keys(obj).map(k => obj[k]);
+/* ======= In-memory products array (mirrors DB) ======= */
+let products = [];   // array of product objects
+let orders = [];     // array of order objects
+let autoPublishTimer = null;
+let signedInUser = null;
+
+/* Debounced auto-publish when signed in */
+function scheduleAutoPublish() {
+  if (!signedInUser) return;
+  clearTimeout(autoPublishTimer);
+  autoPublishTimer = setTimeout(() => {
+    saveProductsToDB(products).then(() => toast('Auto-published to Firebase')).catch(e => console.error(e));
+  }, 800);
 }
 
-/* Load products once (useful on fresh load) */
-function loadProductsFromDBOnce(){
-  return db.ref('/products').once('value').then(snap => {
-    const val = snap.val();
-    return dbObjToArray(val);
-  }).catch(err => {
-    console.error('DB read failed', err);
-    return [];
-  });
-}
-
-/* Save array -> DB (stores as object keyed by id) */
+/* Save array -> Firebase (object keyed by id) */
 function saveProductsToDB(arr){
   const obj = {};
   arr.forEach(p => { obj[p.id] = p; });
-  return db.ref('/products').set(obj).then(() => {
-    // also update a local marker for compatibility with local-storage watchers if needed
-    try { localStorage.setItem(LAST_UPDATE_KEY, new Date().toISOString()); } catch(e){}
-    toast('Published to Firebase');
+  return db.ref('/products').set(obj);
+}
+
+/* Load products once */
+function loadProductsFromDBOnce(){
+  return db.ref('/products').once('value').then(snap => {
+    const val = snap.val() || {};
+    return Object.keys(val).map(k => val[k]);
   });
 }
 
-/* Attach realtime listener so UI updates when DB changes */
-let dbListenerAttached = false;
-function attachRealtimeListener() {
-  if (dbListenerAttached) return;
-  db.ref('/products').on('value', (snap) => {
-    const val = snap.val();
-    products = dbObjToArray(val);
-    renderProducts($('#search').value, $('#filter-availability').value);
-    console.log('Admin UI updated from DB — products:', products.length);
-  }, (err) => {
-    console.error('Realtime listener error', err);
-  });
-  dbListenerAttached = true;
+/* Attach realtime listeners: /products and /orders */
+let productsListenerAttached = false;
+let ordersListenerAttached = false;
+function attachRealtimeListeners(){
+  if (!productsListenerAttached) {
+    db.ref('/products').on('value', snap => {
+      const val = snap.val() || {};
+      products = Object.keys(val).map(k => val[k]);
+      renderProducts();
+      console.log('Realtime: products updated', products.length);
+    }, err => console.error('Products listener err', err));
+    productsListenerAttached = true;
+  }
+  if (!ordersListenerAttached) {
+    db.ref('/orders').on('value', snap => {
+      const val = snap.val() || {};
+      orders = Object.keys(val).map(k => val[k]).sort((a,b)=> new Date(b.paidAt)-new Date(a.paidAt));
+      renderOrders();
+      console.log('Realtime: orders updated', orders.length);
+    }, err => console.error('Orders listener err', err));
+    ordersListenerAttached = true;
+  }
 }
 
-/* ---------- Render / UI ---------- */
-let products = [];
+/* ========== Seed DB with 50 products (same sample used in index.html) ========== */
+const SAMPLE_PRODUCTS = [
+  { id: "DRESS-001", title: "Floral Ruffles", price: 40.00, description: "One-of-a-kind floral ruffle dress", sizes: ["4","5"], ageCategory: "4-5", images: ["IMG_5700.JPG","IMG_5700.JPG"], available: true, createdAt: new Date(Date.now()-1*86400000).toISOString() },
+  { id: "DRESS-002", title: "Sunshine Dress", price: 30.00, description: "Bright yellow play dress", sizes: ["6","7"], ageCategory: "4-5", images: ["IMG_5701.JPG"], available: true, createdAt: new Date(Date.now()-2*86400000).toISOString() },
+  { id: "DRESS-003", title: "Party Bow Dress", price: 35.00, description: "Elegant dress for special occasions", sizes: ["7","8"], ageCategory: "4-5", images: ["IMG_5702.JPG","IMG_5702.JPG"], available: true, createdAt: new Date(Date.now()-3*86400000).toISOString() },
+  { id: "DRESS-004", title: "Polka Play", price: 35.00, description: "Polka-dot twirl dress", sizes: ["0-3M","3-6M"], ageCategory: "4-5", images: ["IMG_5703.JPG"], available: true, createdAt: new Date(Date.now()-4*86400000).toISOString() },
+  { id: "DRESS-005", title: "Candy Stripes", price: 35.00, description: "Soft striped cotton dress", sizes: ["4","5"], ageCategory: "4-5", images: ["IMG_5704.JPG","IMG_5704.JPG"], available: true, createdAt: new Date(Date.now()-5*86400000).toISOString() },
+  { id: "DRESS-006", title: "Meadow Tiny", price: 35.00, description: "Hand-stitched meadow pattern", sizes: ["5","6"], ageCategory: "4-5", images: ["IMG_5705.JPG"], available: true, createdAt: new Date(Date.now()-6*86400000).toISOString() },
+  { id: "DRESS-007", title: "Lace Halo", price: 40.00, description: "Lace-trim party dress", sizes: ["6","7"], ageCategory: "4-5", images: ["IMG_5706.JPG","IMG_5706.JPG"], available: true, createdAt: new Date(Date.now()-7*86400000).toISOString() },
+  { id: "DRESS-008", title: "Seaside Sundress", price: 35.00, description: "Cool and breezy sun dress", sizes: ["7","8"], ageCategory: "4-5", images: ["IMG_5707.JPG"], available: true, createdAt: new Date(Date.now()-8*86400000).toISOString() },
+  { id: "DRESS-009", title: "Minty Bow", price: 100.00, description: "White Shirt with skirt", sizes: ["8","9"], ageCategory: "4-5", images: ["IMG_5708.JPG","IMG_5708.JPG"], available: true, createdAt: new Date(Date.now()-9*86400000).toISOString() },
+  { id: "DRESS-010", title: "Rosette Charm", price: 35.00, description: "Rosette detailing, comfy fit", sizes: ["9","10"], ageCategory: "4-5", images: ["IMG_5709.JPG"], available: true, createdAt: new Date(Date.now()-10*86400000).toISOString() },
 
-const tbody = $('#products-tbody');
-const emptyEl = $('#empty');
+  { id: "DRESS-011", title: "Blossom Day", price: 30.00, description: "Lightweight blossom print dress", sizes: ["10","12"], ageCategory: "4-5", images: ["IMG_5710.JPG","IMG_5710.JPG"], available: true, createdAt: new Date(Date.now()-11*86400000).toISOString() },
+  { id: "DRESS-012", title: "Vintage Coral", price: 40.00, description: "Retro coral dress with pockets", sizes: ["S","M"], ageCategory: "4-5", images: ["IMG_5711.JPG"], available: true, createdAt: new Date(Date.now()-12*86400000).toISOString() },
+  { id: "DRESS-013", title: "Petal Puff", price: 30.00, description: "Petal-pattern puff sleeve dress", sizes: ["4","5"], ageCategory: "4-5", images: ["IMG_5712.JPG","IMG_5712.JPG"], available: true, createdAt: new Date(Date.now()-13*86400000).toISOString() },
+  { id: "DRESS-014", title: "Lemon Drop", price: 65.00, description: "Blue jeans trousers", sizes: ["5","6"], ageCategory: "4-5", images: ["IMG_5713.JPG"], available: true, createdAt: new Date(Date.now()-14*86400000).toISOString() },
+  { id: "DRESS-015", title: "Bluebell Classic", price: 65.00, description: "Black jeans trousers", sizes: ["6","7"], ageCategory: "4-5", images: ["IMG_5714.JPG","IMG_5714.JPG"], available: true, createdAt: new Date(Date.now()-15*86400000).toISOString() },
+  { id: "DRESS-016", title: "Gingham Girl", price: 35.00, description: "Cute gingham for playdates", sizes: ["7","8"], ageCategory: "4-5", images: ["IMG_5715.JPG"], available: true, createdAt: new Date(Date.now()-16*86400000).toISOString() },
+  { id: "DRESS-017", title: "Velvet Holiday", price: 50.00, description: "Velvet holiday edition", sizes: ["8","9"], ageCategory: "4-5", images: ["IMG_5716.JPG","IMG_5716.JPG"], available: true, createdAt: new Date(Date.now()-17*86400000).toISOString() },
+  { id: "DRESS-018", title: "Daisy Chain", price: 70.00, description: "Daisy print with soft lining", sizes: ["9","10"], ageCategory: "4-5", images: ["IMG_5717.JPG"], available: true, createdAt: new Date(Date.now()-18*86400000).toISOString() },
+  { id: "DRESS-019", title: "Sunset Ombre", price: 50.00, description: "Ombre fade summer dress", sizes: ["10","12"], ageCategory: "4-5", images: ["IMG_5718.JPG","IMG_5718.JPG"], available: true, createdAt: new Date(Date.now()-19*86400000).toISOString() },
+  { id: "DRESS-020", title: "Coral Petals", price: 70.00, description: "Coral floral with ruffled hem", sizes: ["S","M"], ageCategory: "4-5", images: ["IMG_5719.JPG"], available: true, createdAt: new Date(Date.now()-20*86400000).toISOString() },
 
-function renderProducts(filterText='', availability=''){
+  { id: "DRESS-021", title: "Lavender Mist", price: 28.00, description: "Soft lavender cotton dress", sizes: ["4","5"], ageCategory: "4-5", images: ["IMG_5720.JPG","IMG_5720.JPG"], available: true, createdAt: new Date(Date.now()-21*86400000).toISOString() },
+  { id: "DRESS-022", title: "Plaid Picnic", price: 28.00, description: "Cute plaid button dress", sizes: ["5","6"], ageCategory: "4-5", images: ["IMG_5720.JPG"], available: true, createdAt: new Date(Date.now()-22*86400000).toISOString() },
+  { id: "DRESS-023", title: "Rosebud Twirl", price: 120.00, description: "Lightweight twirl skirt", sizes: ["6","7"], ageCategory: "4-5", images: ["IMG_5721.JPG","IMG_5721.JPG"], available: true, createdAt: new Date(Date.now()-23*86400000).toISOString() },
+  { id: "DRESS-024", title: "Mint Sprig", price: 80.00, description: "Refreshingly cool mint dress", sizes: ["7","8"], ageCategory: "4-5", images: ["IMG_5722.JPG"], available: true, createdAt: new Date(Date.now()-24*86400000).toISOString() },
+  { id: "DRESS-025", title: "Buttercup", price: 35.00, description: "Premium buttercup fabric", sizes: ["8","9"], ageCategory: "4-5", images: ["IMG_5723.JPG","IMG_5723.JPG"], available: true, createdAt: new Date(Date.now()-25*86400000).toISOString() },
+  { id: "DRESS-026", title: "Peach Dream", price: 60.00, description: "Soft peach party dress", sizes: ["9","10"], ageCategory: "4-5", images: ["IMG_5724.JPG"], available: true, createdAt: new Date(Date.now()-26*86400000).toISOString() },
+  { id: "DRESS-027", title: "Ivy Garden", price: 35.00, description: "Ivy print with tiny pleats", sizes: ["10","12"], ageCategory: "4-5", images: ["IMG_5725.JPG","IMG_5725.JPG"], available: true, createdAt: new Date(Date.now()-27*86400000).toISOString() },
+  { id: "DRESS-028", title: "Ocean Breeze", price: 45.00, description: "Nautical details and stripes", sizes: ["S","M"], ageCategory: "4-5", images: ["IMG_5726.JPG"], available: true, createdAt: new Date(Date.now()-28*86400000).toISOString() },
+  { id: "DRESS-029", title: "Lilac Lace", price: 35.00, description: "Delicate lilac lace overlay", sizes: ["4","5"], ageCategory: "4-5", images: ["IMG_5727.JPG","IMG_5727.JPG"], available: true, createdAt: new Date(Date.now()-29*86400000).toISOString() },
+  { id: "DRESS-030", title: "Maple Sweet", price: 40.00, description: "Warm tones for autumn play", sizes: ["5","6"], ageCategory: "4-5", images: ["IMG_5728.JPG"], available: true, createdAt: new Date(Date.now()-30*86400000).toISOString() },
+
+  { id: "DRESS-031", title: "Cherry Puff", price: 40.00, description: "Cherry prints and puff sleeves", sizes: ["6","7"], ageCategory: "4-5", images: ["IMG_5729.JPG","IMG_5729.JPG"], available: true, createdAt: new Date(Date.now()-31*86400000).toISOString() },
+  { id: "DRESS-032", title: "Starry Night", price: 35.00, description: "Dark blue with star pattern", sizes: ["7","8"], ageCategory: "4-5", images: ["IMG_5730.JPG"], available: true, createdAt: new Date(Date.now()-32*86400000).toISOString() },
+  { id: "DRESS-033", title: "Palm Picnic", price: 35.00, description: "Tropical print for sunny days", sizes: ["8","9"], ageCategory: "4-5", images: ["IMG_5731.JPG","IMG_5731.JPG"], available: true, createdAt: new Date(Date.now()-33*86400000).toISOString() },
+  { id: "DRESS-034", title: "Velvet Ribbon", price: 40.00, description: "Lux velvet with ribbon tie", sizes: ["9","10"], ageCategory: "4-5", images: ["IMG_5732.JPG"], available: true, createdAt: new Date(Date.now()-34*86400000).toISOString() },
+  { id: "DRESS-035", title: "Rose Quartz", price: 35.00, description: "Soft pink, comfy cotton", sizes: ["10","12"], ageCategory: "4-5", images: ["IMG_5733.JPG","IMG_5733.JPG"], available: true, createdAt: new Date(Date.now()-35*86400000).toISOString() },
+  { id: "DRESS-036", title: "Star Bloom", price: 30.00, description: "Star bloom pattern, breezy", sizes: ["S","M"], ageCategory: "4-5", images: ["IMG_5734.JPG"], available: true, createdAt: new Date(Date.now()-36*86400000).toISOString() },
+  { id: "DRESS-037", title: "Meadow Stitch", price: 40.00, description: "Detailed stitching, floral", sizes: ["4","5"], ageCategory: "4-5", images: ["IMG_5735.JPG","IMG_5735.JPG"], available: true, createdAt: new Date(Date.now()-37*86400000).toISOString() },
+  { id: "DRESS-038", title: "Denim Dolly", price: 50.00, description: "Soft denim dress with buttons", sizes: ["5","6"], ageCategory: "4-5", images: ["IMG_5736.JPG"], available: true, createdAt: new Date(Date.now()-38*86400000).toISOString() },
+  { id: "DRESS-039", title: "Citrine Bloom", price: 65.00, description: "Sunny citrine color", sizes: ["6","7"], ageCategory: "4-5", images: ["IMG_5737.JPG","IMG_5737.JPG"], available: true, createdAt: new Date(Date.now()-39*86400000).toISOString() },
+  { id: "DRESS-040", title: "Cloud Puff", price: 25.00, description: "Puffy clouds print", sizes: ["7","8"], ageCategory: "4-5", images: ["IMG_5738.JPG"], available: true, createdAt: new Date(Date.now()-40*86400000).toISOString() },
+
+  { id: "DRESS-041", title: "Mint Melody", price: 28.00, description: "Light mint with trims", sizes: ["8","9"], ageCategory: "4-5", images: ["IMG_5739.JPG","IMG_5739.JPG"], available: true, createdAt: new Date(Date.now()-41*86400000).toISOString() },
+  { id: "DRESS-042", title: "Petite Pearl", price: 25.00, description: "Pearl button detail", sizes: ["9","10"], ageCategory: "4-5", images: ["IMG_5740.JPG"], available: true, createdAt: new Date(Date.now()-42*86400000).toISOString() },
+  { id: "DRESS-043", title: "Coral Breeze", price: 35.00, description: "Soft coral shade", sizes: ["10","12"], ageCategory: "4-5", images: ["IMG_5741.JPG","IMG_5741.JPG"], available: true, createdAt: new Date(Date.now()-43*86400000).toISOString() },
+  { id: "DRESS-044", title: "Pineapple Pop", price: 30.00, description: "Fun pineapple print", sizes: ["4","5"], ageCategory: "4-5", images: ["IMG_5742.JPG"], available: true, createdAt: new Date(Date.now()-44*86400000).toISOString() },
+  { id: "DRESS-045", title: "Willow Whisper", price: 40.00, description: "Earthy willow tones", sizes: ["5","6"], ageCategory: "4-5", images: ["IMG_5743.JPG","IMG_5743.JPG"], available: true, createdAt: new Date(Date.now()-45*86400000).toISOString() },
+  { id: "DRESS-046", title: "Sunbeam Tuck", price: 35.00, description: "Tucked waist, sunny print", sizes: ["6","7"], ageCategory: "4-5", images: ["IMG_5744.JPG"], available: true, createdAt: new Date(Date.now()-46*86400000).toISOString() },
+  { id: "DRESS-047", title: "Peppermint Twist", price: 30.00, description: "Mint stripes and soft collar", sizes: ["7","8"], ageCategory: "4-5", images: ["IMG_5745.JPG","IMG_5745.JPG"], available: true, createdAt: new Date(Date.now()-47*86400000).toISOString() },
+  { id: "DRESS-048", title: "Dotted Dreams", price: 60.00, description: "Subtle dotted pattern", sizes: ["8","9"], ageCategory: "4-5", images: ["IMG_5746.JPG"], available: true, createdAt: new Date(Date.now()-48*86400000).toISOString() },
+  { id: "DRESS-049", title: "Little Luxe", price: 80.00, description: "Tiny luxe finish", sizes: ["9","10"], ageCategory: "7-8", images: ["IMG_5747.JPG","IMG_5747.JPG"], available: true, createdAt: new Date(Date.now()-49*86400000).toISOString() },
+  { id: "DRESS-050", title: "Pocket Garden", price: 40.00, description: "Playful pockets and cotton", sizes: ["10","12"], ageCategory: "4-5", images: ["IMG_5748.JPG"], available: true, createdAt: new Date(Date.now()-50*86400000).toISOString() }
+];
+
+/* ========= Render functions ========= */
+function formatPrice(p){ return '₵' + Number(p||0).toFixed(2); }
+
+function renderProducts(){
+  const tbody = $('#products-tbody');
   tbody.innerHTML = '';
-  const q = (filterText||'').trim().toLowerCase();
-  let list = products.slice().sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
-  if (availability === 'available') list = list.filter(p => p.available);
-  if (availability === 'sold') list = list.filter(p => !p.available);
-
-  if (q) {
-    list = list.filter(p => (p.title||'').toLowerCase().includes(q) || (p.id||'').toLowerCase().includes(q) || (p.description||'').toLowerCase().includes(q));
-  }
-
+  const q = ($('#search').value || '').trim().toLowerCase();
+  let list = (products || []).slice().sort((a,b)=> new Date(b.createdAt) - new Date(a.createdAt));
+  const avail = $('#filter-availability').value;
+  if (avail === 'available') list = list.filter(p=>p.available);
+  if (avail === 'sold') list = list.filter(p=>!p.available);
+  if (q) list = list.filter(p => (p.title||'').toLowerCase().includes(q) || (p.id||'').toLowerCase().includes(q) || (p.description||'').toLowerCase().includes(q));
   if (list.length === 0) {
-    $('#products-table').style.display = 'none';
-    emptyEl.style.display = '';
+    $('#products-table').style.display = 'none'; $('#empty').style.display = '';
     return;
-  } else {
-    $('#products-table').style.display = '';
-    emptyEl.style.display = 'none';
   }
-
-  list.forEach(p => {
+  $('#products-table').style.display = ''; $('#empty').style.display = 'none';
+  list.forEach(p=>{
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td style="width:92px">
-        <img class="thumb" src="${(p.images && p.images[0]) || ''}" alt="${p.title || p.id}" onerror="this.style.background='#f3f4f6'" />
-      </td>
+      <td style="width:96px"><img class="thumb" src="${(p.images && p.images[0]) || ''}" alt="${p.title||p.id}" onerror="this.style.background='#f3f4f6'"/></td>
       <td>
         <div style="font-weight:800">${p.title || '(no title)'}</div>
         <div class="muted" style="font-size:0.85rem">${p.id}</div>
         <div style="max-width:360px;color:var(--muted);font-size:0.9rem;margin-top:6px">${(p.description||'').slice(0,120)}</div>
       </td>
       <td>${formatPrice(p.price)}</td>
-      <td>${(p.sizes || []).join(', ')}</td>
-      <td>${p.ageCategory || ''} <div style="margin-top:6px;color:${p.available ? 'var(--success, #10b981)' : '#ff6b6b'};font-weight:700">${p.available ? 'Available' : 'Unavailable'}</div></td>
-      <td style="white-space:nowrap">${new Date(p.createdAt||'').toLocaleDateString() }</td>
+      <td>${(p.sizes||[]).join(', ')}</td>
+      <td>${p.ageCategory||''} <div style="margin-top:6px;color:${p.available ? 'var(--success)' : 'var(--danger)'};font-weight:700">${p.available ? 'Available' : 'Unavailable'}</div></td>
+      <td style="white-space:nowrap">${new Date(p.createdAt||'').toLocaleDateString()}</td>
       <td style="white-space:nowrap">
-        <button class="tiny" data-action="edit" data-id="${p.id}"><i class="fa fa-pen"></i> Edit</button>
-        <button class="tiny btn outline" data-action="toggle" data-id="${p.id}"><i class="fa fa-exchange"></i> Toggle</button>
-        <button class="tiny btn outline" data-action="delete" data-id="${p.id}"><i class="fa fa-trash"></i> Delete</button>
+        <button class="tiny edit-btn" data-id="${p.id}"><i class="fa fa-pen"></i> Edit</button>
+        <button class="tiny outline toggle-btn" data-id="${p.id}"><i class="fa fa-exchange"></i> Toggle</button>
+        <button class="tiny outline delete-btn" data-id="${p.id}"><i class="fa fa-trash"></i> Delete</button>
       </td>
     `;
     tbody.appendChild(tr);
   });
 
-  // attach handlers
-  $$('[data-action="edit"]').forEach(btn => btn.onclick = () => openEditForm(btn.dataset.id));
-  $$('[data-action="delete"]').forEach(btn => btn.onclick = () => deleteProduct(btn.dataset.id));
-  $$('[data-action="toggle"]').forEach(btn => btn.onclick = () => toggleAvailability(btn.dataset.id));
+  // wire handlers
+  $$('.edit-btn').forEach(b => b.onclick = e => openEditForm(b.dataset.id));
+  $$('.delete-btn').forEach(b => b.onclick = e => deleteProduct(b.dataset.id));
+  $$('.toggle-btn').forEach(b => b.onclick = e => toggleAvailability(b.dataset.id));
 }
 
-/* ---------- Form handling (create/edit) ---------- */
+/* Orders rendering */
+function renderOrders(){
+  const tb = $('#orders-tbody'); tb.innerHTML = '';
+  if (!orders || orders.length === 0) { $('#orders-empty').style.display=''; return; }
+  $('#orders-empty').style.display='none';
+  orders.forEach(o=>{
+    const tr = document.createElement('tr');
+    const itemsSummary = (o.items || []).map(it => `${it.id} x${it.qty}${it.size ? ' ('+it.size+')' : ''}`).join('<br>');
+    tr.innerHTML = `
+      <td style="vertical-align:top"><strong>${o.reference||o.ref||'(no-ref)'}</strong></td>
+      <td style="vertical-align:top">${o.buyerEmail||o.buyer||'(no-email)'}<br><small class="muted">${(o.buyerDetails && o.buyerDetails.name) || ''}</small></td>
+      <td style="vertical-align:top">${itemsSummary}</td>
+      <td style="vertical-align:top">${formatPrice(o.total||0)}</td>
+      <td style="vertical-align:top">${new Date(o.paidAt||o.createdAt||'').toLocaleString()}</td>
+      <td style="vertical-align:top"><button class="tiny outline view-order" data-ref="${o.reference||o.ref||''}">View</button></td>
+    `;
+    tb.appendChild(tr);
+  });
+  $$('.view-order').forEach(b => b.onclick = () => {
+    const ref = b.dataset.ref || '';
+    const ord = orders.find(x => (x.reference === ref) || (x.ref===ref));
+    if (!ord) { toast('Order not found'); return; }
+    const details = [
+      `Ref: ${ord.reference || ord.ref || '(no-ref)'}`,
+      `Buyer: ${ord.buyerEmail || (ord.buyerDetails && ord.buyerDetails.name) || '(unknown)'}`,
+      `Total: ${formatPrice(ord.total||0)}`,
+      `Date: ${new Date(ord.paidAt||ord.createdAt||'').toLocaleString()}`,
+      'Items:',
+      ...(ord.items || []).map(i => ` • ${i.id} x${i.qty} ${i.size ? 'size:'+i.size : ''}`)
+    ].join('\\n');
+    alert(details);
+  });
+}
+
+/* ========== Form & file handling ========== */
 const form = $('#product-form');
 const idInput = $('#product-id');
 const titleInput = $('#product-title');
@@ -352,24 +472,16 @@ const imagesInput = $('#product-images');
 const imagesPreview = $('#images-preview');
 const formTitle = $('#form-title');
 
-let stagingImages = []; // array of data-urls
+let stagingImages = []; // data URLs
 
 function resetForm(){
-  idInput.value = '';
-  titleInput.value = '';
-  priceInput.value = '';
-  descInput.value = '';
-  sizesInput.value = '';
-  ageInput.value = '';
-  availInput.value = 'true';
-  imagesInput.value = '';
-  stagingImages = [];
-  imagesPreview.innerHTML = '';
-  formTitle.textContent = 'Create product';
+  idInput.value = ''; titleInput.value=''; priceInput.value=''; descInput.value='';
+  sizesInput.value=''; ageInput.value=''; availInput.value='true'; imagesInput.value='';
+  stagingImages = []; imagesPreview.innerHTML=''; formTitle.textContent='Create product';
 }
 
 function openEditForm(id){
-  const p = products.find(x => x.id === id);
+  const p = products.find(x=>x.id===id);
   if (!p) return toast('Product not found');
   idInput.value = p.id;
   titleInput.value = p.title || '';
@@ -378,41 +490,34 @@ function openEditForm(id){
   sizesInput.value = (p.sizes || []).join(',');
   ageInput.value = p.ageCategory || '';
   availInput.value = p.available ? 'true' : 'false';
-  imagesPreview.innerHTML = '';
   stagingImages = (p.images || []).slice();
   renderImagesPreview();
   formTitle.textContent = 'Edit product';
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  window.scrollTo({top:0,behavior:'smooth'});
 }
 
-/* image preview helpers */
 function renderImagesPreview(){
   imagesPreview.innerHTML = '';
   stagingImages.forEach((src, idx) => {
-    const wrap = document.createElement('div');
-    wrap.className = 'img-wrap';
+    const wrap = document.createElement('div'); wrap.className='img-wrap';
     wrap.innerHTML = `<img src="${src}" alt="img-${idx}" /><button class="img-remove" data-idx="${idx}" title="Remove image"><i class="fa fa-times"></i></button>`;
     imagesPreview.appendChild(wrap);
   });
-  // wire remove
-  $$('.img-remove', imagesPreview).forEach(btn => btn.onclick = () => {
-    const i = Number(btn.dataset.idx);
-    stagingImages.splice(i, 1);
+  $$('.img-remove', imagesPreview).forEach(b => b.onclick = () => {
+    stagingImages.splice(Number(b.dataset.idx),1);
     renderImagesPreview();
   });
 }
 
-/* file -> dataURL */
 function fileToDataURL(file){
-  return new Promise((resolve) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = () => resolve(null);
-    reader.readAsDataURL(file);
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => res(r.result);
+    r.onerror = () => res(null);
+    r.readAsDataURL(file);
   });
 }
 
-/* when images chosen */
 imagesInput.addEventListener('change', async (e) => {
   const files = Array.from(e.target.files || []);
   for (const f of files) {
@@ -423,235 +528,215 @@ imagesInput.addEventListener('change', async (e) => {
   imagesInput.value = '';
 });
 
-/* form submit save (local array) */
+/* Save/edit local products (and auto-publish when signed in) */
 form.addEventListener('submit', (ev) => {
   ev.preventDefault();
   const id = idInput.value || uid('DRESS');
   const title = (titleInput.value || '').trim();
   const price = Number(priceInput.value || 0);
   const description = (descInput.value || '').trim();
-  const sizes = (sizesInput.value || '').split(',').map(s => s.trim()).filter(Boolean);
+  const sizes = (sizesInput.value || '').split(',').map(s=>s.trim()).filter(Boolean);
   const ageCategory = (ageInput.value || '').trim();
   const available = availInput.value === 'true';
-
   if (!title) return toast('Title required');
   if (!price) return toast('Valid price required');
-
   const existingIdx = products.findIndex(p => p.id === id);
   const now = new Date().toISOString();
   const newProduct = {
-    id,
-    title,
-    price,
-    description,
-    sizes,
-    ageCategory,
-    images: stagingImages.slice(),
-    available,
+    id, title, price, description, sizes, ageCategory,
+    images: stagingImages.slice(), available,
     createdAt: existingIdx === -1 ? now : (products[existingIdx].createdAt || now)
   };
-
   if (existingIdx === -1) {
-    products.unshift(newProduct); // newest first
-    toast('Product created (local)');
+    products.unshift(newProduct); toast('Product created (local)');
   } else {
-    products[existingIdx] = newProduct;
-    toast('Product updated (local)');
+    products[existingIdx] = newProduct; toast('Product updated (local)');
   }
-
-  renderProducts($('#search').value, $('#filter-availability').value);
+  renderProducts();
   resetForm();
+  // if signed in, schedule auto publish
+  scheduleAutoPublish();
 });
 
-/* delete product local only until "Apply" is pressed */
+/* delete / toggle functions */
 function deleteProduct(id){
-  if (!confirm('Delete this product? This cannot be undone.')) return;
-  products = products.filter(p => p.id !== id);
-  renderProducts($('#search').value, $('#filter-availability').value);
-  toast('Product deleted (local)');
+  if (!confirm('Delete this product?')) return;
+  products = products.filter(p=>p.id !== id);
+  renderProducts();
+  toast('Deleted (local)');
+  scheduleAutoPublish();
 }
-
-/* toggle availability local */
 function toggleAvailability(id){
-  const idx = products.findIndex(p => p.id === id);
-  if (idx === -1) return;
+  const idx = products.findIndex(p=>p.id===id);
+  if (idx===-1) return;
   products[idx].available = !products[idx].available;
-  renderProducts($('#search').value, $('#filter-availability').value);
-  toast(`Availability: ${products[idx].available ? 'Available' : 'Unavailable'} (local)`);
+  renderProducts();
+  toast('Toggled availability (local)');
+  scheduleAutoPublish();
 }
 
-/* ---------- Tools: export / import / apply / reload / clear ---------- */
+/* ========== Tools: import/export/seed/publish/reload ========== */
 $('#export-btn').addEventListener('click', () => {
   const data = JSON.stringify(products, null, 2);
-  const blob = new Blob([data], {type: 'application/json'});
+  const blob = new Blob([data], {type:'application/json'});
   const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `tiny_products_v1_export_${(new Date()).toISOString().slice(0,10)}.json`;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
+  const a = document.createElement('a'); a.href = url; a.download = `tiny_products_export_${(new Date()).toISOString().slice(0,10)}.json`; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
   toast('Export prepared');
 });
 
 $('#import-btn').addEventListener('click', async () => {
-  const txt = prompt('Paste product JSON here (an array of product objects).');
+  const txt = prompt('Paste product JSON (array of products)');
   if (!txt) return;
   try {
     const parsed = JSON.parse(txt);
-    if (!Array.isArray(parsed)) { toast('Expected an array of products'); return; }
-    const invalid = parsed.find(p => !p.id || !p.title || (p.price === undefined));
-    if (invalid) { toast('One or more items missing id/title/price'); return; }
+    if (!Array.isArray(parsed)) { toast('Expected an array'); return; }
     products = parsed.slice();
     renderProducts();
-    toast('Imported products (local). Click Apply to publish to Firebase.');
-  } catch(e) {
-    console.error(e);
-    toast('Invalid JSON');
-  }
+    toast('Imported (local). Click Apply to publish to Firebase.');
+  } catch(e){ console.error(e); toast('Invalid JSON'); }
+});
+
+$('#seed-btn').addEventListener('click', async () => {
+  if (!confirm('Seed the database with 50 sample products? This will overwrite /products in Firebase.')) return;
+  try {
+    await saveProductsToDB(SAMPLE_PRODUCTS);
+    toast('Seeded Firebase with sample products');
+  } catch(e){ console.error(e); toast('Seed failed — check console'); }
 });
 
 $('#apply-btn').addEventListener('click', async () => {
-  // ensure user is signed in (DB rules also enforce this)
-  const user = auth.currentUser;
-  if (!user) {
-    toast('Please sign in as admin before publishing');
-    return;
-  }
+  if (!signedInUser) { toast('Sign in first to publish'); return; }
   try {
     await saveProductsToDB(products);
-    toast('Published successfully.');
-  } catch (err) {
-    console.error(err);
-    toast('Publish failed — see console.');
-  }
+    toast('Published to Firebase');
+  } catch(e){ console.error(e); toast('Publish failed'); }
 });
 
 $('#reload-btn').addEventListener('click', async () => {
-  // reload from DB
   try {
-    products = await loadProductsFromDBOnce();
-    renderProducts($('#search').value, $('#filter-availability').value);
-    resetForm();
-    toast('Reloaded from Firebase');
-  } catch (e) {
-    console.error(e);
-    toast('Reload failed');
-  }
-});
-
-$('#clear-storage-btn').addEventListener('click', () => {
-  if (!confirm('Clear all stored products locally? This removes products only from this admin UI (not from DB).')) return;
-  products = [];
-  renderProducts();
-  resetForm();
-  toast('Cleared local product list (use Apply to push empty list to DB).');
-});
-
-/* new product button */
-$('#new-btn').addEventListener('click', () => {
-  resetForm();
-  formTitle.scrollIntoView({behavior: 'smooth'});
-});
-
-/* search / filter handlers */
-$('#search').addEventListener('input', (e) => {
-  renderProducts(e.target.value, $('#filter-availability').value);
-});
-$('#filter-availability').addEventListener('change', (e) => {
-  renderProducts($('#search').value, e.target.value);
-});
-
-/* reset button */
-$('#reset-btn').addEventListener('click', (e) => { e.preventDefault(); resetForm(); });
-
-/* ---------- Auth UI & logic ---------- */
-const showLoginBtn = $('#show-login');
-const loginModal = $('#login-modal');
-const loginBtn = $('#login-btn');
-const logoutBtn = $('#logout-btn');
-const loginEmail = $('#login-email');
-const loginPass = $('#login-pass');
-const loginStatus = $('#login-status');
-const applyBtn = $('#apply-btn');
-
-showLoginBtn.addEventListener('click', () => {
-  loginModal.style.display = loginModal.style.display === 'none' ? 'block' : 'none';
-});
-
-loginBtn.addEventListener('click', async () => {
-  const email = loginEmail.value.trim();
-  const pass = loginPass.value;
-  if (!email || !pass) { toast('Provide email and password'); return; }
-  try {
-    const res = await auth.signInWithEmailAndPassword(email, pass);
-    loginStatus.textContent = `Signed in: ${res.user.email}`;
-    loginBtn.style.display = 'none';
-    logoutBtn.style.display = '';
-    loginModal.style.display = 'none';
-    // enable apply button
-    applyBtn.disabled = false;
-    // attach realtime listener
-    attachRealtimeListener();
-    // load once to populate (realtime will also update)
     products = await loadProductsFromDBOnce();
     renderProducts();
-    toast('Signed in');
+    resetForm();
+    toast('Reloaded from Firebase');
+  } catch(e){ console.error(e); toast('Reload failed'); }
+});
+
+$('#publish-now').addEventListener('click', async () => {
+  if (!signedInUser) { toast('Sign in first'); return; }
+  try {
+    await saveProductsToDB(products);
+    toast('Published');
+  } catch(e){ console.error(e); toast('Publish failed'); }
+});
+
+$('#clear-local').addEventListener('click', () => {
+  if (!confirm('Clear local product list?')) return;
+  products = []; renderProducts(); resetForm(); toast('Cleared local list');
+});
+$('#clear-orders').addEventListener('click', () => { orders = []; renderOrders(); toast('Orders cleared (local view)'); });
+
+$('#export-btn').addEventListener('click', ()=>{}); // already wired
+
+/* ========== Tab switching ========== */
+$$('.tab').forEach(t => {
+  t.addEventListener('click', () => {
+    $$('.tab').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    const tab = t.dataset.tab;
+    if (tab === 'products') { $('#tab-products').style.display=''; $('#tab-orders').style.display='none'; }
+    else { $('#tab-products').style.display='none'; $('#tab-orders').style.display=''; }
+  });
+});
+
+/* ========== Auth: signup / signin / signout ========= */
+const signinOverlay = $('#signin-overlay');
+const signupCard = $('#signup-card'), signinCard = $('#signin-card');
+const suEmail = $('#su-email'), suPass = $('#su-pass'), suBtn = $('#su-btn'), suMsg = $('#su-msg');
+const siEmail = $('#si-email'), siPass = $('#si-pass'), siBtn = $('#si-btn'), siMsg = $('#si-msg');
+const toSignin = $('#to-signin'), toSignup = $('#to-signup');
+const signoutBtn = $('#signout-btn');
+
+toSignin.onclick = ()=> { signupCard.style.display='none'; signinCard.style.display='block'; };
+toSignup.onclick = ()=> { signinCard.style.display='none'; signupCard.style.display='block'; };
+
+suBtn.addEventListener('click', async () => {
+  const email = suEmail.value.trim(); const pass = suPass.value;
+  if (!email || !pass) { suMsg.textContent = 'Provide email and password'; return; }
+  try {
+    await auth.createUserWithEmailAndPassword(email, pass);
+    suMsg.textContent = 'Signup successful — please sign in now';
+    signupCard.style.display='none'; signinCard.style.display='block';
+    siEmail.value = email;
   } catch (err) {
-    console.error(err);
-    loginStatus.textContent = 'Sign-in failed';
-    toast('Sign-in failed (check credentials)');
+    console.error(err); suMsg.textContent = (err && err.message) || 'Signup failed';
   }
 });
 
-logoutBtn.addEventListener('click', async () => {
-  await auth.signOut();
-  loginStatus.textContent = 'Signed out';
-  loginBtn.style.display = '';
-  logoutBtn.style.display = 'none';
-  applyBtn.disabled = true;
-  toast('Signed out');
+siBtn.addEventListener('click', async () => {
+  const email = siEmail.value.trim(); const pass = siPass.value;
+  if (!email || !pass) { siMsg.textContent = 'Provide email & password'; return; }
+  try {
+    const res = await auth.signInWithEmailAndPassword(email, pass);
+    signedInUser = res.user;
+    siMsg.textContent = 'Signed in';
+    signinOverlay.style.display = 'none';
+    $('#signout-btn').style.display = '';
+    $('#apply-btn').disabled = false;
+    attachRealtimeListeners();
+    // load once to populate UI
+    products = await loadProductsFromDBOnce();
+    orders = (await db.ref('/orders').once('value')).val() || {};
+    products = Array.isArray(products) ? products : products;
+    renderProducts();
+    renderOrders();
+    toast('Signed in');
+  } catch (err) {
+    console.error(err); siMsg.textContent = 'Sign-in failed: ' + (err && err.message);
+  }
 });
 
-/* React to auth state changes (useful if already signed in) */
+signoutBtn.addEventListener('click', async () => {
+  try {
+    await auth.signOut();
+    signedInUser = null;
+    $('#signout-btn').style.display = 'none';
+    signinOverlay.style.display = 'flex';
+    signupCard.style.display='none'; signinCard.style.display='block';
+    $('#apply-btn').disabled = true;
+    toast('Signed out');
+  } catch(e){ console.error(e); toast('Sign-out failed'); }
+});
+
+/* keep UI sign-in state in sync */
 auth.onAuthStateChanged(async (user) => {
   if (user) {
-    loginStatus.textContent = `Signed in: ${user.email} (${user.uid})`;
-    loginBtn.style.display = 'none';
-    logoutBtn.style.display = '';
-    applyBtn.disabled = false;
-    // attach listener and load products
-    attachRealtimeListener();
+    signedInUser = user;
+    $('#signout-btn').style.display = '';
+    signinOverlay.style.display = 'none';
+    $('#apply-btn').disabled = false;
+    attachRealtimeListeners();
     products = await loadProductsFromDBOnce();
     renderProducts();
   } else {
-    loginStatus.textContent = 'Not signed in';
-    loginBtn.style.display = '';
-    logoutBtn.style.display = 'none';
-    applyBtn.disabled = true;
+    signedInUser = null;
+    $('#signout-btn').style.display = 'none';
+    signinOverlay.style.display = 'flex';
+    signupCard.style.display='none'; signinCard.style.display='block';
+    $('#apply-btn').disabled = true;
   }
 });
 
-/* ---------- Realtime DB change reaction across tabs (optional) ---------- */
-/* Use DB listener (above) to update UI on changes made by others.
-   Older code used localStorage events — we rely on DB instead. */
-
-/* ---------- Initialize ---------- */
-(function init(){
-  // start with Apply disabled until the admin signs in (DB rules require auth for writes)
-  try { applyBtn.disabled = true; } catch(e){}
-  // Attach the realtime listener only after sign-in or if public reads are ok; we'll attach when auth fires
-  // But we can also attach here to show products even without sign-in (read is allowed by our rules)
-  attachRealtimeListener();
-
-  // initial load (reads are allowed if DB.rules permit)
-  loadProductsFromDBOnce().then(arr => {
-    products = arr;
-    renderProducts();
-  }).catch(err => console.error(err));
+/* ========== Initial boot ========= */
+(async function init(){
+  // default: attach listeners — reads are usually allowed; if rules block, auth will fix it on sign-in
+  attachRealtimeListeners();
+  try { products = await loadProductsFromDBOnce(); renderProducts(); } catch(e){ console.warn('Initial load failed', e); }
+  // show signup overlay by default (per request)
+  signupCard.style.display='block'; signinCard.style.display='none';
+  signinOverlay.style.display='flex';
+  $('#apply-btn').disabled = true;
 })();
-</script>
 
+</script>
 </body>
 </html>
