@@ -12,6 +12,35 @@
   <script src="https://js.paystack.co/v1/inline.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <!-- STYLE: full page styles (place inside <head> or a CSS file) -->
+
+<!-- Firebase (compat) - add this near the top of <head> BEFORE your app script -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+<script>
+  // ---------- REPLACE with your Firebase config (copy from Firebase console) ----------
+  const FIREBASE_CONFIG = {  
+    apiKey: "AIzaSyDkMmXNchhrC_Mfhwvqy7iSGOl-MABroJw",
+    authDomain: "kidswear-ad8ca.firebaseapp.com",
+    databaseURL: "https://kidswear-ad8ca-default-rtdb.firebaseio.com",
+    projectId: "kidswear-ad8ca",
+    storageBucket: "kidswear-ad8ca.firebasestorage.app",
+    messagingSenderId: "784273336752",
+    appId: "1:784273336752:web:fc82385f63b3ef50d74e75",
+    measurementId: "G-32FT2N7BGG"
+  };
+  if (!window.firebase || !firebase.apps) {
+    console.error('Firebase SDK load issue?');
+  }
+  if (!firebase.apps.length) {
+    firebase.initializeApp(FIREBASE_CONFIG);
+  }
+  const db = firebase.database();
+  const auth = firebase.auth();
+</script>
+
+
 <style>
 
 :root{
@@ -1386,9 +1415,63 @@ const products = [
   { id: "DRESS-050", title: "Pocket Garden", price: 40.00, description: "Playful pockets and cotton", sizes: ["10","12"], ageCategory: "4-5", images: ["IMG_5748.JPG"], available: true, createdAt: new Date(Date.now()-50*86400000).toISOString() }
 ];
 
-/* persist products so the rest of the script reads them */
-localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(products));
+  function dbObjToArray(obj) {
+  if (!obj) return [];
+  return Object.keys(obj).map(k => obj[k]);
+}
 
+/* Attach a realtime listener to /products; updates the in-memory products array
+   and re-renders the UI whenever the DB changes. */
+function attachProductsListener() {
+  db.ref('/products').on('value', (snap) => {
+    const val = snap.val();
+    if (!val) {
+      // no products in DB — keep current sample array but do not overwrite DB
+      console.log('No products found in DB');
+      // OPTIONAL: you could seed the DB here if you want: seedDBIfEmpty();
+      // For safety we do nothing by default.
+      return;
+    }
+
+    // replace contents of products array but keep reference
+    const arr = dbObjToArray(val);
+    products.length = 0;
+    arr.forEach(p => products.push(p));
+
+    console.log('Products loaded from DB:', products.length);
+    // re-render the UI
+    renderProductsBatch(true);
+
+    // persist a local fallback (optional)
+    try { localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(products)); } catch(e) {}
+  }, (err) => {
+    console.error('Realtime DB listener error', err);
+  });
+}
+
+/* Update a single product in DB (by full product object) */
+function updateProductInDB(product) {
+  if (!product || !product.id) return Promise.reject(new Error('Missing product id'));
+  return db.ref(`/products/${product.id}`).set(product);
+}
+
+/* Mark a product as sold/unavailable in DB (simple helper) */
+function markAsSoldInDB(productId) {
+  if (!productId) return Promise.reject(new Error('Missing id'));
+  return db.ref(`/products/${productId}/available`).set(false);
+}
+
+/* Optional dev helper: seed DB from current local sample if DB empty (careful: only for dev) */
+async function seedDBIfEmpty() {
+  const snap = await db.ref('/products').once('value');
+  if (snap.exists()) { console.log('DB already has products; skipping seed.'); return; }
+  // Build object keyed by id
+  const obj = {};
+  products.forEach(p => { obj[p.id] = p; });
+  await db.ref('/products').set(obj);
+  console.log('Seeded DB with local sample products.');
+}
+  
 /* ======================= PERSISTENCE: CART & ORDERS ======================= */
 function saveCart(cart) { localStorage.setItem(STORAGE_KEYS.CART, JSON.stringify(cart)); }
 function loadCart() { const raw = localStorage.getItem(STORAGE_KEYS.CART); return raw ? JSON.parse(raw) : []; }
@@ -2062,12 +2145,19 @@ function processCheckoutPayment() {
 }
 
  function handleSuccessfulPayment(reference, buyerEmail, items, total, buyerDetails = {}) {
-  // mark purchased products as unavailable
-  items.forEach(it => {
-    const prod = products.find(p => p.id === it.id);
-    if (prod) prod.available = false;
-  });
-  localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(products));
+ // mark purchased products as unavailable locally and in DB
+items.forEach(it => {
+  const prod = products.find(p => p.id === it.id);
+  if (prod) {
+    prod.available = false;
+    // update DB so all clients get the change
+    updateProductInDB(prod).catch(err => console.error('Failed to update product in DB', err));
+  }
+});
+
+// keep localStorage fallback (optional)
+try { localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(products)); } catch(e) {}
+
 
    // compute processing fee (if not already provided)
   const processingFee = (order && order.processingFee) ? order.processingFee : undefined;
@@ -2499,7 +2589,13 @@ function init() {
     $('#newsletter').reset();
   });
 }
-document.addEventListener('DOMContentLoaded', init);
+document.addEventListener('DOMContentLoaded', () => {
+  // Attach realtime listener (this will call renderProductsBatch when DB data arrives)
+  attachProductsListener();
+  // run the rest of your initialization (sets year, cart UI, etc.)
+  init();
+});
+
 
   
 </script>
