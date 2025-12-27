@@ -1574,6 +1574,321 @@ body.search-open #search-clear {
     </div>
   </div>
 </div>
+<!-- ==== Receipt modal (paste near end of <body>) ==== -->
+<div id="receipt-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="receipt-title" style="display:none; z-index:9999;">
+  <div class="modal-inner" style="max-width:820px; padding:18px; border-radius:14px;">
+    <button class="modal-close" aria-label="Close receipt" id="receipt-close" style="position:absolute; right:14px; top:12px; border:0; background:transparent; padding:8px; cursor:pointer;"><i class="fa fa-times"></i></button>
+
+    <h2 id="receipt-title" style="margin-top:4px;"><i class="fa fa-receipt"></i> Payment receipt</h2>
+    <p id="receipt-sub" class="lead" style="margin:6px 0 12px 0; color:var(--muted);">Below are the payment details. Use <strong>View receipt</strong> to open the full PDF (printable & downloadable).</p>
+
+    <div id="receipt-body" style="display:grid; grid-template-columns: 1fr 320px; gap:12px;">
+      <div id="receipt-summary" style="padding:8px 10px;">
+        <!-- JS will populate summary here -->
+      </div>
+
+      <aside style="padding:10px; border-radius:10px; background:linear-gradient(180deg,#fff,#fffefc); box-shadow:var(--shadow);">
+        <div style="display:flex; gap:8px; align-items:center; margin-bottom:8px;">
+          <div style="flex:1">
+            <div style="font-size:0.95rem; color:var(--muted)">Total paid</div>
+            <div id="receipt-total" style="font-weight:900; font-size:1.5rem; color:var(--brand-1)"></div>
+          </div>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:8px; margin-top:8px;">
+          <button id="receipt-view" class="btn large" type="button" style="display:block;"><i class="fa fa-eye"></i> View receipt (PDF)</button>
+          <button id="receipt-download" class="btn outline" type="button" style="display:block;"><i class="fa fa-download"></i> Download PDF</button>
+          <button id="receipt-print" class="btn tiny" type="button" style="display:block;"><i class="fa fa-print"></i> Print</button>
+        </div>
+      </aside>
+    </div>
+
+    <!-- Optional embedded preview (initially hidden and toggled when user clicks View) -->
+    <div id="receipt-preview-wrap" style="margin-top:12px; display:none;">
+      <div style="font-size:0.95rem; color:var(--muted); margin-bottom:6px;"><strong>PDF preview</strong> — scroll within the frame or use View to open in a new tab.</div>
+      <iframe id="receipt-preview" style="width:100%; height:480px; border:1px solid rgba(15,23,42,0.06); border-radius:8px;" title="Receipt preview"></iframe>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ===== Receipt + PDF helper (paste after your existing scripts) ===== */
+
+(async function(){
+  // Utility: show/hide modal
+  function showModal(el) {
+    el.style.display = 'flex';
+    el.setAttribute('aria-hidden','false');
+    el.classList.add('open');
+  }
+  function hideModal(el) {
+    el.style.display = 'none';
+    el.setAttribute('aria-hidden','true');
+    el.classList.remove('open');
+  }
+
+  // Create PDF and return blob URL (does NOT auto-open). Uses jspdf (already loaded).
+  async function generateInvoiceBlobUrl(order) {
+    if (!order) throw new Error('Missing order');
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+    const left = 40;
+    let y = 40;
+    const lineHeight = 18;
+    const pageWidth = doc.internal.pageSize.getWidth();
+
+    // Header big — make "PAID" badge visible
+    doc.setFontSize(18);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Tiny Threads', left, y);
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text('One-of-a-kind kids dresses', left, y + 18);
+
+    // right side meta
+    const metaX = pageWidth - 260;
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'bold');
+    doc.text('INVOICE', metaX, y);
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Ref: ${order.reference || '—'}`, metaX, y + lineHeight);
+    doc.text(`Date: ${new Date(order.paidAt || Date.now()).toLocaleString()}`, metaX, y + lineHeight*2);
+
+    // big PAID badge
+    doc.setTextColor(40,160,100);
+    doc.setFontSize(28);
+    doc.setFont('helvetica', 'bold');
+    doc.text('PAID', pageWidth - 120, y + 60, { align: 'center' });
+    doc.setTextColor(0,0,0); // reset
+
+    y += 80;
+
+    // Buyer details
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.text('BILL TO', left, y);
+    doc.setFont('helvetica', 'normal');
+    const buyerName = (order.buyerDetails && order.buyerDetails.name) ? order.buyerDetails.name : '';
+    doc.text(buyerName || '—', left, y + lineHeight);
+    doc.text(order.buyerEmail || '—', left, y + lineHeight*2);
+    if (order.buyerDetails && order.buyerDetails.phone) doc.text(order.buyerDetails.phone, left, y + lineHeight*3);
+
+    y += lineHeight * 4;
+
+    // Items header
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11);
+    doc.text('Item', left, y);
+    doc.text('Qty', pageWidth - 200, y);
+    doc.text('Unit', pageWidth - 110, y);
+    doc.text('Total', pageWidth - 40, y, { align: 'right' });
+    y += lineHeight;
+    doc.setDrawColor(220);
+    doc.line(left, y - 8, pageWidth - left, y - 8);
+    y += 8;
+
+    // item rows
+    for (const it of (order.items || [])) {
+      const prod = (window.products || []).find(p => p.id === it.id) || {};
+      const title = prod.title || it.id;
+      const qty = Number(it.qty || 1);
+      const unit = prod.price || (it.unit || 0);
+      const line = +(qty * unit).toFixed(2);
+
+      // page break if needed
+      if (y > doc.internal.pageSize.getHeight() - 120) { doc.addPage(); y = 40; }
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(10);
+      doc.text(String(title), left, y);
+      doc.setFont('helvetica', 'normal');
+      doc.text(String(qty), pageWidth - 200, y);
+      doc.text(formatPrice(unit), pageWidth - 110, y);
+      doc.text(formatPrice(line), pageWidth - 40, y, { align: 'right' });
+      y += lineHeight;
+      doc.setFontSize(9);
+      const meta = it.size ? `Size: ${it.size} • ID: ${it.id}` : `ID: ${it.id}`;
+      doc.setFont('helvetica', 'normal');
+      doc.text(meta, left, y);
+      y += (lineHeight + 6);
+    }
+
+    // totals box
+    if (y > doc.internal.pageSize.getHeight() - 160) { doc.addPage(); y = 40; }
+    const totalsY = y + 8;
+    doc.setDrawColor(220);
+    doc.line(left, totalsY, pageWidth - left, totalsY);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Total', pageWidth - 160, totalsY + 18);
+    doc.text(formatPrice(order.total || 0), pageWidth - 40, totalsY + 18, { align: 'right' });
+
+    // footer
+    const footerY = doc.internal.pageSize.getHeight() - 40;
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Thank you for shopping with Tiny Threads — contact: hello@tinythreads.example', left, footerY);
+
+    // output blob & URL
+    const blob = doc.output('blob');
+    const url = URL.createObjectURL(blob);
+    // return both so caller can revoke when desired
+    return { url, blob };
+  }
+
+  // small price formatter using your function available in page (if not, create a simple one)
+  function formatPrice(p) {
+    if (typeof p === 'undefined' || p === null) p = 0;
+    return (typeof window.formatPrice === 'function') ? window.formatPrice(p) : `₵${Number(p).toFixed(2)}`;
+  }
+
+  // Show the receipt modal with order summary and wire buttons to PDF url
+  function showReceiptModal(order, pdfInfo) {
+    try {
+      const modal = document.getElementById('receipt-modal');
+      const summary = document.getElementById('receipt-summary');
+      const totalEl = document.getElementById('receipt-total');
+      const btnView = document.getElementById('receipt-view');
+      const btnDownload = document.getElementById('receipt-download');
+      const btnPrint = document.getElementById('receipt-print');
+      const previewWrap = document.getElementById('receipt-preview-wrap');
+      const previewFrame = document.getElementById('receipt-preview');
+
+      if (!modal || !summary || !totalEl) return;
+
+      // Build a concise summary HTML
+      const itemsHtml = (order.items || []).map(it => {
+        const prod = (window.products || []).find(p => p.id === it.id) || {};
+        return `<div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+          <div style="flex:1"><strong>${(prod.title||it.id)}</strong><div style="color:var(--muted);font-size:12px">${it.size?('Size: '+it.size):''} ${it.size? ' • ' : ''}ID: ${it.id}</div></div>
+          <div style="text-align:right; min-width:96px;">
+            <div style="font-weight:800">${formatPrice((prod.price||0))}</div>
+            <div style="color:var(--muted); font-size:13px">${it.qty} ×</div>
+          </div>
+        </div>`;
+      }).join('');
+
+      summary.innerHTML = `
+        <div style="margin-bottom:8px;"><strong>Buyer</strong><div style="color:var(--muted);font-size:13px">${(order.buyerDetails && order.buyerDetails.name) ? order.buyerDetails.name : '—'}</div>
+        <div style="color:var(--muted);font-size:13px">${order.buyerEmail || '—'}</div>
+        ${order.buyerDetails && order.buyerDetails.phone ? `<div style="color:var(--muted);font-size:13px">${order.buyerDetails.phone}</div>` : ''}</div>
+
+        <div style="margin-top:6px;"><strong>Items</strong>
+          <div style="margin-top:8px">${itemsHtml || '<div style="color:var(--muted)">No items</div>'}</div>
+        </div>
+
+        <div style="margin-top:12px; display:flex; justify-content:space-between; border-top:1px dashed rgba(15,23,42,0.06); padding-top:10px;">
+          <div style="color:var(--muted)">Subtotal</div>
+          <div style="font-weight:700">${formatPrice((order.total || 0) - (order.processingFee || 0))}</div>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; margin-top:6px;">
+          <div style="color:var(--muted)">Processing</div>
+          <div style="font-weight:700">${formatPrice(order.processingFee || ((order.total||0)*0.0295))}</div>
+        </div>
+      `;
+
+      totalEl.textContent = formatPrice(order.total || 0);
+
+      // use pdfInfo.url for view/download/print
+      if (pdfInfo && pdfInfo.url) {
+        const url = pdfInfo.url;
+        btnView.onclick = () => {
+          // show preview inline and open in new tab
+          try {
+            previewWrap.style.display = '';
+            previewFrame.src = url;
+          } catch (e) { /* ignore */ }
+          // open in new tab as well
+          window.open(url, '_blank');
+        };
+        btnDownload.onclick = () => {
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `Invoice-${order.reference || 'receipt'}.pdf`;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+        };
+        btnPrint.onclick = () => {
+          // open a new tab with the blob and print
+          const w = window.open(url, '_blank');
+          // Try to print automatically once loaded (may be blocked by popup policies)
+          w?.addEventListener && w.addEventListener('load', () => w.print());
+        };
+      } else {
+        // disable buttons if pdf not available
+        btnView.disabled = true;
+        btnDownload.disabled = true;
+        btnPrint.disabled = true;
+      }
+
+      // Close wiring
+      document.getElementById('receipt-close').onclick = () => {
+        // revoke object URL to free memory (if provided)
+        try { if (pdfInfo && pdfInfo.url) URL.revokeObjectURL(pdfInfo.url); } catch(e){}
+        hideModal(modal);
+        // hide preview for next open
+        try { document.getElementById('receipt-preview-wrap').style.display = 'none'; } catch(e){}
+      };
+
+      showModal(modal);
+      // accessibility: focus on close
+      document.getElementById('receipt-close').focus();
+    } catch (err) {
+      console.error('showReceiptModal error', err);
+    }
+  }
+
+  // Wrap any existing handleSuccessfulPayment so we show a modal after it runs
+  const prev = window.handleSuccessfulPayment;
+  window.handleSuccessfulPayment = async function(reference, buyerEmail, items, total, buyerDetails) {
+    // First call existing handler (if any) so your DB / order logic runs as before.
+    // If it returns an order object, prefer that; otherwise build an order summary.
+    let order = null;
+    try {
+      if (typeof prev === 'function') {
+        const maybe = await prev(reference, buyerEmail, items, total, buyerDetails);
+        // if previous returned an order object use it
+        if (maybe && typeof maybe === 'object' && maybe.reference) order = maybe;
+      }
+    } catch (err) {
+      console.warn('previous handleSuccessfulPayment threw — continuing to show receipt modal', err);
+    }
+
+    // If prev didn't return an order, create a minimal order object
+    if (!order) {
+      order = {
+        reference: reference || ('REF-' + Math.random().toString(36).slice(2,9).toUpperCase()),
+        buyerEmail: buyerEmail || (buyerDetails && buyerDetails.email) || '',
+        buyerDetails: buyerDetails || {},
+        items: Array.isArray(items) ? items.map(i => ({ id: i.id, qty: i.qty || 1, size: i.size || '' })) : [],
+        total: total || 0,
+        processingFee: +( (total || 0) * 0.0295 ).toFixed(2),
+        paidAt: new Date().toISOString(),
+        status: 'paid'
+      };
+      // push local order record (so it appears in local orders)
+      try { pushOrder(order); } catch(e){}
+    }
+
+    // Generate the PDF and show the modal (do not auto-download)
+    try {
+      const pdfInfo = await generateInvoiceBlobUrl(order); // {url, blob}
+      await showReceiptModal(order, pdfInfo);
+    } catch (err) {
+      console.error('Receipt PDF generation or modal show failed', err);
+      // fallback: show minimal modal without PDF
+      showReceiptModal(order, null);
+    }
+
+    // return order for callers
+    return order;
+  };
+
+  console.log('[tinythreads] Receipt modal and PDF flow installed (will show after handleSuccessfulPayment).');
+})();
+</script>
 
 
 <script>
