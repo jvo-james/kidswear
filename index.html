@@ -732,6 +732,104 @@ a:focus, button:focus, input:focus, select:focus, textarea:focus{
   width: calc(100% - 32px);
   max-width: 520px;
 }
+/* =========================
+   Mobile UX improvements (phones)
+   ========================= */
+
+/* Make hamburger easier to tap and above other UI */
+.hamburger{
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: rgba(0,0,0,0.0);
+  z-index: 140; /* above modals/nav */
+  padding: 10px 12px;   /* larger hit area */
+  font-size: 18px;
+}
+
+/* ensure the hamburger icon has visible tap target */
+.hamburger .fa-bars { font-size: 20px; }
+
+/* ---------- Phone-specific layout tweaks ---------- */
+@media (max-width: 720px) {
+
+  /* 2b: Make shop grid 2 columns on phones (2x2 viewport feel) */
+  .product-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px;
+  }
+
+  /* Make product card contents breathe better in 2-column layout */
+  .product-card { padding: 10px; border-radius: 12px; }
+  .product-media { padding-top: 66%; } /* balance aspect in smaller columns */
+
+  /* 2c: Enlarge modal & cart close buttons on phones */
+  .modal .modal-close,
+  .cart-close,
+  #checkout-modal .modal-close,
+  #buynow-modal .modal-close {
+    font-size: 20px;
+    padding: 10px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.98);
+    box-shadow: 0 8px 22px rgba(10,20,30,0.06);
+    color: var(--muted);
+  }
+  .modal .modal-close:focus,
+  .cart-close:focus { box-shadow: var(--focus); }
+
+  /* Increase the close icon's clickable area */
+  .modal .modal-close i,
+  .cart-close i { pointer-events: none; }
+
+  /* 2d: Checkout & BuyNow modal — stack vertically on phones */
+  #checkout-modal .modal-inner > div,
+  #buynow-modal .modal-inner > div {
+    display: grid;
+    grid-template-columns: 1fr !important;
+    gap: 12px;
+  }
+  #checkout-modal .modal-inner aside,
+  #buynow-modal .modal-inner aside {
+    width: 100% !important;
+    max-width: none !important;
+    box-sizing: border-box;
+  }
+
+  /* Make checkout summary area full width and pinned below item list */
+  #checkout-modal .modal-inner aside,
+  #buynow-modal .modal-inner aside {
+    order: 2;
+  }
+  #checkout-modal .modal-inner > div > :first-child,
+  #buynow-modal .modal-inner > div > :first-child {
+    order: 1;
+  }
+
+  /* Ensure checkout modal is full height scrollable and comfortable on phones */
+  #checkout-modal .modal-inner,
+  #buynow-modal .modal-inner {
+    max-height: calc(100vh - var(--header-space, 84px));
+    overflow: auto;
+    padding: 14px;
+    border-radius: 14px;
+  }
+
+  /* Increase CTA sizes inside checkout on phones */
+  #checkout-pay, #buynow-pay {
+    width: 100%;
+    padding: 12px;
+    font-size: 1rem;
+  }
+
+  /* Make 'Continue shopping' button inside empty cart look tappable */
+  .cart-empty .btn { padding: 10px 14px; border-radius: 12px; }
+
+  /* Slightly increase cart toggle sizing */
+  #cart-toggle { padding: 10px !important; border-radius: 12px; font-size: 18px; }
+
+  /* Reduce hero caption overlay on very small screens if needed */
+  .hero-caption { max-width: 95%; padding: 10px; }
+
+}
 
 </style>
   <style>
@@ -810,10 +908,10 @@ body {
     </button>
 
     <!-- HAMBURGER / MOBILE TOGGLE -->
-    <button id="mobile-toggle" class="hamburger" aria-label="Open menu" aria-expanded="false" style="display: none">
-      <span class="hamburger-lines"></span>
-      <i class="fa fa-bars"></i>
-    </button>
+   <button id="mobile-toggle" class="hamburger" aria-label="Open menu" aria-expanded="false">
+  <span class="hamburger-lines" aria-hidden="true"></span>
+  <i class="fa fa-bars" aria-hidden="true"></i>
+</button>
   </div>
 </div>
 
@@ -1516,7 +1614,8 @@ function createProductCard(product) {
     addBtn.textContent = 'Sold';
   }
 
-   const inCart = cart.some(c => c.id === product.id);
+  // set initial button state based on cart
+  const inCart = cart.some(c => c.id === product.id);
   setProductButtonState(product.id, inCart);
 
   // toggle add/remove from the product card
@@ -1524,21 +1623,22 @@ function createProductCard(product) {
     e.preventDefault();
     const nowInCart = cart.some(c => c.id === product.id);
     if (nowInCart) {
-      // remove
+      // remove (user explicitly removes from card)
       removeFromCart(product.id);
-      setProductButtonState(product.id, false);
       toast('Removed from cart');
+      // setProductButtonState will be handled by removeFromCart -> updateCartUI -> setProductButtonState call flow
     } else {
-      // open modal to select size if needed, or add directly for products with no sizes
+      // For products that have sizes: open modal for selection.
+      // Do NOT change the card's Add state here — wait for modal confirmation.
       if (product.sizes && product.sizes.length) {
         openProductModal(product.id);
       } else {
+        // no sizes: add directly (addToCart will update UI/button state)
         addToCart(product.id, 1, '');
       }
-      setProductButtonState(product.id, true);
     }
   });
- 
+
   moreBtn.addEventListener('click', (e) => {
     e.preventDefault();
     openProductModal(product.id);
@@ -1550,6 +1650,7 @@ function createProductCard(product) {
 
   return node;
 }
+
 
 function getFilteredSortedProducts() {
   let list = products.slice();
@@ -2599,6 +2700,63 @@ document.addEventListener('DOMContentLoaded', () => {
 
   
 </script>
+  <script>
+    // ---------- Robust mobile nav toggle (touch + click friendly) ----------
+(function () {
+  const mobileToggle = document.getElementById('mobile-toggle');
+  const mobileNav = document.getElementById('mobile-nav');
+  const MOBILE_BREAKPOINT = 720;
+
+  if (!mobileToggle || !mobileNav) return;
+
+  // ensure initial visibility if small screen
+  function ensureMobileToggleVisible() {
+    if (window.innerWidth <= MOBILE_BREAKPOINT) {
+      mobileToggle.style.display = 'inline-flex';
+      mobileToggle.setAttribute('aria-hidden', 'false');
+    } else {
+      mobileToggle.style.display = '';
+      mobileToggle.setAttribute('aria-hidden', 'true');
+      mobileNav.classList.remove('open');
+      mobileNav.setAttribute('aria-hidden', 'true');
+      mobileToggle.setAttribute('aria-expanded', 'false');
+    }
+  }
+  ensureMobileToggleVisible();
+  window.addEventListener('resize', () => ensureMobileToggleVisible());
+
+  // toggle function used by both event handlers
+  function toggleMobileNav() {
+    const isOpen = mobileNav.classList.contains('open');
+    mobileNav.classList.toggle('open', !isOpen);
+    mobileNav.setAttribute('aria-hidden', isOpen ? 'true' : 'false');
+    mobileToggle.setAttribute('aria-expanded', (!isOpen).toString());
+
+    // move focus into mobile nav when opening (a11y)
+    if (!isOpen) {
+      const firstLink = mobileNav.querySelector('a');
+      if (firstLink) firstLink.focus();
+    } else {
+      mobileToggle.focus();
+    }
+  }
+
+  // listen for both click and touchstart (handles stubborn mobile tap cases)
+  mobileToggle.addEventListener('click', (ev) => { ev.preventDefault(); toggleMobileNav(); });
+  mobileToggle.addEventListener('touchstart', (ev) => { ev.preventDefault(); toggleMobileNav(); }, { passive: false });
+
+  // Close mobile nav when a link is clicked (also update aria)
+  mobileNav.querySelectorAll('a').forEach(a => {
+    a.addEventListener('click', () => {
+      mobileNav.classList.remove('open');
+      mobileNav.setAttribute('aria-hidden', 'true');
+      mobileToggle.setAttribute('aria-expanded', 'false');
+      mobileToggle.focus();
+    });
+  });
+
+})();
+  </script>
 <script>
 (function(){
   const MOBILE_BREAKPOINT = 720;
