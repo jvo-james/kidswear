@@ -876,6 +876,185 @@ body {
 .cart-panel.open{ transform: translateX(0); }
 
   </style>
+  <style>
+/* ============ Mobile improvements (phones ≤ 720px) ============ */
+@media (max-width:720px) {
+  /* 2.a — make hamburger reliably tappable + visible */
+  #mobile-toggle, .hamburger {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    padding: 12px !important;
+    border-radius: 12px !important;
+    min-width: 44px;
+    min-height: 44px;
+    touch-action: manipulation;
+    z-index: 140; /* above header content so taps register */
+    -webkit-tap-highlight-color: rgba(0,0,0,0.06);
+  }
+  #mobile-toggle .fa-bars, .hamburger .fa-bars { font-size: 20px !important; }
+
+  /* 2.b — shop dresses: show 2 columns on phones (2x2 visible when scrolling) */
+  .product-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+  }
+
+  /* make product cards breathe on tiny screens */
+  .product-card { border-radius: 12px; }
+
+  /* 2.c — bigger close buttons so they're easier to tap on phones */
+  .modal-close, .cart-close, #checkout-modal .modal-close, #buynow-modal .modal-close {
+    padding: 10px 12px !important;
+    font-size: 18px !important;
+    border-radius: 12px !important;
+    min-width: 44px;
+    min-height: 44px;
+    box-shadow: 0 8px 20px rgba(8,20,38,0.08);
+  }
+
+  /* make icon-only close buttons have higher hit area */
+  .modal .modal-close i, .cart-close i { pointer-events: none; }
+
+  /* 2.d — stack checkout modal vertically on phones */
+  /* override inline grid from HTML using !important */
+  #checkout-modal .modal-inner > div,
+  #buynow-modal .modal-inner > div {
+    grid-template-columns: 1fr !important;
+    align-items: stretch;
+  }
+  /* make sidebar area full-width and appear below items */
+  #checkout-modal .modal-inner aside,
+  #buynow-modal .modal-inner aside {
+    width: 100% !important;
+    max-width: none !important;
+    margin-top: 12px;
+  }
+  /* ensure modal inner is scrollable vertically and not horizontally */
+  #checkout-modal .modal-inner, #buynow-modal .modal-inner {
+    max-width: 92vw !important;
+    padding: 12px !important;
+    overflow: auto !important;
+  }
+
+  /* tighten hero caption so it doesn't overlap */
+  .hero-caption { max-width: 60%; }
+
+  /* ensure mobile nav is visible and animation is smooth */
+  #mobile-nav { display: flex !important; transition: max-height 260ms ease; }
+  #mobile-nav.open { max-height: 520px !important; }
+
+  /* enlarge cart button target as well */
+  #cart-toggle { padding: 10px !important; min-width: 44px; min-height: 44px; border-radius: 10px; }
+  #cart-toggle .fa-shopping-cart { font-size: 18px !important; }
+
+  /* spacing fixes for product-body elements */
+  .product-body { padding: 10px !important; }
+}
+</style>
+<style>
+/* === Task 3: Bigger header cart icon & badge === */
+
+/* make the cart button larger and more tappable (desktop + mobile) */
+.header-actions #cart-toggle {
+  padding: 10px 14px !important;    /* larger hit area */
+  min-width: 52px !important;
+  min-height: 52px !important;
+  border-radius: 12px !important;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 24px rgba(12,18,28,0.06);
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+/* slightly grow on hover/focus for visual affordance */
+.header-actions #cart-toggle:hover,
+.header-actions #cart-toggle:focus {
+  transform: translateY(-3px) scale(1.03);
+  box-shadow: 0 12px 30px rgba(12,18,28,0.10);
+  outline: none;
+}
+
+/* bigger cart glyph */
+.header-actions #cart-toggle .fa-shopping-cart {
+  font-size: 20px !important; /* desktop */
+  line-height: 1;
+}
+
+/* badge: larger, more legible */
+#cart-badge {
+  min-width: 22px !important;
+  height: 22px !important;
+  padding: 2px 7px !important;
+  font-size: 12px !important;
+  border-radius: 999px !important;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(12,18,28,0.08);
+}
+
+/* slightly larger for small screens too */
+@media (max-width:720px) {
+  .header-actions #cart-toggle { padding: 10px !important; min-width:48px !important; min-height:48px !important; }
+  .header-actions #cart-toggle .fa-shopping-cart { font-size: 18px !important; }
+  #cart-badge { min-width:20px; height:20px; font-size:11px; padding:2px 6px; }
+}
+</style>
+<style>
+/* Header search toggle: reveal the shop search on mobile and provide a neat overlay */
+body.search-open {
+  /* nothing visual by itself; we target the search wrap */
+}
+
+/* when search-open is active, show the hidden .search-wrap (mobile override) */
+body.search-open .search-wrap {
+  display: flex !important;
+  position: fixed !important;
+  left: 8px !important;
+  right: 8px !important;
+  top: calc(var(--header-space) + 8px) !important;
+  z-index: 220 !important;
+  padding: 8px !important;
+  border-radius: 12px !important;
+  box-shadow: 0 14px 40px rgba(8,20,38,0.12) !important;
+  background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,255,255,0.92)) !important;
+  align-items: center;
+}
+
+/* make the search input wider when overlay active */
+body.search-open .search-wrap input[type="search"] {
+  width: 100% !important;
+  min-width: 140px !important;
+  padding: 12px 10px !important;
+  font-size: 1rem !important;
+}
+
+/* subtle dim behind the header when search is open on mobile (non-invasive) */
+body.search-open::before{
+  content: "";
+  position: fixed;
+  inset: 0;
+  top: calc(var(--header-space) + 8px);
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(8,15,24,0.18);
+  z-index: 210;
+  pointer-events: none;
+}
+
+/* ensure clear button sits nicely in overlay */
+body.search-open #search-clear {
+  z-index: 230;
+}
+
+/* keep layout consistent on desktop (no visual change) */
+@media (min-width:721px) {
+  body.search-open .search-wrap { position: static; box-shadow: none; top: auto; left: auto; right: auto; }
+  body.search-open::before { display:none; }
+}
+</style>
+
 </head>
 <body>
   <!-- SITE HEADER -->
@@ -2851,7 +3030,542 @@ window.addEventListener('resize', () => {
   __headerResizeTimer = setTimeout(syncHeaderSpace, 120);
 });
 </script>
+<script>
+/* Mobile UX fixes: add touch handler for hamburger, ensure checkout modal stacks reliably when opened */
+(function(){
+  const MOBILE_BREAKPOINT = 720;
 
+  // Add a touchstart fallback to the mobile toggle so very small/older browsers register taps
+  const mobileToggle = document.getElementById('mobile-toggle');
+  function toggleMobileNav(e) {
+    if (e && e.preventDefault) e.preventDefault();
+    const mobileNav = document.getElementById('mobile-nav');
+    if (!mobileNav) return;
+    const isOpen = mobileNav.classList.contains('open');
+    mobileNav.classList.toggle('open', !isOpen);
+    mobileNav.setAttribute('aria-hidden', isOpen ? 'true' : 'false');
+    mobileToggle?.setAttribute('aria-expanded', (!isOpen).toString());
+  }
+  if (mobileToggle) {
+    // Avoid adding duplicate click handlers: only add touchstart if not already used
+    mobileToggle.addEventListener('touchstart', function touchToggle(e){
+      // prevent passive behaviour from blocking preventDefault
+      e.preventDefault();
+      toggleMobileNav(e);
+    }, { passive: false });
+
+    // click is already wired elsewhere in your code; leaving it intact is fine
+  }
+
+  // When showing the checkout / buynow modal, make sure it's stacked for phones
+  function ensureCheckoutStacking(modalId) {
+    const modalEl = document.getElementById(modalId);
+    if (!modalEl) return;
+    const innerGrid = modalEl.querySelector('.modal-inner > div');
+    const aside = modalEl.querySelector('.modal-inner aside');
+    if (window.innerWidth <= MOBILE_BREAKPOINT) {
+      if (innerGrid) innerGrid.style.gridTemplateColumns = '1fr';
+      if (aside) aside.style.width = '100%';
+      modalEl.style.alignItems = 'flex-start';
+    } else {
+      // revert inline override when on larger screens
+      if (innerGrid) innerGrid.style.removeProperty('grid-template-columns');
+      if (aside) aside.style.removeProperty('width');
+      modalEl.style.removeProperty('align-items');
+    }
+  }
+
+  // Hook into checkout opening functions by observing DOM changes: when modal becomes visible, apply stacking
+  const observer = new MutationObserver((records) => {
+    records.forEach(rec => {
+      if (rec.type === 'attributes' && rec.target && rec.attributeName === 'class') {
+        const el = rec.target;
+        if (el.id === 'checkout-modal' || el.id === 'buynow-modal') {
+          // apply stacking whenever class changes (open/close)
+          ensureCheckoutStacking(el.id);
+        }
+      }
+    });
+  });
+
+  ['checkout-modal', 'buynow-modal'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) observer.observe(el, { attributes: true, attributeFilter: ['class'] });
+  });
+
+  // Also make sure stacking is set correctly on resize
+  let resizeTO;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTO);
+    resizeTO = setTimeout(() => {
+      ensureCheckoutStacking('checkout-modal');
+      ensureCheckoutStacking('buynow-modal');
+    }, 160);
+  });
+
+  // Finally, ensure mobile nav closes when clicking an internal link (already present in your script, but add a safety)
+  document.querySelectorAll('#mobile-nav a').forEach(a => {
+    a.addEventListener('click', () => {
+      const mobileNav = document.getElementById('mobile-nav');
+      if (mobileNav) {
+        mobileNav.classList.remove('open');
+        mobileNav.setAttribute('aria-hidden', 'true');
+        mobileToggle?.setAttribute('aria-expanded', 'false');
+      }
+    });
+  });
+})();
+</script>
+
+<script>
+/* Header Search Toggle - makes the header search icon open & focus the shop search input */
+(function(){
+  const searchToggle = document.getElementById('search-toggle');
+  const searchInput = document.getElementById('search-input');
+  const searchWrap = document.querySelector('.search-wrap');
+  const MOBILE_BREAKPOINT = 720;
+
+  if (!searchToggle || !searchInput) return;
+
+  function openSearch() {
+    document.body.classList.add('search-open');
+    // make sure search-wrap is visible and focused
+    if (searchWrap) {
+      // on very small screens keep it on top by adjusting z-index
+      searchWrap.style.zIndex = 230;
+    }
+    // scroll to shop area on small screens so results are visible
+    if (window.innerWidth <= MOBILE_BREAKPOINT) {
+      const shopEl = document.getElementById('shop');
+      if (shopEl) shopEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    // small delay to ensure element is visible before focusing
+    setTimeout(() => searchInput.focus({ preventScroll: false }), 120);
+    searchToggle.setAttribute('aria-expanded', 'true');
+  }
+
+  function closeSearch() {
+    document.body.classList.remove('search-open');
+    searchToggle.setAttribute('aria-expanded', 'false');
+  }
+
+  // toggle on click/tap
+  searchToggle.addEventListener('click', (e) => {
+    const isOpen = document.body.classList.contains('search-open');
+    if (isOpen) closeSearch(); else openSearch();
+  });
+
+  // also support keyboard (Enter) on the icon for accessibility
+  searchToggle.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      const isOpen = document.body.classList.contains('search-open');
+      if (isOpen) closeSearch(); else openSearch();
+    }
+  });
+
+  // close search on Escape key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && document.body.classList.contains('search-open')) {
+      closeSearch();
+      // blur the input so focus doesn't stick there
+      try { searchInput.blur(); } catch (err) {}
+    }
+  });
+
+  // click outside to close (safe: ignores clicks inside the search-wrap)
+  document.addEventListener('click', (e) => {
+    if (!document.body.classList.contains('search-open')) return;
+    const target = e.target;
+    if (searchWrap && !searchWrap.contains(target) && !searchToggle.contains(target)) {
+      closeSearch();
+    }
+  });
+
+  // When user types into the header-opened search input, your existing search handler
+  // already updates the product listing (input listener in your code). So we don't need
+  // to re-implement search logic here — just ensure focus/visibility.
+  // However, ensure Enter on input does not accidentally submit anything:
+  searchInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      // trigger a short re-render (your input listener uses debounced render)
+      activeFilters.search = searchInput.value;
+      renderProductsBatch(true);
+      // when on mobile, scroll to top of shop so results are visible
+      if (window.innerWidth <= MOBILE_BREAKPOINT) {
+        const shopEl = document.getElementById('shop');
+        if (shopEl) shopEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+      // keep the overlay open so the user can see results, they can tap elsewhere to close
+    }
+  });
+
+  // Clear search behavior: reuse existing #search-clear but also close overlay when clearing on mobile
+  const clearBtn = document.getElementById('search-clear');
+  if (clearBtn) {
+    clearBtn.addEventListener('click', (e) => {
+      // your existing listener already clears and rerenders, just close overlay on small screens
+      if (window.innerWidth <= MOBILE_BREAKPOINT) {
+        // short timeout to allow the input to be cleared first
+        setTimeout(() => closeSearch(), 120);
+      }
+    });
+  }
+})();
+</script>
+<script>
+/* ===== Task 5: remove size option UI + adapt logic (paste after your other scripts) ===== */
+(function(){
+  // hide the size label & select in the product modal
+  const modalSize = document.getElementById('modal-size');
+  const modalSizeLabel = document.querySelector('label[for="modal-size"]');
+  if (modalSizeLabel) modalSizeLabel.style.display = 'none';
+  if (modalSize) {
+    modalSize.style.display = 'none';
+    modalSize.innerHTML = '<option value="">—</option>';
+  }
+
+  // Helper to safely replace an element (cloning drops event listeners)
+  function replaceElementById(id, newHandler) {
+    const old = document.getElementById(id);
+    if (!old) return null;
+    const clone = old.cloneNode(true);
+    old.parentNode.replaceChild(clone, old);
+    if (typeof newHandler === 'function') clone.addEventListener('click', newHandler);
+    return clone;
+  }
+
+  // Replace modal "Add to cart" button so it no longer requires size
+  replaceElementById('modal-add', function(e){
+    e.preventDefault();
+    if (!modalCurrentProduct) return;
+    const qty = Number(modalQty?.value || 1);
+
+    // If modal is editing an existing cart item, update it
+    const editId = document.getElementById('product-modal')?.getAttribute('data-edit-cart-id');
+    if (editId) {
+      updateCartItem(editId, qty, ''); // keep size blank
+      clearModalEditState();
+      closeProductModal();
+      toast('Cart updated');
+      return;
+    }
+
+    // if already in cart -> remove
+    const alreadyInCart = cart.some(c => c.id === modalCurrentProduct.id);
+    if (alreadyInCart) {
+      removeFromCart(modalCurrentProduct.id);
+      clearModalEditState();
+      closeProductModal();
+      toast('Removed from cart');
+      return;
+    }
+
+    // normal add flow (no size required)
+    addToCart(modalCurrentProduct.id, qty, '');
+    clearModalEditState();
+    closeProductModal();
+  });
+
+  // Replace modal "Buy now" button so it doesn't require size
+  replaceElementById('modal-buy', function(e){
+    e.preventDefault();
+    if (!modalCurrentProduct) return;
+    const qty = Number(modalQty?.value || 1);
+    const single = { id: modalCurrentProduct.id, qty, size: '' };
+    openBuyNowModal(single);
+  });
+
+  // Override addToCart to avoid opening modal for products that have sizes
+  // (we still respect available check and duplication)
+  (function overrideAddToCart() {
+    const original = window.addToCart;
+    window.addToCart = function(productId, qty = 1, size = '') {
+      const p = products.find(x => x.id === productId);
+      if (!p || !p.available) { toast('Sorry — this dress is no longer available.'); return; }
+      if (cart.some(c => c.id === productId)) return; // already in cart
+      const item = { id: productId, qty: Math.max(1, Number(qty)), size: size || '' };
+      cart.push(item);
+      saveCart(cart);
+      updateCartUI();
+      setProductButtonState(productId, true);
+      toast('Added to cart');
+      openCart();
+    };
+    // keep a reference if needed
+    window._originalAddToCart_noSize = original;
+  })();
+
+ 
+  console.log('[tinythreads] modal size removed — UI adapted');
+})();
+</script>
+<script>
+/* ===== Task 6: remove purchased products from DB & UI =====
+   Paste this after your other scripts (it overrides handleSuccessfulPayment).
+   Set DELETE_ON_PURCHASE to false if you prefer to only mark as sold (available=false).
+*/
+(async function(){
+  const DELETE_ON_PURCHASE = true; // <-- set to false to mark as sold instead of deleting
+
+  // helper to remove product from local products array (products is the const array defined earlier)
+  function removeProductLocally(id) {
+    const idx = products.findIndex(p => p.id === id);
+    if (idx !== -1) products.splice(idx, 1);
+  }
+
+  // helper to remove product from DB (delete node) or mark unavailable
+  async function removeProductFromDB(id) {
+    if (!id) return;
+    if (!window.db) {
+      console.warn('[tinythreads] Firebase DB (db) not available; skipping remote removal for', id);
+      return Promise.resolve();
+    }
+    const refPath = `/products/${id}`;
+    try {
+      if (DELETE_ON_PURCHASE) {
+        // physically remove the product node
+        await db.ref(refPath).remove();
+        console.log('[tinythreads] Removed product from DB:', id);
+      } else {
+        // mark as unavailable (safer)
+        await db.ref(refPath + '/available').set(false);
+        console.log('[tinythreads] Marked product unavailable in DB:', id);
+      }
+    } catch (err) {
+      console.error('[tinythreads] Failed to remove/mark product in DB for', id, err);
+      throw err;
+    }
+  }
+
+  // Override the existing handleSuccessfulPayment function
+  window.handleSuccessfulPayment = async function(reference, buyerEmail, items, total, buyerDetails = {}) {
+    try {
+      if (!Array.isArray(items)) items = [];
+
+      // snapshot product info for invoice generation BEFORE deletion
+      const snapshotItems = items.map(it => ({ ...it }));
+
+      // Attempt to remove each purchased product from DB and local array
+      for (const it of items) {
+        try {
+          // Remove from DB (or mark sold)
+          await removeProductFromDB(it.id);
+        } catch (e) {
+          // If remote removal fails, fallback to mark locally as unavailable
+          const p = products.find(pp => pp.id === it.id);
+          if (p) p.available = false;
+          console.warn('[tinythreads] Fallback: marking locally unavailable for', it.id);
+        }
+        // Remove from local products array so UI won't show it any more
+        removeProductLocally(it.id);
+      }
+
+      // persist local products fallback copy
+      try { localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(products)); } catch(e) {}
+
+      // compute processing fee if you want to store it
+      const processingFee = +( (total * 0.0295) ).toFixed(2);
+
+      // build order object and save locally
+      const order = {
+        reference,
+        buyerEmail,
+        buyerDetails,
+        items: snapshotItems,
+        total,
+        processingFee,
+        paidAt: nowISO(),
+        status: 'paid'
+      };
+      pushOrder(order);
+
+      // remove purchased items from cart (client)
+      const purchasedIds = snapshotItems.map(i => i.id);
+      cart = cart.filter(c => !purchasedIds.includes(c.id));
+      saveCart(cart);
+
+      // update UI everywhere
+      updateCartUI();
+      renderProductsBatch(true); // re-render product grid (removed items will not show)
+      closeCart();
+      closeProductModal();
+
+      toast('Payment successful — purchased item(s) removed from the shop.');
+
+      // generate invoice (re-uses your existing function)
+      try {
+        await generateInvoicePDF(order);
+      } catch (err) {
+        console.error('[tinythreads] Invoice generation failed', err);
+        toast('Payment recorded — invoice generation failed (see console).');
+      }
+
+      return order;
+    } catch (err) {
+      console.error('[tinythreads] handleSuccessfulPayment override error:', err);
+      toast('Payment recorded, but product removal failed — check console.');
+      // still push an order record (best-effort)
+      try {
+        const order = {
+          reference,
+          buyerEmail,
+          buyerDetails,
+          items: items.map(it => ({ ...it })),
+          total,
+          processingFee: +( (total * 0.0295) ).toFixed(2),
+          paidAt: nowISO(),
+          status: 'paid'
+        };
+        pushOrder(order);
+      } catch(e) {}
+      return null;
+    }
+  };
+
+  console.log('[tinythreads] handleSuccessfulPayment overridden — DELETE_ON_PURCHASE =', DELETE_ON_PURCHASE);
+})();
+</script>
+<script>
+/* === Task 8: Reliable "Remove from Cart" behavior === */
+(function(){
+  // Replace existing removeFromCart with a more robust version
+  window.removeFromCart = function(productId) {
+    if (!productId) return;
+    const existed = cart.some(c => c.id === productId);
+    if (!existed) return;
+
+    // remove from cart state
+    cart = cart.filter(c => c.id !== productId);
+    // persist
+    saveCart(cart);
+
+    // Update product card button state (if present)
+    try { setProductButtonState(productId, false); } catch(e){}
+
+    // Update cart UI (badge, items, subtotal)
+    try { updateCartUI(); } catch(e){}
+
+    // If checkout modal is open and was created from current cart, refresh or close it
+    const checkoutModal = document.getElementById('checkout-modal');
+    if (checkoutModal && checkoutModal.classList.contains('open')) {
+      // If checkout modal was opened for the full cart (modal._checkoutItems), refresh it using the current cart
+      // If no items remain, close the modal
+      if (cart.length === 0) {
+        closeCheckoutModal();
+      } else {
+        // re-open with current cart snapshot so totals / items stay correct
+        try { openCheckoutModal(cart); } catch(e){}
+      }
+    }
+
+    // If buynow modal is open for that product, close it
+    const buynowModal = document.getElementById('buynow-modal');
+    if (buynowModal && buynowModal.classList.contains('open')) {
+      const bn = buynowModal._buynowItem;
+      if (bn && bn.id === productId) closeBuyNowModal();
+    }
+
+    // If product modal is open for that product, make sure its modal button shows "Add to cart"
+    if (modalCurrentProduct && modalCurrentProduct.id === productId) {
+      try {
+        const modalAddBtn = document.getElementById('modal-add');
+        if (modalAddBtn) {
+          modalAddBtn.innerHTML = '<i class="fa fa-shopping-cart"></i> Add to cart';
+          modalAddBtn.dataset.state = 'add';
+        }
+      } catch (e) {}
+    }
+
+    // friendly feedback
+    toast('Removed from cart');
+  };
+
+  // Ensure cart-item remove buttons use the unified function (delegation safe)
+  // We'll use event delegation on the cart contents container so dynamically added items are handled.
+  const cartContents = document.getElementById('cart-contents');
+  if (cartContents) {
+    cartContents.removeEventListener('click', cartContents.__removeClickHandler); // guard against duplicates
+    cartContents.__removeClickHandler = function(e) {
+      const btn = e.target.closest && e.target.closest('.cart-item-remove');
+      if (!btn) return;
+      e.preventDefault();
+      // find product id from closest .cart-item
+      const itemEl = btn.closest('.cart-item');
+      const pid = itemEl && itemEl.dataset.productId;
+      if (!pid) return;
+      window.removeFromCart(pid);
+    };
+    cartContents.addEventListener('click', cartContents.__removeClickHandler);
+  }
+
+  // Also ensure product-card remove/add buttons still call removeFromCart (in case they were wired differently)
+  // Attach a delegated listener on product-grid for safety
+  const pg = document.getElementById('product-grid');
+  if (pg) {
+    pg.removeEventListener('click', pg.__addRemoveHandler);
+    pg.__addRemoveHandler = function(e) {
+      const btn = e.target.closest && e.target.closest('[data-action="add-to-cart"]');
+      if (!btn) return;
+      const card = btn.closest('.product-card');
+      const pid = card && card.dataset.productId;
+      if (!pid) return;
+      e.preventDefault();
+      // If button currently indicates "Remove" (has class in-cart or text), remove; otherwise open modal (existing behavior)
+      const isInCart = btn.classList.contains('in-cart') || /remove/i.test(btn.textContent);
+      if (isInCart) {
+        window.removeFromCart(pid);
+      } else {
+        // open modal to confirm add (preserves earlier behavior)
+        openProductModal(pid);
+      }
+    };
+    pg.addEventListener('click', pg.__addRemoveHandler);
+  }
+
+  // Small safety: when clear-cart is used, ensure we call removeFromCart for each id so UI syncs fully
+  const clearBtn = document.getElementById('clear-cart');
+  if (clearBtn) {
+    clearBtn.removeEventListener('click', clearBtn.__handlerBackup);
+    clearBtn.__handlerBackup = function(e) {
+      e.preventDefault();
+      // remove each product via removeFromCart so all UI paths update
+      const ids = cart.map(c => c.id);
+      ids.forEach(id => window.removeFromCart(id));
+      // If cart length becomes zero, updateCartUI will have been called by removeFromCart; give toast
+      toast('Cart cleared');
+    };
+    clearBtn.addEventListener('click', clearBtn.__handlerBackup);
+  }
+
+  console.log('[tinythreads] removeFromCart patched — remove buttons now use unified removal logic');
+})();
+</script>
+<script>
+/* Task 9: Close cart when user clicks "Continue shopping" in the empty-cart view */
+(function(){
+  document.addEventListener('click', function (e) {
+    const btn = e.target.closest && e.target.closest('.cart-empty a, .cart-empty .btn');
+    if (!btn) return;
+    // Prevent following the link anchor (page jump) so we can smoothly close and scroll
+    e.preventDefault();
+    try {
+      // close the cart panel if open
+      if (typeof closeCart === 'function') closeCart();
+    } catch (err) { /* ignore */ }
+
+    // optionally scroll to shop so user sees products
+    const shop = document.getElementById('shop');
+    if (shop) {
+      // small delay so cart panel has time to close (visual)
+      setTimeout(() => {
+        try { shop.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (err) { window.location.hash = '#shop'; }
+      }, 220);
+    }
+  }, { passive: false });
+})();
+</script>
 
 </body>
 </html>
