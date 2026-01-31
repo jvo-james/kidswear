@@ -2102,6 +2102,74 @@ a:focus, button:focus, input:focus, select:focus, textarea:focus {
 }
 
   </style>
+  <style>
+    /* ---------- Mobile fixes: show history icon + hide stray "Home" link ---------- */
+@media (max-width: 720px) {
+  /* Ensure header icons (history + cart + hamburger) are visible and tidy */
+  .header-actions {
+    display: flex !important;
+    gap: 8px;
+    align-items: center;
+  }
+
+  /* Force-show history toggle (overrides earlier "hide everything" rules) */
+  #history-toggle {
+    display: inline-flex !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    min-height: 44px;
+    border-radius: 12px;
+    padding: 8px;
+    order: 1; /* show to the left of cart */
+    background: linear-gradient(90deg,var(--brand-1),var(--brand-2));
+    color: #fff;
+    box-shadow: 0 8px 26px rgba(12,18,28,0.06);
+    border: 0;
+    z-index: 250;
+  }
+
+  /* Ensure the history badge is visible & compact */
+  #history-badge {
+    display: inline-flex !important;
+    min-width: 18px !important;
+    height: 18px !important;
+    padding: 0 6px !important;
+    font-size: 11px !important;
+    line-height: 18px !important;
+    align-items: center !important;
+    justify-content: center !important;
+    position: relative !important;
+    top: -8px !important;
+    right: 6px !important;
+  }
+
+  /* Keep cart & hamburger order consistent */
+  #cart-toggle { order: 2; display:inline-flex !important; }
+  #mobile-toggle, .hamburger { order: 3; display:inline-flex !important; }
+
+  /* If some rule elsewhere forcibly hides all header children, override it */
+  .header-actions > * {
+    display: inline-flex !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+  }
+
+  /* Hide the inline "Home" anchor that appears between header & hero.
+     This targets any link to #hero (safe and specific). */
+  a[href="#hero"] {
+    display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+  }
+
+  /* A little spacing fix so header doesn't push content when main nav hidden */
+  body { padding-top: var(--header-space, 84px); } /* keep safe */
+}
+
+  </style>
 </head>
 <body>
   <!-- SITE HEADER -->
