@@ -2170,6 +2170,7 @@ a:focus, button:focus, input:focus, select:focus, textarea:focus {
 }
 
   </style>
+  
 </head>
 <body>
   <!-- SITE HEADER -->
@@ -3941,6 +3942,96 @@ a:focus, button:focus, input:focus, select:focus, textarea:focus {
 })();
 </script>
 
+<!-- ---------- Fix: force history visible + hide stray "Home" ---------- -->
+<style>
+/* 1) Force-show the history icon on small screens (strong specificity) */
+@media (max-width: 720px) {
+  /* highest-specificity rules so they override earlier also-`!important` rules */
+  header .header-actions button#history-toggle,
+  .header-actions button#history-toggle,
+  #history-toggle.icon-btn {
+    display: inline-flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-width: 44px !important;
+    min-height: 44px !important;
+    border-radius: 12px !important;
+    padding: 8px !important;
+    background: linear-gradient(90deg, var(--brand-1), var(--brand-2)) !important;
+    color: #fff !important;
+    box-shadow: 0 8px 26px rgba(12,18,28,0.06) !important;
+    z-index: 9999 !important;
+  }
+
+  /* Also protect against .compact-header hiding children */
+  .compact-header .header-actions button#history-toggle { display:inline-flex !important; }
+
+  /* ensure badge visible */
+  #history-badge { display:inline-flex !important; visibility:visible !important; min-width:18px !important; height:18px !important; padding:0 6px !important; font-size:11px !important; }
+
+  /* Make sure header-actions children are not completely collapsed */
+  header .header-actions > * { display: inline-flex !important; visibility: visible !important; pointer-events: auto !important; }
+
+  /* 2) Hide any "Home" links inside the header so nothing shows between header and hero.
+     We only target header-scoped anchors to avoid hiding legitimate footer/inline links. */
+  header a[href="#hero"],
+  header .nav-list a[href="#hero"],
+  header #mobile-nav a[href="#hero"] {
+    display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+    aria-hidden: true;
+  }
+
+  /* 3) Keep the mobile navigation visually hidden by default (so the small <nav> doesn't leak a line)
+     but still expose it when JS adds the .open class. This is safer than forcing `display:flex` unconditionally. */
+  #mobile-nav {
+    display: none !important;
+    max-height: 0 !important;
+    overflow: hidden !important;
+  }
+  #mobile-nav.open {
+    display: flex !important;
+    max-height: 520px !important;
+    overflow: auto !important;
+  }
+
+  /* Small visual safety: ensure the header does not overlap other elements unexpectedly */
+  body { padding-top: var(--header-space, 84px); }
+}
+</style>
+
+<!-- Small JS fallback: will force the history button visible if some other script or inline style is hiding it -->
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  try {
+    const hist = document.getElementById('history-toggle');
+    if (hist) {
+      const cs = window.getComputedStyle(hist);
+      if (cs.display === 'none' || cs.visibility === 'hidden' || cs.opacity === '0') {
+        hist.style.setProperty('display', 'inline-flex', 'important');
+        hist.style.setProperty('visibility', 'visible', 'important');
+        hist.style.setProperty('opacity', '1', 'important');
+        hist.style.zIndex = '9999';
+      }
+    }
+
+    // Defensive: hide any header-scoped #hero anchors that slipped through
+    document.querySelectorAll('header a[href="#hero"]').forEach(a => {
+      if (!a.classList.contains('site-logo') && !a.closest('.logo')) {
+        a.style.setProperty('display', 'none', 'important');
+        a.setAttribute('aria-hidden', 'true');
+      }
+    });
+  } catch (err) {
+    // fail silently; this is just a small safety net for debugging
+    console.warn('history-fallback error', err);
+  }
+});
+</script>
 
 </body>
 </html>
