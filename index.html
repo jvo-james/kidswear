@@ -1641,7 +1641,304 @@ a:focus, button:focus, input:focus, select:focus, textarea:focus {
    END
    ----------------------------*/
 </style>
+<style>
+  /* =========================
+   MODAL: fixed header + scrollable content
+   ========================= */
 
+/* Make modal inner a column flex container so header (close, header elements)
+   can remain non-scrolling while the content area scrolls */
+.modal .modal-inner {
+  display: flex;
+  flex-direction: column;
+  position: relative;               /* for sticky positioning children */
+  overflow: hidden;                 /* we'll let internal panes scroll */
+  /* make scrollbars visible and stable */
+  scrollbar-gutter: stable both-edges;
+}
+
+/* Treat top-of-modal controls as the header area.
+   Keep the close button and any immediate header elements sticky at the top. */
+.modal .modal-close,
+.modal .modal-inner > header,
+.modal .modal-inner > .modal-header,
+.modal .modal-inner > .sticker,               /* if a header uses sticker or similar */
+#checkout-modal .modal-close,
+#receipt-modal .modal-close {
+  position: sticky !important;
+  top: 12px;
+  z-index: 80;
+}
+
+/* Prevent header items from overlapping content: reserve padding in modal inner */
+.modal .modal-inner {
+  padding-top: 56px; /* enough room for sticky close/header; adjust if you change header height */
+}
+
+/* Make the main content area(s) of each modal scrollable instead of the whole modal element.
+   This ensures the header stays put while the content scrolls. */
+.modal .modal-inner > .modal-grid,
+.modal .modal-inner > .checkout-inner,
+.modal .modal-inner > .receipt-grid,
+.modal .modal-inner > .modal-body,
+.modal .modal-inner > .checkout-items-wrap,
+#product-modal .modal-inner > .modal-grid,
+#checkout-modal .modal-inner > .checkout-inner,
+#receipt-modal .modal-inner > .receipt-grid {
+  flex: 1 1 auto;
+  min-height: 0;           /* critical so flex child can overflow correctly */
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-gutter: stable both-edges;
+}
+
+/* Make internal scrollbars clearly visible (WebKit + Blink) */
+.modal .modal-inner > .modal-grid::-webkit-scrollbar,
+.modal .modal-inner > .checkout-inner::-webkit-scrollbar,
+.modal .modal-inner > .receipt-grid::-webkit-scrollbar,
+.modal .modal-inner::-webkit-scrollbar {
+  height: 12px;
+  width: 12px;
+}
+.modal .modal-inner > .modal-grid::-webkit-scrollbar-thumb,
+.modal .modal-inner > .checkout-inner::-webkit-scrollbar-thumb,
+.modal .modal-inner > .receipt-grid::-webkit-scrollbar-thumb,
+.modal .modal-inner::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,0.18);
+  border-radius: 8px;
+}
+.modal .modal-inner > .modal-grid::-webkit-scrollbar-track,
+.modal .modal-inner > .checkout-inner::-webkit-scrollbar-track,
+.modal .modal-inner > .receipt-grid::-webkit-scrollbar-track,
+.modal .modal-inner::-webkit-scrollbar-track {
+  background: rgba(0,0,0,0.03);
+  border-radius: 8px;
+}
+
+/* Make Firefox show visible scrollbars with decent contrast */
+.modal .modal-inner > .modal-grid,
+.modal .modal-inner > .checkout-inner,
+.modal .modal-inner > .receipt-grid,
+.modal .modal-inner {
+  scrollbar-color: rgba(0,0,0,0.18) rgba(0,0,0,0.03);
+  scrollbar-width: thin;
+}
+
+/* Ensure header contents (close button, icon areas) do not overlap the scrolling content.
+   The close button is visually part of the header (sticky) and won't scroll away. */
+.modal .modal-close {
+  background: rgba(255,255,255,0.98);
+  border-radius: 10px;
+  padding: 8px;
+  margin: 6px;
+  right: 12px;
+  /* keep it on top of other header content */
+  z-index: 120;
+}
+
+/* Make sure the close icon doesn't get covered by content when scrolling */
+.modal .modal-inner > .modal-grid,
+.modal .modal-inner > .checkout-inner,
+.modal .modal-inner > .receipt-grid {
+  padding-top: 8px; /* small gap after the sticky header */
+}
+
+/* =========================
+   REMOVE / HIDE STICKERS
+   ========================= */
+.sticker,
+.sticker--left,
+.sticker--right,
+.receipt-modal .sticker,
+.checkout-modal .sticker {
+  display: none !important;
+}
+
+/* =========================
+   FORCE VISIBLE HORIZONTAL + VERTICAL SCROLLBARS
+   (applies to modal content panes & other scrollable lists)
+   ========================= */
+.modal .modal-inner > .modal-grid,
+.modal .modal-inner > .checkout-inner,
+.modal .modal-inner > .receipt-grid,
+.receipt-items,
+.checkout-items-list,
+.history-list {
+  overflow: auto !important;
+  scrollbar-gutter: stable both-edges;
+}
+
+/* =========================
+   HIDE "One-of-a-kind" product tag
+   ========================= */
+.product-tag {
+  display: none !important;
+}
+
+/* =========================
+   HIDE HAMBURGER ON LARGER SCREENS
+   ========================= */
+@media (min-width: 721px) {
+  .hamburger,
+  #mobile-toggle {        /* also hide any duplicate mobile toggle */
+    display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+  }
+}
+
+/* =========================
+   SMALL-SCREEN PRODUCT CARD LAYOUT
+   (stacked lines — image, title, sizes/id, price, then buttons on separate line)
+   ========================= */
+@media (max-width: 720px) {
+  /* Make the product body strictly vertical and each section placed on its own line */
+  .product-card { display: flex; flex-direction: column; }
+  .product-card .product-media { order: 1; }
+  .product-card .product-body { order: 2; display: flex; flex-direction: column; gap: 6px; padding: 8px; }
+  .product-card .product-title { order: 1; font-weight: 800; }
+  .product-card .product-meta { order: 2; font-size: 0.92rem; color: var(--muted); }
+  .product-card .price-wrap { order: 3; margin-top: 2px; }
+  .product-card .price-wrap .price { display: block; font-weight: 900; font-size: 1rem; margin-top: 4px; }
+  /* Ensure the Add / More buttons sit on their own line below the price */
+  .product-card .product-bottom { order: 4; display: flex; flex-direction: column; gap: 8px; align-items: stretch; }
+  .product-card .card-actions { display: flex; gap: 8px; justify-content: flex-start; width: 100%; }
+  .product-card .card-actions .btn { flex: 1 1 auto; min-width: 0; }
+  /* Reduce clutter and ensure quickview button remains usable */
+  .product-card .product-media .quickview { right: 8px; top: 8px; }
+
+  /* Slightly increase touch targets for product card buttons */
+  .product-card .card-actions .btn { padding: 10px 12px; border-radius: 10px; }
+
+  /* Make images breathe */
+  .product-media img { width: 100%; height: auto; object-fit: cover; display: block; }
+
+  /* Make chip filters remain tappable & header compact */
+  .header-inner { padding: 8px; }
+}
+
+/* =========================
+   HISTORY ICON NEXT TO CART ICON ON SMALL SCREENS
+   ========================= */
+@media (max-width: 720px) {
+  .header-actions {
+    display: flex !important;
+    align-items: center;
+    gap: 8px;
+  }
+  /* order them so history sits directly before cart on mobile */
+  #history-toggle { order: 1; display: inline-flex !important; }
+  #cart-toggle { order: 2; display: inline-flex !important; }
+  /* keep mobile menu toggle after icons */
+  #mobile-toggle, .hamburger { order: 3; display: inline-flex !important; }
+  /* make the badges compact on mobile */
+  #history-badge, #cart-badge { transform: translateY(-2px); min-width: 18px; height: 18px; }
+}
+
+/* =========================
+   PRODUCT MODAL: small-screen tweaks
+   - stack media then info
+   - make modal content area show visible scrollbar
+   - visually place Qty / Add / Buy controls immediately under the large image
+   ========================= */
+@media (max-width: 720px) {
+  /* Stack the modal's two columns */
+  #product-modal .modal-inner { padding-top: 56px; }
+  #product-modal .modal-grid { display: flex !important; flex-direction: column; gap: 12px; min-height: 0; }
+  #product-modal .modal-media { order: 1; min-height: 220px; position: relative; padding-bottom: 96px; /* reserve space for pulled-up controls */ }
+  #product-modal #modal-gallery { min-height: 240px; max-height: 56vh; overflow: hidden; }
+
+  /* Info section becomes normal flow below image */
+  #product-modal .modal-info { order: 2; padding-top: 6px; }
+
+  /* Ensure the content area scrolls and shows visible scrollbar */
+  #product-modal .modal-inner > .modal-grid,
+  #product-modal .modal-media,
+  #product-modal .modal-info {
+    overflow: auto !important;
+    scrollbar-gutter: stable both-edges;
+  }
+
+  /* Pull the main action controls visually up so they appear immediately under the big image.
+     We keep space in .modal-media to avoid overlap. This is a purely visual repositioning so
+     keyboard / screen-reader order remains unchanged (the DOM isn't re-written). */
+  #product-modal .modal-info .modal-controls {
+    transform: translateY(-82px);
+    margin-bottom: 6px;
+    z-index: 40;
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    justify-content: flex-start;
+  }
+
+  /* Make Qty, Add and Buy buttons larger and full-width for comfortable tapping */
+  #product-modal .modal-info .modal-controls select,
+  #product-modal .modal-info .modal-controls input[type="number"] { min-width: 92px; }
+
+  #product-modal #modal-add,
+  #product-modal #modal-buy {
+    min-width: 120px;
+    flex: 1 1 auto;
+  }
+
+  /* ensure there is no accidental overlap of content due to translation */
+  #product-modal .modal-media::after {
+    content: "";
+    display: block;
+    height: 92px; /* same as reserved padding-bottom to keep layout space for pulled-up controls */
+  }
+
+  /* Make vertical scrollbar visible for the modal-grid specifically */
+  #product-modal .modal-inner > .modal-grid::-webkit-scrollbar { width: 12px; }
+}
+
+/* =========================
+   CHECKOUT / RECEIPT HEADER SAFE: ensure header doesn't overlap content
+   ========================= */
+#checkout-modal .modal-inner,
+#receipt-modal .modal-inner {
+  padding-top: 56px; /* reserve header area for sticky close & header elements */
+}
+#checkout-modal .modal-inner > header,
+#receipt-modal .modal-inner > header {
+  position: sticky !important;
+  top: 12px;
+  z-index: 90;
+  background: linear-gradient(180deg, rgba(255,255,255,0.96), rgba(255,255,255,0.92));
+}
+
+/* =========================
+   Accessibility: ensure focusable sticky header elements remain reachable
+   ========================= */
+.modal .modal-close:focus,
+.modal .modal-inner > header :focus {
+  outline: 3px solid rgba(110,231,183,0.22);
+  outline-offset: 2px;
+}
+
+/* =========================
+   Utility: guarantee scrollbars on history & long lists
+   ========================= */
+.history-list,
+.receipt-items,
+.checkout-items-list,
+#history-list {
+  overflow: auto;
+  max-height: 52vh;
+  scrollbar-gutter: both-edges;
+}
+
+/* =========================
+   Final safety tweaks: avoid accidental content behind the header
+   ========================= */
+.modal .modal-inner > .modal-grid > * { padding-top: 8px; }
+
+/* END */
+
+</style>
 </head>
 <body>
   <!-- SITE HEADER -->
@@ -2005,26 +2302,10 @@ a:focus, button:focus, input:focus, select:focus, textarea:focus {
           </ul>
         </div>
 
-        <div class="contact-block">
-          <h4>Hours</h4>
-          <div style="color:var(--muted);font-size:0.95rem;">
-            <div><strong>Mon–Fri:</strong> 9:00 — 17:00</div>
-            <div><strong>Sat:</strong> 10:00 — 14:00</div>
-            <div><strong>Sun:</strong> Closed</div>
-          </div>
-
-          <h4 style="margin-top:12px;">Follow</h4>
-          <div class="socials contact-socials" style="margin-top:6px;">
-            <a href="#" aria-label="Instagram"><i class="fa fa-instagram"></i></a>
-            <a href="#" aria-label="Facebook"><i class="fa fa-facebook"></i></a>
-            <a href="#" aria-label="TikTok"><i class="fa fa-music"></i></a>
-          </div>
-        </div>
+       
       </div>
 
-      <div style="margin-top:12px;color:var(--muted);font-size:0.92rem;">
-        <strong>Retail:</strong> Pickup available at Accra studio. Shipping across Ghana (and international on request).
-      </div>
+      
     </div>
 
     <!-- Right: contact form -->
@@ -2060,7 +2341,7 @@ a:focus, button:focus, input:focus, select:focus, textarea:focus {
       </div>
 
       <div style="display:flex;gap:8px;align-items:center;justify-content:space-between;margin-top:6px;">
-        <div style="display:flex;gap:8px;align-items:center;">
+        <div style="display:none;gap:8px;align-items:center;">
           <label style="display:flex;gap:8px;align-items:center;font-size:0.95rem;color:var(--muted);">
             <input type="checkbox" id="contact-consent" /> Receive updates & restocks
           </label>
