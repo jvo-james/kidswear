@@ -2708,7 +2708,7 @@ function processCheckoutPayment() {
     if (!prod || !prod.available) { toast(`${it.id} is no longer available`); return; }
   }
 
-  if (!window.PaystackPop || !PAYSTACK_PUBLIC_KEY || PAYSTACK_PUBLIC_KEY === 'YOUR_PAYSTACK_PUBLIC_KEY_HERE') {
+  if (!window.PaystackPop || !PAYSTACK_PUBLIC_KEY || PAYSTACK_PUBLIC_KEY === 'pk_test_297586e51710e83d3c159bfe71ff45c7e23411fa') {
     const proceed = confirm(`Paystack not configured. Simulate payment of ${formatPrice(total)}?`);
     if (!proceed) return;
     const fakeRef = 'SIM-' + Math.random().toString(36).slice(2, 10).toUpperCase();
