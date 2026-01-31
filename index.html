@@ -1893,7 +1893,7 @@ body.search-open #search-clear {
 
 <script>
 /* ======================= CONFIG ======================= */
-const PAYSTACK_PUBLIC_KEY = 'YOUR_PAYSTACK_PUBLIC_KEY_HERE'; // <-- set this
+const PAYSTACK_PUBLIC_KEY = 'pk_test_297586e51710e83d3c159bfe71ff45c7e'; // <-- set this
 const STORAGE_KEYS = {
   PRODUCTS: 'tiny_products_v1',
   CART: 'tiny_cart_v1',
@@ -2708,35 +2708,43 @@ function processCheckoutPayment() {
     if (!prod || !prod.available) { toast(`${it.id} is no longer available`); return; }
   }
 
-  if (!window.PaystackPop || !PAYSTACK_PUBLIC_KEY || PAYSTACK_PUBLIC_KEY === 'pk_test_297586e51710e83d3c159bfe71ff45c7e23411fa') {
+  if (!window.PaystackPop || !PAYSTACK_PUBLIC_KEY || PAYSTACK_PUBLIC_KEY.includes('YOUR_PAYSTACK_PUBLIC_KEY_HERE')) {
     const proceed = confirm(`Paystack not configured. Simulate payment of ${formatPrice(total)}?`);
     if (!proceed) return;
     const fakeRef = 'SIM-' + Math.random().toString(36).slice(2, 10).toUpperCase();
-    // call the shared success handler (include buyer details)
     handleSuccessfulPayment(fakeRef, email, items.map(it => ({ id: it.id, qty: it.qty, size: it.size })), total, { name, phone });
-   closeCheckoutModal();
-   return;
- }
+    closeCheckoutModal();
+    return;
+  }
 
-  const amountMinor = Math.round(total * 100);
-  const handler = PaystackPop.setup({
-    key: pk_test_297586e51710e83d3c159bfe71ff45c7e23411fa,
-    email,
-    amount: amountMinor,
-    metadata: {
-      custom_fields: [
-        { display_name: "Buyer name", variable_name: "buyer_name", value: name },
-        { display_name: "Phone", variable_name: "phone", value: phone },
-        { display_name: "Cart items", variable_name: "cart", value: JSON.stringify(items) }
-      ]
-    },
-    onClose: function() { toast('Payment window closed'); },
-    callback: function(response) {
-      handleSuccessfulPayment(response.reference, email, items.map(it => ({ id: it.id, qty: it.qty, size: it.size })), total, { name, phone });
-      closeCheckoutModal();
-    }
-  });
-  handler.openIframe();
+  try {
+    const amountMinor = Math.round(total * 100);
+    const handler = PaystackPop.setup({
+      key: PAYSTACK_PUBLIC_KEY,
+      email: email,
+      amount: amountMinor,
+      metadata: {
+        custom_fields: [
+          { display_name: "Buyer name", variable_name: "buyer_name", value: name },
+          { display_name: "Phone", variable_name: "phone", value: phone },
+          { display_name: "Cart items", variable_name: "cart", value: JSON.stringify(items) }
+        ]
+      },
+      onClose: function() { toast('Payment window closed'); },
+      callback: function(response) {
+        try {
+          handleSuccessfulPayment(response.reference, email, items.map(it => ({ id: it.id, qty: it.qty, size: it.size })), total, { name, phone });
+        } catch (err) {
+          console.error('Error in callback handling payment success:', err);
+        }
+        closeCheckoutModal();
+      }
+    });
+    handler.openIframe();
+  } catch (err) {
+    console.error('Failed to start Paystack transaction', err);
+    toast('Could not start transaction — check console for details.');
+  }
 }
 
  function handleSuccessfulPayment(reference, buyerEmail, items, total, buyerDetails = {}) {
@@ -3061,7 +3069,7 @@ function processBuyNowPayment() {
   const prod = products.find(p => p.id === item.id);
   if (!prod || !prod.available) { toast('This item is no longer available'); return; }
 
-  if (!window.PaystackPop || !PAYSTACK_PUBLIC_KEY || PAYSTACK_PUBLIC_KEY === 'pk_test_297586e51710e83d3c159bfe71ff45c7e23411fa') {
+if (!window.PaystackPop || !PAYSTACK_PUBLIC_KEY || PAYSTACK_PUBLIC_KEY.includes('YOUR_PAYSTACK_PUBLIC_KEY_HERE')) {
     const proceed = confirm(`Paystack not configured. Simulate payment of ${formatPrice(total)}?`);
     if (!proceed) return;
     const fakeRef = 'SIM-' + Math.random().toString(36).slice(2, 10).toUpperCase();
@@ -3069,26 +3077,34 @@ function processBuyNowPayment() {
     closeBuyNowModal();
     return;
   }
-
-  const amountMinor = Math.round(total * 100);
-  const handler = PaystackPop.setup({
-    key: PAYSTACK_PUBLIC_KEY,
-    email,
-    amount: amountMinor,
-    metadata: {
-      custom_fields: [
-        { display_name: "Buyer name", variable_name: "buyer_name", value: name },
-        { display_name: "Phone", variable_name: "phone", value: phone },
-        { display_name: "Item", variable_name: "item", value: JSON.stringify(items[0]) }
-      ]
-    },
-    onClose: function() { toast('Payment window closed'); },
-    callback: function(response) {
-      handleSuccessfulPayment(response.reference, email, items, total, { name, phone });
-      closeBuyNowModal();
-    }
-  });
-  handler.openIframe();
+ try {
+    const amountMinor = Math.round(total * 100);
+    const handler = PaystackPop.setup({
+      key: PAYSTACK_PUBLIC_KEY,
+      email,
+      amount: amountMinor,
+      metadata: {
+        custom_fields: [
+          { display_name: "Buyer name", variable_name: "buyer_name", value: name },
+          { display_name: "Phone", variable_name: "phone", value: phone },
+          { display_name: "Item", variable_name: "item", value: JSON.stringify(items[0]) }
+        ]
+      },
+      onClose: function() { toast('Payment window closed'); },
+      callback: function(response) {
+        try {
+          handleSuccessfulPayment(response.reference, email, items, total, { name, phone });
+        } catch (err) {
+          console.error('Error in callback handling buy-now success:', err);
+        }
+        closeBuyNowModal();
+      }
+    });
+    handler.openIframe();
+  } catch (err) {
+    console.error('Failed to start Paystack transaction (buynow)', err);
+    toast('Could not start transaction — check console for details.');
+  }
 }
 
 // Wire product modal "Buy now" button to open this modal for the current product
@@ -3687,7 +3703,7 @@ window.addEventListener('resize', () => {
       const order = {
         reference,
         buyerEmail,
-        buyerDetails,
+        buyerDetails: buyerDetails || {}, 
         items: snapshotItems,
         total,
         processingFee,
