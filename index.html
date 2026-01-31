@@ -1029,6 +1029,618 @@ body.search-open #search-clear {
   body.search-open::before { display:none; }
 }
 </style>
+<style>
+/* ====== Checkout modal: new beautiful style & responsive behavior ====== */
+.checkout-modal { z-index:140; display:none; }
+.checkout-modal.open { display:flex; }
+
+.checkout-modal .modal-inner {
+  width:100%;
+  max-width:980px;
+  margin:24px auto;
+  background: linear-gradient(180deg,#fffefc,#ffffff);
+  border-radius:20px;
+  padding:18px;
+  position:relative;
+  box-shadow: 0 30px 80px rgba(16,24,40,0.18);
+  overflow: hidden;
+  transform-origin: center;
+  animation: modalPop 360ms cubic-bezier(.2,.9,.3,1);
+  border: 1px solid rgba(15,23,42,0.04);
+}
+
+/* entrance */
+@keyframes modalPop {
+  from { opacity:0; transform: translateY(8px) scale(0.985); }
+  to { opacity:1; transform: translateY(0) scale(1); }
+}
+
+/* sticker decorations */
+.checkout-modal .sticker {
+  position:absolute;
+  width:72px;height:72px;border-radius:14px;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow: 0 10px 30px rgba(16,24,40,0.08);
+  pointer-events:none; transform: translateZ(0);
+}
+.checkout-modal .sticker--left {
+  left: -18px; top: -18px;
+  background: linear-gradient(135deg,var(--brand-1),var(--brand-2));
+  color:white; transform: rotate(-8deg);
+  animation: floatySt 4200ms ease-in-out infinite;
+}
+.checkout-modal .sticker--right {
+  right: -18px; bottom: -18px;
+  background: linear-gradient(135deg,var(--accent),#34d399);
+  color:white; transform: rotate(6deg);
+  animation: floatySt 5600ms ease-in-out infinite;
+}
+@keyframes floatySt {
+  0% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-8px) rotate(3deg); }
+  100% { transform: translateY(0) rotate(0deg); }
+}
+
+/* content layout: details first, items below */
+.checkout-inner {
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+}
+
+/* details card */
+.checkout-details {
+  background: linear-gradient(180deg,#ffffff,#fffaf8);
+  border-radius:12px;
+  padding:14px;
+  box-shadow: var(--shadow);
+  display:grid;
+  grid-template-columns: 1fr 220px;
+  gap:12px;
+  align-items:start;
+}
+
+/* left: form fields; right: mini summary */
+.checkout-form { display:flex; flex-direction:column; gap:10px; }
+.checkout-form .row { display:flex; gap:8px; }
+.checkout-form input[type="text"], .checkout-form input[type="email"], .checkout-form input[type="tel"], .checkout-form input[type="number"], .checkout-form select, .checkout-form textarea {
+  width:100%; padding:10px;border-radius:10px;border:1px solid rgba(15,23,42,0.06); font-size:0.95rem;
+}
+.checkout-form textarea { min-height:80px; resize:vertical; }
+
+.checkout-summary-card {
+  background: linear-gradient(180deg,#fff,#fffefc);
+  padding:12px;border-radius:10px; box-shadow:var(--shadow);
+  position:sticky; top:16px; align-self:start;
+  min-width:200px;
+}
+
+/* items area below */
+.checkout-items-wrap {
+  display:flex;
+  gap:16px;
+  align-items:flex-start;
+  flex-direction:column;
+}
+.checkout-items-list {
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  max-height:38vh;
+  overflow:auto;
+  padding-right:6px;
+}
+.checkout-item {
+  display:flex; gap:12px; align-items:center;
+  padding:8px;border-radius:12px;background:linear-gradient(180deg,#fff,#fffefc);border:1px solid rgba(15,23,42,0.03);
+}
+.checkout-item img { width:64px;height:64px;border-radius:8px; object-fit:cover; }
+.checkout-item .meta { font-weight:700; color:var(--text) }
+.checkout-item .meta small { display:block;color:var(--muted); font-weight:600; font-size:12px }
+
+/* totals block (keeps visible on right or below on mobile) */
+.checkout-totals {
+  display:flex; flex-direction:column; gap:8px; margin-top:6px;
+}
+.checkout-totals .row { display:flex; justify-content:space-between; align-items:center; }
+.checkout-totals .total { font-size:1.15rem; font-weight:900; color:var(--brand-1) }
+
+/* action area */
+.checkout-actions { display:flex; gap:8px; justify-content:flex-end; margin-top:6px; }
+.checkout-actions .btn { min-width:120px; }
+
+/* mobile responsiveness */
+@media (max-width: 880px) {
+  .checkout-details { grid-template-columns: 1fr; }
+  .checkout-summary-card { position:relative; top:auto; min-width:unset; }
+  .checkout-item img { width:56px;height:56px; }
+  .checkout-inner { gap:12px; }
+}
+
+/* ensure modal fits inside viewport and doesn't get covered by header/footer */
+.checkout-modal .modal-inner {
+  max-height: calc(100vh - var(--header-space,84px) - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 32px);
+  overflow:auto;
+  margin: 12px;
+}
+
+/* make pay button full-width on small screens */
+@media (max-width:720px) {
+  .checkout-actions { flex-direction:column; align-items:stretch; }
+  .checkout-actions .btn { width:100%; }
+  .checkout-summary-card { order: 2; }
+  .checkout-items-list { max-height: 36vh; }
+}
+
+/* small accessibility + focus */
+.checkout-form input:focus, .checkout-form select:focus, .checkout-form textarea:focus { outline:none; box-shadow: var(--focus); }
+
+/* hide the legacy small processing text if present */
+.checkout-hide-processing-note small { display:none !important; }
+</style>
+<style>
+/* ===== Receipt modal: beautiful, responsive & scrollable ===== */
+.receipt-modal { z-index:1500; display:none; }
+.receipt-modal.open { display:flex; }
+
+.receipt-modal .modal-inner {
+  width:100%;
+  max-width:920px;
+  margin:16px auto;
+  border-radius:16px;
+  padding:14px;
+  position:relative;
+  background: linear-gradient(180deg,#fffefc,#ffffff);
+  box-shadow: 0 30px 70px rgba(12,18,28,0.12);
+  border: 1px solid rgba(15,23,42,0.04);
+  animation: receiptPop 360ms cubic-bezier(.2,.9,.3,1);
+  overflow: hidden;
+}
+
+/* entrance */
+@keyframes receiptPop {
+  from { opacity:0; transform: translateY(8px) scale(0.995); }
+  to { opacity:1; transform: translateY(0) scale(1); }
+}
+
+/* stickers & badges */
+.receipt-modal .sticker {
+  position:absolute; width:64px; height:64px; border-radius:12px; display:flex; align-items:center; justify-content:center; color:#fff;
+  box-shadow: 0 10px 30px rgba(12,18,28,0.08); pointer-events:none;
+}
+.receipt-modal .sticker.left { left:-14px; top:-14px; background: linear-gradient(135deg,var(--brand-1),var(--brand-2)); transform: rotate(-8deg); }
+.receipt-modal .sticker.right { right:-14px; bottom:-14px; background: linear-gradient(135deg,var(--accent),#34d399); transform: rotate(6deg); }
+
+/* layout */
+.receipt-grid { display:grid; grid-template-columns: 1fr 320px; gap:14px; align-items:start; }
+.receipt-left { display:flex; flex-direction:column; gap:12px; }
+.receipt-right { position:relative; }
+
+/* summary & items */
+.receipt-summary { background:linear-gradient(180deg,#fff,#fffefc); padding:12px; border-radius:10px; box-shadow:var(--shadow); }
+.receipt-meta { display:flex; gap:12px; align-items:center; justify-content:space-between; }
+.receipt-badge { background: linear-gradient(90deg,var(--brand-1),var(--brand-2)); color:#fff; padding:6px 10px; border-radius:999px; font-weight:800; box-shadow:0 8px 28px rgba(255,107,138,0.08); }
+
+/* items list */
+.receipt-items { display:flex; flex-direction:column; gap:10px; max-height:44vh; overflow:auto; padding-right:6px; }
+.receipt-item { display:flex; gap:10px; align-items:center; padding:10px; border-radius:10px; border:1px solid rgba(15,23,42,0.03); background:linear-gradient(180deg,#fff,#fffefc); }
+.receipt-item img { width:64px; height:64px; border-radius:8px; object-fit:cover; }
+.receipt-item .it-meta { flex:1; }
+.receipt-item .it-price { text-align:right; min-width:96px; font-weight:800; }
+
+/* preview area */
+.receipt-preview-wrap { margin-top:10px; border-radius:10px; overflow:hidden; border:1px solid rgba(15,23,42,0.06); background:#fff; }
+.receipt-iframe {
+  width:100%;
+  height:56vh;
+  min-height:280px;
+  border:0;
+  display:block;
+}
+
+/* loader overlay inside preview */
+.preview-loader {
+  position:absolute; left:0; right:0; top:0; bottom:0; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.6);
+}
+
+/* actions */
+.receipt-actions { display:flex; gap:8px; flex-direction:column; }
+.receipt-actions .btn { width:100%; }
+
+/* responsive */
+@media (max-width:880px) {
+  .receipt-grid { grid-template-columns: 1fr; }
+  .receipt-right { order:2; }
+  .receipt-preview-wrap .receipt-iframe { height:48vh; min-height:220px; }
+  .receipt-items { max-height:32vh; }
+  .receipt-actions { flex-direction:row; gap:8px; }
+  .receipt-actions .btn { flex:1; }
+}
+
+/* ensure modal fits view and respects header/footer */
+.receipt-modal .modal-inner {
+  max-height: calc(100vh - var(--header-space,84px) - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 24px);
+  overflow:auto;
+}
+
+/* accessibility focus */
+.receipt-modal .modal-inner a:focus, .receipt-modal .modal-inner button:focus, .receipt-modal .modal-inner input:focus { outline:none; box-shadow:var(--focus); }
+</style>
+<style>
+/* History button & modal */
+#history-toggle { padding: 10px 12px !important; border-radius: 12px !important; min-width:48px; min-height:48px; display:inline-flex; align-items:center; justify-content:center; }
+#history-toggle .fa-history { font-size:18px; }
+#history-badge { min-width:18px; height:18px; padding:2px 6px; font-size:11px; margin-left:6px; }
+
+/* History Modal */
+#history-modal { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; background: rgba(8,15,24,0.5); z-index: 1400; padding: 16px; }
+#history-modal.open { display: flex; }
+#history-modal .modal-inner {
+  width: 100%; max-width: 920px; border-radius: 14px; background: linear-gradient(180deg,#fffefc,#ffffff);
+  box-shadow: 0 30px 80px rgba(12,18,28,0.12); padding: 14px; max-height: calc(100vh - var(--header-space,84px) - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  overflow:auto;
+}
+
+/* history list */
+.history-list { display:flex; flex-direction:column; gap:12px; margin-top:10px; }
+.history-item { display:flex; gap:12px; align-items:center; justify-content:space-between; padding:10px; border-radius:12px; background:linear-gradient(180deg,#fff,#fffefc); border:1px solid rgba(15,23,42,0.04); box-shadow: var(--shadow); }
+.history-left { display:flex; gap:10px; align-items:center; min-width:0; }
+.history-thumb { width:64px; height:64px; border-radius:8px; object-fit:cover; background:linear-gradient(90deg,var(--brand-2),var(--brand-1)); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:800; }
+.history-meta { min-width:0; overflow:hidden; }
+.history-meta .title { font-weight:800; white-space:nowrap; text-overflow:ellipsis; overflow:hidden; }
+.history-meta .sm { color:var(--muted); font-size:13px; white-space:nowrap; text-overflow:ellipsis; overflow:hidden; }
+
+.history-actions { display:flex; gap:8px; align-items:center; }
+.history-actions .btn { white-space:nowrap; }
+
+/* responsive */
+@media (max-width:720px) {
+  #history-modal .modal-inner { width: 96vw; padding:12px; border-radius:12px; }
+  .history-item { flex-direction:column; align-items:flex-start; gap:8px; }
+  .history-actions { width:100%; display:flex; gap:8px; }
+  .history-actions .btn { flex:1; }
+}
+</style>
+<style>
+/* Contact section: professional, compact and responsive */
+.contact-card { padding:16px; border-radius:12px; background:linear-gradient(180deg,#fff,#fffefc); box-shadow:var(--shadow); border:1px solid rgba(15,23,42,0.04); }
+.contact-card--info { transition: transform var(--transition); }
+.contact-card--info:hover { transform: translateY(-4px); }
+
+.contact-list.styled { list-style:none;padding:0;margin:6px 0 0 0; display:flex;flex-direction:column; gap:8px; }
+.contact-list.styled li { margin:0; }
+
+/* contact action buttons (phone/whatsapp/email) */
+.contact-action {
+  display:flex;align-items:center;gap:12px;width:100%;border:0;padding:10px;border-radius:10px;background:linear-gradient(180deg,#fff,#fffefc);cursor:pointer;
+  box-shadow:0 8px 20px rgba(12,18,28,0.04); transition:all var(--transition); text-align:left;
+}
+.contact-action:hover, .contact-action:focus { transform: translateY(-3px); box-shadow: 0 14px 40px rgba(12,18,28,0.06); outline:none; }
+.contact-action .ci { width:42px;height:42px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:linear-gradient(90deg,var(--brand-1),var(--brand-2));color:white; font-size:16px; flex-shrink:0; }
+.contact-action .ct { flex:1; min-width:0; }
+.contact-action .ct-title { font-weight:800; font-size:0.98rem; color:var(--text); }
+.contact-action .ct-sub { color:var(--muted); font-size:0.9rem; }
+.contact-action .cta { font-weight:700; color:var(--brand-1); font-size:0.9rem; }
+
+/* social icons (compact) */
+.contact-socials a { display:inline-flex; align-items:center; justify-content:center; width:40px;height:40px;border-radius:10px;background:linear-gradient(180deg,#fff,#fffefc); border:1px solid rgba(15,23,42,0.03); margin-right:8px; color:var(--muted); transition:all var(--transition); }
+.contact-socials a:hover { transform:translateY(-4px); color:var(--brand-1); box-shadow: 0 10px 30px rgba(16,24,40,0.06); }
+
+/* form styling */
+.contact-form .form-row { margin-bottom:10px; }
+.form-label { display:block; margin-bottom:6px; font-weight:700; font-size:0.92rem; }
+.contact-form input, .contact-form textarea, .contact-form select {
+  width:100%; padding:10px;border-radius:10px;border:1px solid rgba(15,23,42,0.06); font-size:0.95rem; outline:none; transition:box-shadow var(--transition);
+}
+.contact-form input:focus, .contact-form textarea:focus, .contact-form select:focus { box-shadow:var(--focus); }
+
+.row-2 { display:flex; gap:10px; }
+@media (max-width:720px) {
+  .row-2 { flex-direction:column; }
+}
+
+/* small responsive tweaks */
+#contact { margin:28px auto 60px; }
+@media (max-width:880px) {
+  #contact .contact-card, #contact .contact-form { width:100%; }
+  #contact > div { flex-direction:column; gap:12px; }
+}
+</style>
+<style>
+/* ===== Task 6: Professional footer styles ===== */
+.site-footer {
+  background: linear-gradient(180deg,#fffefc,#fff7f0);
+  border-top: 1px solid rgba(15,23,42,0.03);
+  padding: 28px 0 36px;
+  color: var(--text);
+  font-size: 14px;
+  position: relative;
+  z-index: 20;
+}
+
+/* container inside footer */
+.footer-grid {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr 1fr 1.2fr;
+  gap: 18px;
+  width:90%; max-width: var(--max-width);
+  margin: 0 auto;
+  align-items:start;
+}
+
+/* brand area */
+.footer-brand {
+  display:flex; gap:12px; align-items:flex-start;
+}
+.footer-brand .logo-badge {
+  width:64px; height:64px; border-radius:12px; display:flex; align-items:center; justify-content:center;
+  background: linear-gradient(90deg,var(--brand-1),var(--brand-2)); color:white; font-weight:800;
+  box-shadow: 0 10px 30px rgba(255,107,138,0.08);
+}
+.footer-brand .brand-copy { color:var(--muted); margin-top:6px; font-size:0.95rem; }
+
+/* link columns */
+.footer-col h4 { margin:0 0 8px 0; font-size:1rem; color:var(--text); }
+.footer-links { list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:8px; }
+.footer-links a { color:var(--muted); text-decoration:none; display:inline-flex; gap:8px; align-items:center; padding:6px; border-radius:8px; transition:all 180ms; }
+.footer-links a:hover { color:var(--text); transform:translateY(-3px); background: linear-gradient(90deg, rgba(255,107,138,0.03), rgba(255,209,102,0.03)); }
+
+/* contact & newsletter */
+.footer-newsletter { display:flex; flex-direction:column; gap:8px; }
+.footer-newsletter form { display:flex; gap:8px; align-items:center; }
+.footer-newsletter input[type="email"] {
+  padding:10px 12px; border-radius:10px; border:1px solid rgba(15,23,42,0.06); flex:1; font-size:0.95rem;
+}
+.footer-newsletter .btn { padding:10px 12px; border-radius:10px; }
+
+/* social icons row */
+.footer-socials { display:flex; gap:8px; margin-top:6px; }
+.footer-socials a { display:inline-flex; align-items:center; justify-content:center; width:44px;height:44px;border-radius:10px;background:linear-gradient(180deg,#fff,#fffefc);border:1px solid rgba(15,23,42,0.04); color:var(--muted); transition:all 160ms; }
+.footer-socials a:hover { color:var(--brand-1); transform:translateY(-4px); box-shadow:0 10px 30px rgba(16,24,40,0.06); }
+
+/* payment badges (placeholders) */
+.footer-payments { display:flex; gap:8px; align-items:center; margin-top:10px; }
+.payment-badge { display:inline-flex; align-items:center; justify-content:center; min-width:48px; height:32px; border-radius:8px; background:linear-gradient(180deg,#fff,#fffefc); border:1px solid rgba(15,23,42,0.04); padding:6px 8px; color:var(--muted); font-weight:700; font-size:12px; }
+
+/* bottom legal row */
+.footer-bottom {
+  width:90%; max-width:var(--max-width); margin:12px auto 0; display:flex; justify-content:space-between; align-items:center; gap:12px;
+  padding-top:12px; border-top:1px dashed rgba(15,23,42,0.03);
+}
+.legal { display:flex; gap:12px; list-style:none; margin:0; padding:0; color:var(--muted); }
+.legal a { color:var(--muted); text-decoration:none; }
+.legal a:hover { color:var(--text); text-decoration:underline; }
+
+/* small attribution */
+.footer-copyright { color:var(--muted); font-size:13px; }
+
+/* back-to-top button */
+#back-to-top {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 220;
+  width:48px; height:48px; border-radius:12px;
+  display:flex; align-items:center; justify-content:center; background:linear-gradient(90deg,var(--brand-1),var(--brand-2));
+  color:white; box-shadow: 0 10px 30px rgba(255,107,138,0.12); border:0; cursor:pointer;
+  transition: transform 180ms ease, opacity 160ms;
+  opacity: 0; pointer-events: none;
+}
+#back-to-top.show { opacity:1; pointer-events:auto; transform: translateY(0); }
+#back-to-top:focus { outline:none; box-shadow:var(--focus); }
+
+/* responsive */
+@media (max-width:1100px) {
+  .footer-grid { grid-template-columns: 1fr 1fr; gap:14px; }
+}
+@media (max-width:720px) {
+  .footer-grid { grid-template-columns: 1fr; gap:12px; }
+  .footer-brand .brand-copy { font-size:0.92rem; }
+  .footer-newsletter form { flex-direction:column; align-items:stretch; }
+  .footer-newsletter .btn { width:100%; }
+}
+
+/* subtle micro animation */
+.footer-links a i { width:18px; display:inline-block; text-align:center; }
+</style>
+<style>
+/* ----------------------------
+   GLOBAL RESPONSIVE HELPERS
+   ----------------------------*/
+
+/* ensure header-space available; JS also sets it dynamically but keep a safe fallback */
+:root {
+  --header-space: 84px;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* make images & media fluid by default */
+img, picture, video, iframe { max-width:100%; height:auto; display:block; }
+
+/* default responsive typography (use clamp to scale a little) */
+h1 { font-size: clamp(1.25rem, 2.2vw, 1.8rem); }
+h2 { font-size: clamp(1.05rem, 1.8vw, 1.5rem); }
+p, li, small, button { font-size: clamp(0.95rem, 1.2vw, 1rem); }
+
+/* touch-friendly: ensure interactive elements large enough on mobile */
+button, .icon-btn, .hamburger, .cart-close, .modal-close {
+  min-height:44px;
+  min-width:44px;
+  padding: 10px;
+}
+
+/* reduce layout thrash on small screens */
+.container, .footer-grid { width: min(92%, var(--max-width)); margin-inline:auto; }
+
+/* modal inner: never exceed viewport and respect header safe areas */
+.modal .modal-inner,
+.checkout-modal .modal-inner,
+.receipt-modal .modal-inner,
+#history-modal .modal-inner {
+  max-height: calc(100vh - var(--header-space) - var(--safe-top) - var(--safe-bottom) - 24px);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ensure any iframe preview is comfortably tall on phones */
+.receipt-iframe {
+  min-height: 40vh;
+  height: clamp(260px, 48vh, 640px);
+}
+
+/* ----------------------------
+   GRID / PRODUCT LAYOUT
+   ----------------------------*/
+
+/* mobile-first: base defined already (1 column). Now breakpoints expand columns */
+@media (min-width:520px) {
+  .product-grid { grid-template-columns: repeat(2, 1fr); gap:12px; }
+  .contact-grid{ grid-template-columns: repeat(2, 1fr); gap:16px; }
+}
+
+@media (min-width:880px) {
+  .product-grid { grid-template-columns: repeat(3, 1fr); gap:14px; }
+  .hero-caption { left: 28px; bottom:28px; max-width:46%; }
+  .modal-grid { grid-template-columns: 1fr 420px; gap:18px; }
+}
+
+/* large screens: 4 columns */
+@media (min-width:1100px) {
+  .product-grid { grid-template-columns: repeat(4, 1fr); gap:16px; }
+  .modal-inner { max-width: 1100px; }
+}
+
+/* very large wide screens: add spacing */
+@media (min-width:1400px) {
+  .container { max-width: 1300px; }
+  .product-grid { gap:18px; }
+}
+
+/* ensure product cards retain comfortable padding on tiny screens */
+@media (max-width:420px) {
+  .product-card { padding:8px; border-radius:10px; }
+  .product-media { padding-top:72%; }
+}
+
+/* ----------------------------
+   HEADER / NAV RESPONSIVENESS
+   ----------------------------*/
+
+/* when compact header toggled (JS toggles .compact-header) */
+.compact-header .main-nav { display:none !important; }
+.compact-header .header-actions > * { display:none !important; }
+.compact-header .header-actions #cart-toggle,
+.compact-header .header-actions #mobile-toggle,
+.compact-header .header-actions .hamburger { display:inline-flex !important; }
+
+/* mobile nav & search overlay fixes */
+@media (max-width:720px) {
+  .site-header { height: auto; padding: 8px 0; }
+  body { padding-top: calc(var(--header-space)); } /* keep content below header (JS adjusts var) */
+  .main-nav, .hero-controls { display:none; }
+  #mobile-nav { display:flex !important; transition: max-height 240ms ease; overflow:hidden; }
+  #mobile-nav.open { max-height:520px; }
+
+  /* ensure header buttons are visible */
+  .header-actions #history-toggle, .header-actions #cart-toggle { display:inline-flex !important; }
+}
+
+/* prevent header overlap on landscape phones: increase modal top gap */
+@media (orientation: landscape) and (max-height:420px) {
+  .modal .modal-inner, .checkout-modal .modal-inner { max-height: calc(100vh - var(--header-space) - 12px); padding:12px; }
+}
+
+/* ----------------------------
+   CART PANEL & SLIDE-OUTS
+   ----------------------------*/
+@media (max-width:920px) {
+  .cart-panel { max-width: 100%; width:100%; right:0; top:var(--header-space); height: calc(100% - var(--header-space)); }
+  .cart-panel .cart-header { padding:12px; }
+  .cart-contents { padding:12px; }
+}
+@media (min-width:921px) {
+  .cart-panel { width:100%; max-width:420px; }
+}
+
+/* ----------------------------
+   MODALS: stacking & scroll behavior
+   ----------------------------*/
+/* ensure stacked modals on narrow screens are full-width and scrollable */
+@media (max-width:720px) {
+  .modal { align-items:flex-start; padding:12px; }
+  .modal .modal-inner { width:92vw; margin:8px auto; border-radius:12px; padding:14px; }
+  .modal .modal-inner:focus { outline:none; }
+  .checkout-details, .receipt-grid { grid-template-columns: 1fr !important; }
+}
+
+/* keep focus trap & keyboard accessibility: highlight focused modal close */
+.modal .modal-close:focus { box-shadow: var(--focus); }
+
+/* prevent body from scrolling when modal open - add class via JS if needed */
+body.modal-open { overflow: hidden; touch-action: none; }
+
+/* ----------------------------
+   FORMS & TAP TARGETS
+   ----------------------------*/
+input, select, textarea, .btn { min-height:44px; }
+.form-actions { gap:10px; display:flex; flex-wrap:wrap; justify-content:flex-end; }
+@media (max-width:720px) {
+  .form-actions { flex-direction:column; align-items:stretch; }
+  .form-actions .btn { width:100%; }
+}
+
+/* ----------------------------
+   HERO / SLIDER RESPONSIVENESS
+   ----------------------------*/
+.hero-slider {
+  height: clamp(200px, 48vh, 600px);
+  min-height:220px;
+  max-height: 75vh;
+}
+.hero-caption { padding: clamp(10px, 1.5vw, 18px); }
+
+/* ----------------------------
+   RECEIPT / PDF PRINT RULES
+   ----------------------------*/
+@media print {
+  /* minimize UI clutter */
+  body * { visibility: hidden; }
+  .receipt-iframe, #receipt-preview, #receipt-preview * { visibility: visible; }
+  #receipt-preview { position: absolute; top:0; left:0; width:100%; height:100%; }
+  /* ensure invoices print in portrait A4 */
+  @page { size: A4 portrait; margin: 12mm; }
+}
+
+/* ----------------------------
+   FOOTER / CONTACT / GET IN TOUCH
+   ----------------------------*/
+@media (max-width:880px) {
+  .footer-grid { grid-template-columns: 1fr 1fr; gap:12px; }
+}
+@media (max-width:720px) {
+  .footer-grid { grid-template-columns: 1fr; gap:12px; }
+  .footer-socials a { width:40px; height:40px; }
+}
+
+/* ----------------------------
+   ACCESSIBILITY / FOCUS
+   ----------------------------*/
+a:focus, button:focus, input:focus, select:focus, textarea:focus {
+  outline-offset: 3px;
+  box-shadow: var(--focus);
+}
+
+/* ----------------------------
+   MINOR FIXES: keep modal content from being hidden by mobile "notch" UI
+   ----------------------------*/
+.modal .modal-inner { padding-bottom: calc(16px + var(--safe-bottom)); }
+.checkout-modal .modal-inner, .receipt-modal .modal-inner { padding-bottom: calc(18px + var(--safe-bottom)); }
+
+/* ----------------------------
+   END
+   ----------------------------*/
+</style>
 
 </head>
 <body>
@@ -1051,22 +1663,29 @@ body.search-open #search-clear {
     </ul>
   </nav>
 
-  <div class="header-actions">
-    <button id="search-toggle" class="icon-btn" aria-label="Search">
-      <i class="fa fa-search"></i>
-    </button>
+<div class="header-actions">
+  <button id="search-toggle" class="icon-btn" aria-label="Search">
+    <i class="fa fa-search"></i>
+  </button>
 
-    <button id="cart-toggle" class="icon-btn" aria-label="Open cart" aria-haspopup="true" aria-controls="cart-panel">
-      <i class="fa fa-shopping-cart"></i>
-      <span id="cart-badge" class="badge" aria-live="polite">0</span>
-    </button>
+  <!-- History (recent purchases) -->
+  <button id="history-toggle" class="icon-btn" aria-label="Purchase history" title="Purchase history" aria-haspopup="true" aria-controls="history-modal">
+    <i class="fa fa-history"></i>
+    <span id="history-badge" class="badge" aria-live="polite">0</span>
+  </button>
 
-    <!-- HAMBURGER / MOBILE TOGGLE -->
-   <button id="mobile-toggle" class="hamburger" aria-label="Open menu" aria-expanded="false">
-  <span class="hamburger-lines" aria-hidden="true"></span>
-  <i class="fa fa-bars" aria-hidden="true"></i>
-</button>
-  </div>
+  <button id="cart-toggle" class="icon-btn" aria-label="Open cart" aria-haspopup="true" aria-controls="cart-panel">
+    <i class="fa fa-shopping-cart"></i>
+    <span id="cart-badge" class="badge" aria-live="polite">0</span>
+  </button>
+
+  <!-- HAMBURGER / MOBILE TOGGLE -->
+  <button id="mobile-toggle" class="hamburger" aria-label="Open menu" aria-expanded="false">
+    <span class="hamburger-lines" aria-hidden="true"></span>
+    <i class="fa fa-bars" aria-hidden="true"></i>
+  </button>
+</div>
+
 </div>
 
 <!-- MOBILE NAV (will be toggled by JS) -->
@@ -1332,43 +1951,130 @@ body.search-open #search-clear {
   </div>
 </aside>
 
-<!-- CONTACT SECTION -->
+<!-- CONTACT SECTION (REPLACEMENT) -->
 <section id="contact" class="contact container" aria-labelledby="contact-heading">
-  <h2 id="contact-heading"><i class="fa fa-envelope-open"></i> Get in touch</h2>
-  <div class="contact-grid">
-    <div class="contact-card">
-      <h3>Questions?</h3>
-      <p>Send us a message about sizing, fabric or custom orders.</p>
-      <ul class="contact-list">
-        <li><i class="fa fa-phone"></i> <a href="tel:+233000000000">+233 000 000 000</a></li>
-        <li><i class="fa fa-whatsapp"></i> <a href="#">WhatsApp</a></li>
-        <li><i class="fa fa-envelope"></i> <a href="mailto:hello@tinythreads.example">hello@tinythreads.example</a></li>
-      </ul>
+  <div style="display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap;">
+    <!-- Left: contact card -->
+    <div class="contact-card contact-card--info" style="flex:1;min-width:280px;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+        <div style="width:56px;height:56px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:linear-gradient(90deg,var(--brand-1),var(--brand-2));box-shadow:0 10px 30px rgba(255,107,138,0.09);color:#fff;font-weight:800;font-size:20px;">
+          <i class="fa fa-envelope-open" aria-hidden="true" style="font-size:20px"></i>
+        </div>
+        <div>
+          <h2 id="contact-heading" style="margin:0;font-size:1.15rem;">Get in touch</h2>
+          <p class="lead" style="margin:6px 0 0 0;color:var(--muted);">Questions about sizing, custom orders, or shipping — we're happy to help.</p>
+        </div>
+      </div>
+
+      <div class="contact-grid-info" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;">
+        <div class="contact-block">
+          <h4>Contact</h4>
+          <ul class="contact-list styled">
+            <li>
+              <button class="contact-action" data-action="call" data-value="+233000000000" aria-label="Call phone">
+                <span class="ci"><i class="fa fa-phone"></i></span>
+                <div class="ct">
+                  <div class="ct-title">Phone</div>
+                  <div class="ct-sub">+233 000 000 000</div>
+                </div>
+                <span class="cta">Call</span>
+              </button>
+            </li>
+
+            <li>
+              <button class="contact-action" data-action="whatsapp" data-value="+233000000000" aria-label="WhatsApp">
+                <span class="ci"><i class="fa fa-whatsapp"></i></span>
+                <div class="ct">
+                  <div class="ct-title">WhatsApp</div>
+                  <div class="ct-sub">Chat with us</div>
+                </div>
+                <span class="cta">Open</span>
+              </button>
+            </li>
+
+            <li>
+              <button class="contact-action" data-action="copy" data-value="hello@tinythreads.example" aria-label="Copy email">
+                <span class="ci"><i class="fa fa-envelope"></i></span>
+                <div class="ct">
+                  <div class="ct-title">Email</div>
+                  <div class="ct-sub">hello@tinythreads.example</div>
+                </div>
+                <span class="cta">Copy</span>
+              </button>
+            </li>
+          </ul>
+        </div>
+
+        <div class="contact-block">
+          <h4>Hours</h4>
+          <div style="color:var(--muted);font-size:0.95rem;">
+            <div><strong>Mon–Fri:</strong> 9:00 — 17:00</div>
+            <div><strong>Sat:</strong> 10:00 — 14:00</div>
+            <div><strong>Sun:</strong> Closed</div>
+          </div>
+
+          <h4 style="margin-top:12px;">Follow</h4>
+          <div class="socials contact-socials" style="margin-top:6px;">
+            <a href="#" aria-label="Instagram"><i class="fa fa-instagram"></i></a>
+            <a href="#" aria-label="Facebook"><i class="fa fa-facebook"></i></a>
+            <a href="#" aria-label="TikTok"><i class="fa fa-music"></i></a>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:12px;color:var(--muted);font-size:0.92rem;">
+        <strong>Retail:</strong> Pickup available at Accra studio. Shipping across Ghana (and international on request).
+      </div>
     </div>
 
-    <form id="contact-form" class="contact-form" aria-label="Contact form" novalidate>
+    <!-- Right: contact form -->
+    <form id="contact-form" class="contact-form contact-card contact-card--form" aria-label="Contact form" novalidate style="flex:1;min-width:320px;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <h3 style="margin:0">Send a message</h3>
+        <div style="margin-left:auto;color:var(--muted);font-size:0.95rem">We reply within 24 hrs</div>
+      </div>
+
       <div class="form-row">
-        <label for="name">Name</label>
+        <label for="name" class="form-label">Full name</label>
         <input id="name" name="name" type="text" placeholder="Your name" required />
       </div>
 
-      <div class="form-row">
-        <label for="email">Email</label>
-        <input id="email" name="email" type="email" placeholder="you@example.com" required />
+      <div class="form-row row-2">
+        <div style="flex:1;">
+          <label for="email" class="form-label">Email</label>
+          <input id="email" name="email" type="email" placeholder="you@example.com" required />
+        </div>
+        <div style="width:140px;">
+          <label for="contact-method" class="form-label">Preferred</label>
+          <select id="contact-method" name="contact-method" aria-label="Preferred contact method">
+            <option value="email">Email</option>
+            <option value="whatsapp">WhatsApp</option>
+            <option value="phone">Phone</option>
+          </select>
+        </div>
       </div>
 
       <div class="form-row">
-        <label for="message">Message</label>
-        <textarea id="message" name="message" rows="4" placeholder="Ask about a dress, sizing, or restocks..." required></textarea>
+        <label for="message" class="form-label">Message</label>
+        <textarea id="message" name="message" rows="5" placeholder="Ask about size, availability, custom orders..." required></textarea>
       </div>
 
-      <div class="form-actions">
-        <button type="submit" class="btn"><i class="fa fa-paper-plane"></i> Send message</button>
-        <button type="reset" class="btn outline"><i class="fa fa-eraser"></i> Reset</button>
+      <div style="display:flex;gap:8px;align-items:center;justify-content:space-between;margin-top:6px;">
+        <div style="display:flex;gap:8px;align-items:center;">
+          <label style="display:flex;gap:8px;align-items:center;font-size:0.95rem;color:var(--muted);">
+            <input type="checkbox" id="contact-consent" /> Receive updates & restocks
+          </label>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn"><i class="fa fa-paper-plane"></i> Send message</button>
+          <button type="reset" class="btn outline">Reset</button>
+        </div>
       </div>
     </form>
   </div>
 </section>
+
 
 <!-- ABOUT / SHOP INFO -->
 <section id="about" class="about container" aria-labelledby="about-heading">
@@ -1386,51 +2092,93 @@ body.search-open #search-clear {
 
   </main>
 
-  <!-- STACKED FOOTER -->
+<footer class="site-footer" role="contentinfo" aria-label="Site footer">
+  <div class="footer-grid">
+    <!-- Brand & description -->
+    <div>
+      <div class="footer-brand">
+        <div class="logo-badge" aria-hidden="true"><i class="fa fa-heart" style="font-size:20px;"></i></div>
+        <div>
+          <a class="footer-logo" href="#" style="text-decoration:none;color:var(--text);font-weight:800;font-size:1.05rem">Tiny Threads</a>
+          <div class="brand-copy" style="max-width:360px;">One-of-a-kind kids dresses. Small batches, big smiles — handmade with care.</div>
 
-  <footer class="site-footer" role="contentinfo">
-    <div class="footer-top container">
-      <div class="footer-col">
-        <a class="footer-logo" href="#"><i class="fa fa-heart"></i> Tiny Threads</a>
-        <p>One-of-a-kind kids dresses. Small batches, big smiles.</p>
-        <div class="socials">
-          <a href="#" aria-label="Instagram"><i class="fa fa-instagram"></i></a>
-          <a href="#" aria-label="Facebook"><i class="fa fa-facebook"></i></a>
-          <a href="#" aria-label="TikTok"><i class="fa fa-music"></i></a>
+          <div class="footer-socials" aria-label="Social links" style="margin-top:12px;">
+            <a href="#" aria-label="Instagram"><i class="fa fa-instagram"></i></a>
+            <a href="#" aria-label="Facebook"><i class="fa fa-facebook"></i></a>
+            <a href="#" aria-label="TikTok"><i class="fa fa-music"></i></a>
+          </div>
+
+          <div class="footer-payments" aria-hidden="true" style="margin-top:10px;">
+            <div class="payment-badge">Visa</div>
+            <div class="payment-badge">Momo</div>
+            <div class="payment-badge">Paystack</div>
+          </div>
         </div>
       </div>
+    </div>
 
+    <!-- Quick links -->
+    <div>
+      <h4>Shop</h4>
+      <ul class="footer-links">
+        <li><a href="#shop"><i class="fa fa-angle-right"></i> Shop</a></li>
+        <li><a href="#about"><i class="fa fa-angle-right"></i> About</a></li>
+        <li><a href="#contact"><i class="fa fa-angle-right"></i> Contact</a></li>
+        <li><a href="admin.html" target="_blank"><i class="fa fa-angle-right"></i> Admin</a></li>
+      </ul>
+    </div>
 
-  <div class="footer-col">
-    <h4>Quick links</h4>
-    <ul>
-      <li><a href="#shop"><i class="fa fa-angle-right"></i> Shop</a></li>
-      <li><a href="#about"><i class="fa fa-angle-right"></i> About</a></li>
-      <li><a href="#contact"><i class="fa fa-angle-right"></i> Contact</a></li>
-      <li><a href="admin.html"><i class="fa fa-angle-right"></i> Admin (private)</a></li>
+    <!-- Support -->
+    <div>
+      <h4>Support</h4>
+      <ul class="footer-links">
+        <li><a href="#"><i class="fa fa-angle-right"></i> Shipping & returns</a></li>
+        <li><a href="#"><i class="fa fa-angle-right"></i> FAQs</a></li>
+        <li><a href="#"><i class="fa fa-angle-right"></i> Sizing guide</a></li>
+        <li><a href="#"><i class="fa fa-angle-right"></i> Contact support</a></li>
+      </ul>
+    </div>
+
+    <!-- Newsletter & contact -->
+    <div>
+      <h4>Newsletter</h4>
+      <div class="footer-newsletter">
+        <p style="margin:0;color:var(--muted);font-size:0.95rem">Get new dress drops & restock alerts. Unsubscribe anytime.</p>
+        <form id="footer-newsletter" aria-label="Newsletter sign up">
+          <input id="footer-email" type="email" placeholder="you@example.com" aria-label="Email for newsletter" />
+          <div style="display:flex;gap:8px;margin-top:8px;">
+            <button type="submit" class="btn">Subscribe</button>
+            <button type="button" id="footer-newsletter-clear" class="btn outline">Clear</button>
+          </div>
+        </form>
+
+        <div style="margin-top:12px;">
+          <div style="font-weight:700">Contact</div>
+          <div style="color:var(--muted);margin-top:6px;font-size:0.95rem">
+            <div><i class="fa fa-phone"></i> <a href="tel:+233000000000">+233 000 000 000</a></div>
+            <div style="margin-top:6px;"><i class="fa fa-envelope"></i> <a href="mailto:hello@tinythreads.example">hello@tinythreads.example</a></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- bottom legal row -->
+  <div class="footer-bottom">
+    <div class="footer-left">
+      <small class="footer-copyright">&copy; <span id="footer-year"></span> Tiny Threads — All rights reserved.</small>
+    </div>
+    <ul class="legal" role="list">
+      <li><a href="#" aria-label="Terms">Terms</a></li>
+      <li><a href="#" aria-label="Privacy">Privacy</a></li>
+      <li><a href="#" aria-label="Cookies">Cookies</a></li>
     </ul>
   </div>
+</footer>
 
-  <div class="footer-col">
-    <h4>Newsletter</h4>
-    <p>Get new dress drops and restock alerts.</p>
-    <form id="newsletter" class="newsletter-form" aria-label="Newsletter sign up">
-      <input type="email" placeholder="you@example.com" aria-label="Email for newsletter" />
-      <button type="submit" class="btn tiny"><i class="fa fa-paper-plane"></i> Subscribe</button>
-    </form>
-  </div>
-</div>
+<!-- Back to top -->
+<button id="back-to-top" aria-label="Back to top" title="Back to top"><i class="fa fa-chevron-up"></i></button>
 
-<div class="footer-bottom container">
-  <small>&copy; <span id="year"></span> Tiny Threads — All rights reserved.</small>
-  <ul class="legal">
-    <li><a href="#">Terms</a></li>
-    <li><a href="#">Privacy</a></li>
-  </ul>
-</div>
-
-
-  </footer>
 
   <!-- TEMPLATES FOR CART ITEMS -->
 
@@ -1454,50 +2202,132 @@ body.search-open #search-clear {
   </div>
 </template>
 
-  <!-- CHECKOUT MODAL -->
-<div id="checkout-modal" class="modal checkout-modal" role="dialog" aria-modal="true" aria-hidden="true" style="z-index:130;display:none;">
-  <div class="modal-inner" style="max-width:980px; padding:18px;">
-    <button class="modal-close" aria-label="Close checkout" data-action="close-checkout" style="right:16px;top:12px">
-      <i class="fa fa-times"></i>
+<!-- CHECKOUT MODAL (REPLACEMENT) -->
+<div id="checkout-modal" class="modal checkout-modal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="checkout-title">
+  <div class="modal-inner" role="document" aria-live="polite">
+    <!-- decorative stickers -->
+    <div class="sticker sticker--left" aria-hidden="true"><i class="fa fa-gift" style="font-size:22px;"></i></div>
+    <div class="sticker sticker--right" aria-hidden="true"><i class="fa fa-heart" style="font-size:20px;"></i></div>
+
+    <button class="modal-close" aria-label="Close checkout" data-action="close-checkout" style="position:absolute; right:14px; top:12px; border:0; background:transparent; padding:8px; cursor:pointer;">
+      <i class="fa fa-times" style="font-size:18px;color:var(--muted)"></i>
     </button>
-    <div style="display:grid;grid-template-columns:1fr 340px;gap:16px;">
-      <!-- LEFT: items list -->
-      <div style="padding:8px 6px; max-height:60vh; overflow:auto;">
-        <h2 style="margin:0 0 8px 0; font-size:1.1rem;"><i class="fa fa-receipt"></i> Order & items</h2>
-        <div id="checkout-items" aria-live="polite" style="display:flex;flex-direction:column;gap:10px;margin-top:10px;">
-          <!-- JS will inject item rows: thumbnail, title, size, qty, unit, line -->
+
+    <div class="checkout-inner">
+      <header style="display:flex;align-items:center;justify-content:space-between;">
+        <div>
+          <h2 id="checkout-title" style="margin:0;font-size:1.15rem;"><i class="fa fa-credit-card"></i> Checkout</h2>
+          <p style="margin:6px 0 0 0;color:var(--muted);font-size:0.95rem;">Complete your order — we’ll email a receipt after payment.</p>
         </div>
+        <div style="text-align:right;color:var(--muted);font-size:13px;">
+          <div id="checkout-ref" style="font-weight:700"></div>
+          <div id="checkout-date"></div>
+        </div>
+      </header>
+
+      <!-- DETAILS CARD (top) -->
+      <section class="checkout-details" aria-labelledby="details-heading">
+        <div class="checkout-form" aria-describedby="details-heading">
+          <h3 id="details-heading" style="margin:0 0 6px 0">Your details</h3>
+
+          <div class="row">
+            <input id="checkout-name" name="name" type="text" placeholder="Full name" required />
+            <input id="checkout-phone" name="phone" type="tel" placeholder="Phone (WhatsApp preferred)" />
+          </div>
+
+          <div class="row">
+            <input id="checkout-email" name="email" type="email" placeholder="Email (for receipt)" required />
+            <select id="checkout-delivery" name="delivery" aria-label="Delivery method">
+              <option value="standard">Standard delivery</option>
+              <option value="express">Express delivery (+GHS 15)</option>
+              <option value="pickup">Pick up (free)</option>
+            </select>
+          </div>
+
+          <div class="row">
+            <input id="checkout-address1" type="text" placeholder="Address line 1" />
+            <input id="checkout-address2" type="text" placeholder="Address line 2 (optional)" />
+          </div>
+
+          <div class="row">
+            <input id="checkout-city" type="text" placeholder="City/Town" />
+            <input id="checkout-region" type="text" placeholder="Region" />
+          </div>
+
+          <div class="row">
+            <input id="checkout-postal" type="text" placeholder="Postal code" />
+            <input id="checkout-promo" type="text" placeholder="Promo code (optional)" />
+          </div>
+
+          <div style="display:flex;gap:8px;align-items:center;">
+            <label style="display:flex;gap:8px;align-items:center;"><input id="checkout-save" type="checkbox" /> Save these details for next time</label>
+          </div>
+
+          <label for="checkout-notes" style="margin-top:6px;font-weight:700">Order notes</label>
+          <textarea id="checkout-notes" placeholder="Add delivery instructions, gift note, etc."></textarea>
+        </div>
+
+        <aside class="checkout-summary-card" aria-labelledby="summary-title">
+          <h4 id="summary-title" style="margin:0 0 6px 0">Order summary</h4>
+          <div style="font-size:0.95rem;color:var(--muted)">Items: <strong id="checkout-count">0</strong></div>
+          <div style="display:flex;justify-content:space-between;margin-top:8px;"><div style="color:var(--muted)">Subtotal</div><div id="checkout-subtotal">₵0.00</div></div>
+          <div class="checkout-hide-processing-note" style="display:flex;justify-content:space-between;margin-top:6px;"><div style="color:var(--muted)">Processing fee</div><div id="checkout-fee">₵0.00</div></div>
+          <div style="display:flex;justify-content:space-between;margin-top:10px;font-size:1.05rem;"><div style="font-weight:700">Total</div><div id="checkout-total" class="total">₵0.00</div></div>
+          <div style="margin-top:10px; font-size:12px; color:var(--muted)">We accept Paystack payments. You will receive a printable receipt after payment.</div>
+        </aside>
+      </section>
+
+      <!-- ITEMS (below) -->
+      <section class="checkout-items-wrap" aria-labelledby="items-heading">
+        <h3 id="items-heading" style="margin:0 0 6px 0;"><i class="fa fa-receipt"></i> Order & items</h3>
+
+        <div style="display:flex;gap:16px;flex-direction:row;align-items:flex-start;flex-wrap:wrap;">
+          <div style="flex:1; min-width:280px;">
+            <div id="checkout-items" class="checkout-items-list" aria-live="polite" aria-atomic="true">
+              <!-- JS injects item rows here -->
+            </div>
+
+            <div style="margin-top:12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+              <button id="checkout-pay" class="btn large" type="button"><i class="fa fa-credit-card"></i> Pay securely</button>
+              <button id="checkout-cancel" class="btn outline" type="button"><i class="fa fa-times"></i> Cancel</button>
+              <button id="checkout-clear" class="btn tiny" type="button" title="Clear cart"><i class="fa fa-trash"></i></button>
+            </div>
+          </div>
+
+          <!-- small mobile-friendly totals (duplicated for convenience) -->
+          <div style="width:240px;min-width:220px;">
+            <div style="padding:12px;border-radius:10px;background:linear-gradient(180deg,#fff,#fffefc);box-shadow:var(--shadow);">
+              <div style="display:flex;justify-content:space-between;"><div style="color:var(--muted)">Subtotal</div><div id="checkout-subtotal-2">₵0.00</div></div>
+              <div style="display:flex;justify-content:space-between;margin-top:6px;"><div style="color:var(--muted)">Processing</div><div id="checkout-fee-2">₵0.00</div></div>
+              <div style="display:flex;justify-content:space-between;margin-top:10px;font-weight:800;font-size:1.1rem;"><div>Total</div><div id="checkout-total-2">₵0.00</div></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<!-- PURCHASE HISTORY MODAL -->
+<div id="history-modal" role="dialog" aria-modal="true" aria-labelledby="history-title">
+  <div class="modal-inner" role="document">
+    <button class="modal-close" aria-label="Close history" id="history-close" style="position:absolute; right:12px; top:12px; border:0; background:transparent; padding:8px; cursor:pointer;"><i class="fa fa-times" style="color:var(--muted)"></i></button>
+
+    <header style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
+      <div>
+        <h3 id="history-title" style="margin:0;"><i class="fa fa-history"></i> Recent purchases</h3>
+        <p style="margin:6px 0 0 0;color:var(--muted);font-size:0.95rem;">Your recent orders are stored locally on this device. Click View to open the receipt (PDF).</p>
       </div>
+      <div style="text-align:right;color:var(--muted)"><small id="history-count">0</small></div>
+    </header>
 
-      <!-- RIGHT: buyer details + summary -->
-      <aside style="padding:8px 12px; background:linear-gradient(180deg,#fff,#fffefc); border-radius:12px; box-shadow:var(--shadow);">
-        <h3 style="margin:0 0 8px 0;">Your details</h3>
-        <form id="checkout-form" novalidate>
-          <div style="display:flex;flex-direction:column;gap:8px;">
-            <label class="sr-only" for="checkout-name">Full name</label>
-            <input id="checkout-name" name="name" type="text" placeholder="Full name" required style="padding:8px;border-radius:8px;border:1px solid rgba(15,23,42,0.06)" />
+    <div style="margin-top:12px;">
+      <div id="history-list" class="history-list" aria-live="polite"></div>
 
-            <label class="sr-only" for="checkout-email">Email</label>
-            <input id="checkout-email" name="email" type="email" placeholder="Email (for receipt)" required style="padding:8px;border-radius:8px;border:1px solid rgba(15,23,42,0.06)" />
-
-            <label class="sr-only" for="checkout-phone">Phone</label>
-            <input id="checkout-phone" name="phone" type="tel" placeholder="Phone number (WhatsApp preferred)" style="padding:8px;border-radius:8px;border:1px solid rgba(15,23,42,0.06)" />
-          </div>
-
-          <hr style="margin:12px 0;border:none;border-top:1px solid rgba(15,23,42,0.04)" />
-
-          <div style="display:flex;flex-direction:column;gap:6px;">
-            <div style="display:flex;justify-content:space-between"><span>Subtotal</span><strong id="checkout-subtotal">₵0.00</strong></div>
-            <div style="display:flex;justify-content:space-between"><span>Processing fee <small>(1.95% + 1%)</small></span><strong id="checkout-fee">₵0.00</strong></div>
-            <div style="display:flex;justify-content:space-between;font-size:1.05rem;margin-top:6px;"><span>Total</span><strong id="checkout-total">₵0.00</strong></div>
-          </div>
-
-          <div style="display:flex;gap:8px;margin-top:12px;">
-            <button id="checkout-pay" class="btn large" type="button"><i class="fa fa-credit-card"></i> Pay</button>
-            <button id="checkout-cancel" class="btn outline" type="button"><i class="fa fa-times"></i> Cancel</button>
-          </div>
-        </form>
-      </aside>
+      <div style="margin-top:14px;display:flex;gap:8px;justify-content:flex-end;">
+        <button id="history-clear-all" class="btn tiny outline">Clear history</button>
+        <button id="history-close-bottom" class="btn tiny">Close</button>
+      </div>
     </div>
   </div>
 </div>
@@ -1549,51 +2379,95 @@ body.search-open #search-clear {
     </div>
   </div>
 </div>
-<!-- ==== Receipt modal (paste near end of <body>) ==== -->
-<div id="receipt-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="receipt-title" style="display:none; z-index:9999;">
-  <div class="modal-inner" style="max-width:820px; padding:18px; border-radius:14px;">
-    <button class="modal-close" aria-label="Close receipt" id="receipt-close" style="position:absolute; right:14px; top:12px; border:0; background:transparent; padding:8px; cursor:pointer;"><i class="fa fa-times"></i></button>
 
-    <h2 id="receipt-title" style="margin-top:4px;"><i class="fa fa-receipt"></i> Payment receipt</h2>
-    <p id="receipt-sub" class="lead" style="margin:6px 0 12px 0; color:var(--muted);">Below are the payment details. Use <strong>View receipt</strong> to open the full PDF (printable & downloadable).</p>
+  <!-- PAYMENT RECEIPT MODAL (REPLACEMENT) -->
+<div id="receipt-modal" class="modal receipt-modal" role="dialog" aria-modal="true" aria-labelledby="receipt-title" style="display:none;">
+  <div class="modal-inner" role="document">
+    <div class="sticker left" aria-hidden="true"><i class="fa fa-receipt" style="font-size:20px;"></i></div>
+    <div class="sticker right" aria-hidden="true"><i class="fa fa-smile" style="font-size:18px;"></i></div>
 
-    <div id="receipt-body" style="display:grid; grid-template-columns: 1fr 320px; gap:12px;">
-      <div id="receipt-summary" style="padding:8px 10px;">
-        <!-- JS will populate summary here -->
+    <button class="modal-close" aria-label="Close receipt" id="receipt-close" style="position:absolute; right:12px; top:10px; border:0; background:transparent; padding:8px; cursor:pointer;">
+      <i class="fa fa-times" style="color:var(--muted);font-size:18px;"></i>
+    </button>
+
+    <header style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:6px;">
+      <div>
+        <h2 id="receipt-title" style="margin:0;font-size:1.15rem;"><i class="fa fa-file-invoice"></i> Payment receipt</h2>
+        <p id="receipt-sub" class="lead" style="margin:6px 0 0 0;color:var(--muted);">Receipt and PDF preview. Use the actions to view, download, or print the invoice.</p>
       </div>
+      <div style="text-align:right;">
+        <div id="receipt-ref" style="font-weight:700"></div>
+        <div id="receipt-date" style="color:var(--muted);font-size:13px"></div>
+      </div>
+    </header>
 
-      <aside style="padding:10px; border-radius:10px; background:linear-gradient(180deg,#fff,#fffefc); box-shadow:var(--shadow);">
-        <div style="display:flex; gap:8px; align-items:center; margin-bottom:8px;">
+    <div class="receipt-grid" style="align-items:start;">
+      <div class="receipt-left">
+        <div class="receipt-summary" id="receipt-summary" aria-live="polite">
+          <!-- populated by JS: Buyer / items summary / totals -->
+        </div>
+
+        <div style="display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap;">
           <div style="flex:1">
-            <div style="font-size:0.95rem; color:var(--muted)">Total paid</div>
-            <div id="receipt-total" style="font-weight:900; font-size:1.5rem; color:var(--brand-1)"></div>
+            <h4 style="margin:10px 0 6px 0;">Items</h4>
+            <div class="receipt-items" id="receipt-items">
+              <!-- JS: item rows -->
+            </div>
+          </div>
+
+          <div style="width:280px;min-width:220px;">
+            <div class="receipt-summary" style="padding:12px;">
+              <div style="display:flex;justify-content:space-between;"><div style="color:var(--muted)">Subtotal</div><div id="receipt-subtotal">₵0.00</div></div>
+              <div style="display:flex;justify-content:space-between;margin-top:6px;"><div style="color:var(--muted)">Processing</div><div id="receipt-processing">₵0.00</div></div>
+              <div style="display:flex;justify-content:space-between;margin-top:10px;font-weight:900;font-size:1.15rem;"><div>Total paid</div><div id="receipt-total" style="color:var(--brand-1)"></div></div>
+              <div style="margin-top:12px;">
+                <button id="receipt-view" class="btn large"><i class="fa fa-eye"></i> View PDF</button>
+                <button id="receipt-download" class="btn outline" style="margin-top:8px;"><i class="fa fa-download"></i> Download</button>
+                <button id="receipt-print" class="btn tiny" style="margin-top:8px;"><i class="fa fa-print"></i> Print</button>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div style="display:flex; flex-direction:column; gap:8px; margin-top:8px;">
-          <button id="receipt-view" class="btn large" type="button" style="display:block;"><i class="fa fa-eye"></i> View receipt (PDF)</button>
-          <button id="receipt-download" class="btn outline" type="button" style="display:block;"><i class="fa fa-download"></i> Download PDF</button>
-          <button id="receipt-print" class="btn tiny" type="button" style="display:block;"><i class="fa fa-print"></i> Print</button>
+        <div id="receipt-preview-wrap" class="receipt-preview-wrap" style="margin-top:12px; display:none; position:relative;">
+          <div style="font-size:0.95rem; color:var(--muted); margin-bottom:6px;"><strong>PDF preview</strong> — scroll within the frame or open it in a new tab.</div>
+          <div style="position:relative;">
+            <div class="preview-loader" id="preview-loader" style="display:none;">
+              <div class="lead">Loading PDF…</div>
+            </div>
+            <iframe id="receipt-preview" class="receipt-iframe" title="Receipt preview" sandbox=""></iframe>
+          </div>
+        </div>
+      </div>
+
+      <aside class="receipt-right" aria-label="Receipt actions & status">
+        <div style="position:sticky; top:16px;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+            <div class="receipt-badge" id="receipt-status">PAID</div>
+            <div style="font-size:0.95rem;color:var(--muted)"><strong id="receipt-method">Paystack</strong></div>
+          </div>
+
+          <div style="padding:12px;border-radius:10px;background:linear-gradient(180deg,#fff,#fffefc);box-shadow:var(--shadow);">
+            <div style="font-weight:700">Order details</div>
+            <div style="margin-top:8px;color:var(--muted);font-size:13px" id="receipt-order-meta"></div>
+            <div style="margin-top:12px;">
+              <small style="color:var(--muted)">Receipt reference</small>
+              <div style="font-weight:800" id="receipt-ref-2"></div>
+            </div>
+          </div>
+
+          <div style="margin-top:12px;">
+            <button id="receipt-close-bottom" class="btn outline">Close</button>
+          </div>
         </div>
       </aside>
-    </div>
-
-    <!-- Optional embedded preview (initially hidden and toggled when user clicks View) -->
-    <div id="receipt-preview-wrap" style="margin-top:12px; display:none;">
-      <div style="font-size:0.95rem; color:var(--muted); margin-bottom:6px;"><strong>PDF preview</strong> — scroll within the frame or use View to open in a new tab.</div>
-      <iframe id="receipt-preview" style="width:100%; height:480px; border:1px solid rgba(15,23,42,0.06); border-radius:8px;" title="Receipt preview"></iframe>
     </div>
   </div>
 </div>
 
+
 <script>
-/*
-  Consolidated tinythreads script
-  - Uses your Paystack public key below
-  - No Firebase or remote DB references (local-only)
-  - Includes cart, product grid, product modal, checkout, buy-now, invoice PDF, and receipt modal
-  - Robust mobile nav (hamburger) behavior
-*/
+
 
 (() => {
   'use strict';
@@ -2062,6 +2936,8 @@ let PAYSTACK_PUBLIC_KEY = 'pk_test_297586e51710e83d3c159bfe71ff45c7e23411fa';
 
   function startCheckout(items) { openCheckoutModal(items); }
 
+
+  /* REPLACEMENT openCheckoutModal / closeCheckoutModal (paste inside your consolidated script) */
   function openCheckoutModal(items) {
     for (const it of items) {
       const p = products.find(pp => pp.id === it.id);
@@ -2070,51 +2946,98 @@ let PAYSTACK_PUBLIC_KEY = 'pk_test_297586e51710e83d3c159bfe71ff45c7e23411fa';
     const modalEl = document.getElementById('checkout-modal');
     const itemsWrap = document.getElementById('checkout-items');
     const subtotalEl = document.getElementById('checkout-subtotal');
+    const subtotalEl2 = document.getElementById('checkout-subtotal-2');
     const feeEl = document.getElementById('checkout-fee');
+    const feeEl2 = document.getElementById('checkout-fee-2');
     const totalEl = document.getElementById('checkout-total');
+    const totalEl2 = document.getElementById('checkout-total-2');
+    const countEl = document.getElementById('checkout-count');
+    const refEl = document.getElementById('checkout-ref');
+    const dateEl = document.getElementById('checkout-date');
+
     if (!modalEl || !itemsWrap) return;
     itemsWrap.innerHTML = '';
+
     const enriched = items.map(it => {
       const p = products.find(pp => pp.id === it.id) || {};
       const unit = p.price || 0; const qty = Number(it.qty || 1); const line = +(unit * qty);
       return { id: it.id, title: p.title || it.id, image: (p.images && p.images[0]) || '', size: it.size || '', qty, unit, line };
     });
+
     const subtotal = enriched.reduce((s, x) => s + x.line, 0);
-    const fee = +(subtotal * 0.0295).toFixed(2);
+    const fee = +(subtotal * 0.0295).toFixed(2); // keep calculation but do NOT show raw percentage text
     const total = +(subtotal + fee).toFixed(2);
+
+    // render items
     enriched.forEach(it => {
       const row = document.createElement('div');
       row.className = 'checkout-item';
       row.innerHTML = `
         <img src="${it.image}" alt="${it.title}" />
-        <div class="meta">
-          <div class="title">${it.title}</div>
-          <div class="sub">${it.size ? `Size: ${it.size} • ` : ''}Qty: ${it.qty}</div>
+        <div style="flex:1">
+          <div class="meta">${it.title}</div>
+          <small>${it.size ? `Size: ${it.size} • ` : ''}Qty: ${it.qty} • ID: ${it.id}</small>
         </div>
-        <div style="margin-left:auto;text-align:right;">
+        <div style="text-align:right; min-width:96px;">
           <div style="font-weight:800">${formatPrice(it.unit)}</div>
           <div style="color:var(--muted)">${formatPrice(it.line)}</div>
-        </div>
-      `;
+        </div>`;
       itemsWrap.appendChild(row);
     });
-    subtotalEl.textContent = formatPrice(subtotal);
-    feeEl.textContent = formatPrice(fee);
-    totalEl.textContent = formatPrice(total);
 
+    // totals UI
+    subtotalEl.textContent = formatPrice(subtotal);
+    subtotalEl2.textContent = formatPrice(subtotal);
+    feeEl.textContent = formatPrice(fee);
+    feeEl2.textContent = formatPrice(fee);
+    totalEl.textContent = formatPrice(total);
+    totalEl2.textContent = formatPrice(total);
+    countEl.textContent = enriched.length;
+
+    // reference and date
+    refEl.textContent = `Ref: ${'CHK-' + Math.random().toString(36).slice(2,8).toUpperCase()}`;
+    dateEl.textContent = new Date().toLocaleString();
+
+    // show modal
     modalEl.setAttribute('aria-hidden', 'false');
     modalEl.classList.add('open');
     modalEl.style.display = 'flex';
 
+    // store checkout snapshot on modal for later
     modalEl._checkoutItems = enriched;
     modalEl._checkoutSubtotal = subtotal;
     modalEl._checkoutFee = fee;
     modalEl._checkoutTotal = total;
 
-    if (window.__lastBuyerEmail) $('#checkout-email').value = window.__lastBuyerEmail;
+    // wire the cancel/clear/pay buttons
     document.getElementById('checkout-cancel').onclick = () => closeCheckoutModal();
-    document.querySelector('#checkout-modal .modal-close')?.addEventListener('click', closeCheckoutModal);
-    document.getElementById('checkout-pay').onclick = () => processCheckoutPayment();
+    document.getElementById('checkout-clear').onclick = (e) => { e.preventDefault(); cart = []; saveCart(cart); updateCartUI(); itemsWrap.innerHTML = ''; subtotalEl.textContent = '₵0.00'; totalEl.textContent = '₵0.00'; toast('Cart cleared'); closeCheckoutModal(); };
+
+    document.getElementById('checkout-pay').onclick = () => {
+      // minimal front-end validation
+      const name = (document.getElementById('checkout-name')?.value || '').trim();
+      const email = (document.getElementById('checkout-email')?.value || '').trim();
+      if (!email || !email.includes('@')) { toast('Please provide a valid email'); return; }
+      if (!name) { toast('Please provide your full name'); return; }
+      // write buyer details into modal snapshot so processCheckoutPayment can read them
+      modalEl._buyer = {
+        name,
+        email,
+        phone: (document.getElementById('checkout-phone')?.value || '').trim(),
+        address1: (document.getElementById('checkout-address1')?.value || '').trim(),
+        address2: (document.getElementById('checkout-address2')?.value || '').trim(),
+        city: (document.getElementById('checkout-city')?.value || '').trim(),
+        region: (document.getElementById('checkout-region')?.value || '').trim(),
+        postal: (document.getElementById('checkout-postal')?.value || '').trim(),
+        delivery: (document.getElementById('checkout-delivery')?.value || '').trim(),
+        notes: (document.getElementById('checkout-notes')?.value || '').trim(),
+        promo: (document.getElementById('checkout-promo')?.value || '').trim()
+      };
+      processCheckoutPayment();
+    };
+
+    // focus first meaningful field
+    setTimeout(() => { document.getElementById('checkout-name')?.focus(); }, 80);
   }
 
   function closeCheckoutModal() {
@@ -2123,6 +3046,9 @@ let PAYSTACK_PUBLIC_KEY = 'pk_test_297586e51710e83d3c159bfe71ff45c7e23411fa';
     modalEl.setAttribute('aria-hidden', 'true');
     modalEl.classList.remove('open');
     modalEl.style.display = 'none';
+    // clear snapshot
+    modalEl._checkoutItems = null;
+    modalEl._buyer = null;
   }
 
   function processCheckoutPayment() {
@@ -2291,132 +3217,176 @@ let PAYSTACK_PUBLIC_KEY = 'pk_test_297586e51710e83d3c159bfe71ff45c7e23411fa';
     } catch (err) { return null; }
   }
 
-  async function generateInvoiceBlobUrl(order) {
-    if (!order) throw new Error('Missing order');
-    const { jsPDF } = window.jspdf || {};
-    if (!jsPDF) throw new Error('jsPDF not found');
-    const doc = new jsPDF({ unit: 'pt', format: 'a4' });
-    const left = 40; let y = 40; const lineHeight = 18; const pageWidth = doc.internal.pageSize.getWidth();
 
-    // header
-    doc.setFontSize(18); doc.setFont('helvetica', 'bold'); doc.text('Tiny Threads', left, y);
-    doc.setFontSize(10); doc.setFont('helvetica', 'normal'); doc.text('One-of-a-kind kids dresses', left, y + 18);
-    const metaX = pageWidth - 260;
-    doc.setFontSize(16); doc.setFont('helvetica', 'bold'); doc.text('INVOICE', metaX, y);
-    doc.setFontSize(10); doc.setFont('helvetica', 'normal'); doc.text(`Ref: ${order.reference || '—'}`, metaX, y + lineHeight);
-    doc.text(`Date: ${new Date(order.paidAt || Date.now()).toLocaleString()}`, metaX, y + lineHeight*2);
-    doc.setTextColor(40,160,100); doc.setFontSize(28); doc.setFont('helvetica', 'bold'); doc.text('PAID', pageWidth - 120, y + 60, { align: 'center' }); doc.setTextColor(0,0,0);
-    y += 80;
-
-    // buyer
-    doc.setFontSize(11); doc.setFont('helvetica', 'bold'); doc.text('BILL TO', left, y);
-    doc.setFont('helvetica', 'normal');
-    const buyerName = (order.buyerDetails && order.buyerDetails.name) ? order.buyerDetails.name : '';
-    doc.text(buyerName || '—', left, y + lineHeight);
-    doc.text(order.buyerEmail || '—', left, y + lineHeight*2);
-    if (order.buyerDetails && order.buyerDetails.phone) doc.text(order.buyerDetails.phone, left, y + lineHeight*3);
-    y += lineHeight * 4;
-
-    // items header
-    doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.text('Item', left, y);
-    doc.text('Qty', pageWidth - 200, y); doc.text('Unit', pageWidth - 110, y); doc.text('Total', pageWidth - 40, y, { align: 'right' });
-    y += lineHeight; doc.setDrawColor(220); doc.line(left, y - 8, pageWidth - left, y - 8); y += 8;
-
-    for (const it of (order.items || [])) {
-      const prod = products.find(p => p.id === it.id) || {};
-      const title = prod.title || it.id; const qty = Number(it.qty || 1); const unit = prod.price || (it.unit || 0); const line = +(qty * unit).toFixed(2);
-      if (y > doc.internal.pageSize.getHeight() - 120) { doc.addPage(); y = 40; }
-      doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.text(String(title), left, y);
-      doc.setFont('helvetica', 'normal'); doc.text(String(qty), pageWidth - 200, y);
-      doc.text(formatPrice(unit), pageWidth - 110, y); doc.text(formatPrice(line), pageWidth - 40, y, { align: 'right' });
-      y += lineHeight;
-      doc.setFontSize(9);
-      const meta = it.size ? `Size: ${it.size} • ID: ${it.id}` : `ID: ${it.id}`;
-      doc.setFont('helvetica', 'normal'); doc.text(meta, left, y);
-      y += (lineHeight + 6);
-    }
-
-    if (y > doc.internal.pageSize.getHeight() - 160) { doc.addPage(); y = 40; }
-    const totalsY = y + 8; doc.setDrawColor(220); doc.line(left, totalsY, pageWidth - left, totalsY);
-    doc.setFont('helvetica', 'bold'); doc.text('Total', pageWidth - 160, totalsY + 18); doc.text(formatPrice(order.total || 0), pageWidth - 40, totalsY + 18, { align: 'right' });
-    const footerY = doc.internal.pageSize.getHeight() - 40; doc.setFontSize(9); doc.setFont('helvetica', 'normal');
-    doc.text('Thank you for shopping with Tiny Threads — contact: hello@tinythreads.example', left, footerY);
-
-    const blob = doc.output('blob');
-    const url = URL.createObjectURL(blob);
-    return { url, blob };
-  }
-
+  /* showReceiptModal for improved responsiveness & preview handling */
   function showReceiptModal(order, pdfInfo) {
     try {
       const modal = document.getElementById('receipt-modal');
       const summary = document.getElementById('receipt-summary');
+      const itemsWrap = document.getElementById('receipt-items');
       const totalEl = document.getElementById('receipt-total');
-      const btnView = document.getElementById('receipt-view');
-      const btnDownload = document.getElementById('receipt-download');
-      const btnPrint = document.getElementById('receipt-print');
+      const subEl = document.getElementById('receipt-subtotal');
+      const procEl = document.getElementById('receipt-processing');
+      const refEl = document.getElementById('receipt-ref');
+      const refEl2 = document.getElementById('receipt-ref-2');
+      const dateEl = document.getElementById('receipt-date');
+      const methodEl = document.getElementById('receipt-method');
+      const statusEl = document.getElementById('receipt-status');
+
+      const viewBtn = document.getElementById('receipt-view');
+      const dlBtn = document.getElementById('receipt-download');
+      const printBtn = document.getElementById('receipt-print');
       const previewWrap = document.getElementById('receipt-preview-wrap');
       const previewFrame = document.getElementById('receipt-preview');
+      const loader = document.getElementById('preview-loader');
 
-      if (!modal || !summary || !totalEl) return;
+      if (!modal || !summary || !itemsWrap || !totalEl) return;
 
-      const itemsHtml = (order.items || []).map(it => {
-        const prod = products.find(p => p.id === it.id) || {};
-        return `<div style="display:flex;justify-content:space-between;margin-bottom:8px;">
-          <div style="flex:1"><strong>${(prod.title||it.id)}</strong><div style="color:var(--muted);font-size:12px">${it.size?('Size: '+it.size):''} ${it.size? ' • ' : ''}ID: ${it.id}</div></div>
-          <div style="text-align:right; min-width:96px;">
-            <div style="font-weight:800">${formatPrice((prod.price||0))}</div>
-            <div style="color:var(--muted); font-size:13px">${it.qty} ×</div>
-          </div>
-        </div>`;
-      }).join('');
+      // Clear previous
+      itemsWrap.innerHTML = '';
+      summary.innerHTML = '';
 
+      // Basic order properties (guarding)
+      const paidAt = order.paidAt ? new Date(order.paidAt) : new Date();
+      const reference = order.reference || ('REF-' + Math.random().toString(36).slice(2,8).toUpperCase());
+      const buyerName = (order.buyerDetails && order.buyerDetails.name) ? order.buyerDetails.name : '—';
+      const buyerEmail = order.buyerEmail || (order.buyerDetails && order.buyerDetails.email) || '—';
+      const buyerPhone = (order.buyerDetails && order.buyerDetails.phone) ? order.buyerDetails.phone : '';
+      const processingFee = Number(order.processingFee || ((order.total||0) * 0.0295));
+      const subtotal = +( (order.total || 0) - processingFee ).toFixed(2);
+      const total = +(order.total || 0).toFixed(2);
+
+      // header refs
+      refEl.textContent = reference;
+      refEl2.textContent = reference;
+      dateEl.textContent = paidAt.toLocaleString();
+
+      // meta summary
       summary.innerHTML = `
-        <div style="margin-bottom:8px;"><strong>Buyer</strong><div style="color:var(--muted);font-size:13px">${(order.buyerDetails && order.buyerDetails.name) ? order.buyerDetails.name : '—'}</div>
-        <div style="color:var(--muted);font-size:13px">${order.buyerEmail || '—'}</div>
-        ${order.buyerDetails && order.buyerDetails.phone ? `<div style="color:var(--muted);font-size:13px">${order.buyerDetails.phone}</div>` : ''}</div>
-
-        <div style="margin-top:6px;"><strong>Items</strong>
-          <div style="margin-top:8px">${itemsHtml || '<div style="color:var(--muted)">No items</div>'}</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <div style="font-weight:800">${buyerName}</div>
+            <div style="color:var(--muted);font-size:13px">${buyerEmail}${buyerPhone ? ' • ' + buyerPhone : ''}</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="color:var(--muted);font-size:12px">Status</div>
+            <div style="font-weight:800;color:var(--brand-1)">${order.status ? order.status.toUpperCase() : 'PAID'}</div>
+          </div>
         </div>
-
-        <div style="margin-top:12px; display:flex; justify-content:space-between; border-top:1px dashed rgba(15,23,42,0.06); padding-top:10px;">
-          <div style="color:var(--muted)">Subtotal</div>
-          <div style="font-weight:700">${formatPrice((order.total || 0) - (order.processingFee || 0))}</div>
-        </div>
-
-        <div style="display:flex; justify-content:space-between; margin-top:6px;">
-          <div style="color:var(--muted)">Processing</div>
-          <div style="font-weight:700">${formatPrice(order.processingFee || ((order.total||0)*0.0295))}</div>
-        </div>
+        <div style="margin-top:10px;color:var(--muted);font-size:13px">${(order.buyerDetails && (order.buyerDetails.address1 || order.buyerDetails.city)) ? `${order.buyerDetails.address1 || ''} ${order.buyerDetails.city || ''}` : ''}</div>
       `;
 
-      totalEl.textContent = formatPrice(order.total || 0);
+      // items listing
+      (order.items || []).forEach(it => {
+        const prod = products.find(p => p.id === it.id) || {};
+        const title = prod.title || it.id;
+        const unit = prod.price || (it.unit || 0);
+        const qty = Number(it.qty || 1);
+        const line = +(unit * qty).toFixed(2);
+        const itemNode = document.createElement('div');
+        itemNode.className = 'receipt-item';
+        itemNode.innerHTML = `
+          <img src="${(prod.images && prod.images[0]) || ''}" alt="${title}" />
+          <div class="it-meta">
+            <div style="font-weight:800">${title}</div>
+            <div style="color:var(--muted);font-size:13px">${it.size ? `Size: ${it.size} • ` : ''}ID: ${it.id}</div>
+          </div>
+          <div class="it-price">
+            <div>${formatPrice(unit)}</div>
+            <div style="color:var(--muted);font-size:13px">${qty} ×</div>
+            <div style="font-weight:900;margin-top:6px">${formatPrice(line)}</div>
+          </div>
+        `;
+        itemsWrap.appendChild(itemNode);
+      });
 
+      // totals
+      subEl.textContent = formatPrice(subtotal);
+      procEl.textContent = formatPrice(processingFee);
+      totalEl.textContent = formatPrice(total);
+
+      // method & status
+      methodEl.textContent = order.method || 'Paystack';
+      statusEl.textContent = (order.status || 'PAID').toUpperCase();
+
+      // wire buttons: default disabled until we have URL
+      viewBtn.disabled = dlBtn.disabled = printBtn.disabled = true;
+      previewWrap.style.display = 'none';
+      previewFrame.src = '';
+      // cleanup previous blob if stored on modal
+      try { if (modal._pdfUrl && modal._pdfUrl.startsWith('blob:')) URL.revokeObjectURL(modal._pdfUrl); } catch (e) {}
+
+      // if pdfInfo provided, wire actions
       if (pdfInfo && pdfInfo.url) {
         const url = pdfInfo.url;
-        btnView.onclick = () => {
-          try { previewWrap.style.display = ''; previewFrame.src = url; } catch (e) {}
-          window.open(url, '_blank');
+        modal._pdfUrl = url;
+
+        // show preview in modal (and show loader)
+        viewBtn.disabled = false;
+        dlBtn.disabled = false;
+        printBtn.disabled = false;
+
+        viewBtn.onclick = () => {
+          // display inline preview + open new tab (user expects both)
+          previewWrap.style.display = '';
+          loader.style.display = '';
+          // set iframe src, and hide loader once loaded
+          previewFrame.onload = () => { try { loader.style.display = 'none'; } catch(e){} };
+          previewFrame.src = url;
+          try { window.open(url, '_blank'); } catch(e) {}
         };
-        btnDownload.onclick = () => { const a = document.createElement('a'); a.href = url; a.download = `Invoice-${order.reference || 'receipt'}.pdf`; document.body.appendChild(a); a.click(); a.remove(); };
-        btnPrint.onclick = () => { const w = window.open(url, '_blank'); w?.addEventListener && w.addEventListener('load', () => w.print()); };
+
+        dlBtn.onclick = () => {
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `Invoice-${reference || 'receipt'}.pdf`;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+        };
+
+        printBtn.onclick = () => {
+          // open pdf in new tab and print (works in most browsers)
+          const w = window.open(url, '_blank');
+          if (!w) { toast('Popup blocked — use Download'); return; }
+          w.onload = () => { try { w.focus(); w.print(); } catch (e) { console.error(e); } };
+        };
+
+        // Also pre-load preview invisibly (improves UX)
+        setTimeout(() => {
+          previewWrap.style.display = '';
+          loader.style.display = '';
+          previewFrame.onload = () => { try { loader.style.display = 'none'; } catch(e) {} };
+          previewFrame.src = url;
+        }, 180);
       } else {
-        btnView.disabled = btnDownload.disabled = btnPrint.disabled = true;
+        // no pdf: disable buttons
+        viewBtn.onclick = dlBtn.onclick = printBtn.onclick = null;
       }
 
-      document.getElementById('receipt-close').onclick = () => {
-        try { if (pdfInfo && pdfInfo.url) URL.revokeObjectURL(pdfInfo.url); } catch(e){}
-        try { previewWrap.style.display = 'none'; } catch(e){}
+      // close handlers & cleanup
+      const closeAll = () => {
+        try { if (modal._pdfUrl && modal._pdfUrl.startsWith('blob:')) URL.revokeObjectURL(modal._pdfUrl); } catch (e) {}
+        previewFrame.src = '';
+        previewWrap.style.display = 'none';
         modal.style.display = 'none';
         modal.setAttribute('aria-hidden','true');
         modal.classList.remove('open');
       };
+      document.getElementById('receipt-close').onclick = closeAll;
+      document.getElementById('receipt-close-bottom').onclick = closeAll;
 
-      modal.style.display = 'flex'; modal.setAttribute('aria-hidden','false'); modal.classList.add('open');
-      document.getElementById('receipt-close').focus();
-    } catch (err) { console.error('showReceiptModal error', err); }
+      // show modal
+      modal.style.display = 'flex';
+      modal.setAttribute('aria-hidden','false');
+      modal.classList.add('open');
+      // ensure focus
+      setTimeout(() => { viewBtn?.focus(); }, 120);
+    } catch (err) {
+      console.error('showReceiptModal error', err);
+    }
   }
+
 
   /* ======================= handleSuccessfulPayment (single) ======================= */
   async function handleSuccessfulPayment(reference, buyerEmail, items, total, buyerDetails = {}) {
@@ -2484,22 +3454,298 @@ let PAYSTACK_PUBLIC_KEY = 'pk_test_297586e51710e83d3c159bfe71ff45c7e23411fa';
   // expose globally for Paystack callbacks if needed
   window.handleSuccessfulPayment = handleSuccessfulPayment;
 
-  // Simple fallback generator that directly opens/downloads (keeps old behaviour for backwards compatibility)
-  async function generateInvoicePDFFallback(order) {
-    // Reuse generateInvoiceBlobUrl to create blob; if that fails, fallback to a minimal jsPDF save
-    try {
-      const info = await generateInvoiceBlobUrl(order);
-      // open & download
-      const a = document.createElement('a'); a.href = info.url; a.download = `Invoice-${order.reference || 'receipt'}.pdf`; document.body.appendChild(a); a.click(); a.remove();
-      setTimeout(() => URL.revokeObjectURL(info.url), 60000);
-      return;
-    } catch (err) {
-      try {
-        const { jsPDF } = window.jspdf || {};
-        if (jsPDF) { const doc = new jsPDF(); doc.text('Invoice — see app for details', 20, 20); doc.save(`Invoice-${order.reference || 'receipt'}.pdf`); }
-      } catch (e) {}
+  /* =========================
+   Improved PDF invoice generator
+   Replaces generateInvoiceBlobUrl(order) and generateInvoicePDFFallback(order)
+   ========================= */
+async function generateInvoiceBlobUrl(order) {
+  if (!order) throw new Error('Missing order');
+  const { jsPDF } = window.jspdf || {};
+  if (!jsPDF) throw new Error('jsPDF not found');
+
+  // page & layout settings (pt units)
+  const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+  const pageW = doc.internal.pageSize.getWidth();
+  const pageH = doc.internal.pageSize.getHeight();
+  const left = 36;
+  const right = pageW - 36;
+  const usableW = right - left;
+
+  const lineH = 16;
+  const smallH = 12;
+  const imageThumbSize = 40;
+  const gap = 8;
+  let y = 36;
+
+  // helper to wrap text
+  const wrap = (text, maxWidth, fontSize = 10, fontStyle = 'normal') => {
+    doc.setFontSize(fontSize);
+    doc.setFont('helvetica', fontStyle);
+    return doc.splitTextToSize(String(text || ''), maxWidth);
+  };
+
+  // header: light band
+  doc.setFillColor(248, 246, 244); // subtle warm background
+  doc.rect(left - 8, y - 12, usableW + 16, 66, 'F');
+
+  // try include a logo (if any product image or global logo is available)
+  let logoDataUrl = null;
+  try {
+    // Try order.logo first, otherwise fallback to first product image
+    if (order.logo) logoDataUrl = await fetchImageAsDataURL(order.logo);
+    if (!logoDataUrl && order.items && order.items[0]) {
+      const prod = products.find(p => p.id === order.items[0].id);
+      if (prod && prod.images && prod.images[0]) {
+        logoDataUrl = await fetchImageAsDataURL(prod.images[0]);
+      }
     }
+  } catch (e) { logoDataUrl = null; }
+
+  // logo left
+  if (logoDataUrl) {
+    try {
+      doc.addImage(logoDataUrl, 'PNG', left, y - 4, 88, 44, undefined, 'SLOW');
+    } catch (e) {
+      // ignore image errors
+    }
+  } else {
+    // brand placeholder: rounded badge
+    doc.setFillColor(255, 107, 138);
+    doc.roundedRect(left, y - 4, 64, 44, 8, 8, 'F');
+    doc.setFontSize(18);
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.text('TT', left + 16, y + 24);
+    doc.setTextColor(0, 0, 0);
   }
+
+  // Title on right
+  doc.setFontSize(22);
+  doc.setFont('helvetica', 'bold');
+  doc.text('INVOICE', right - 120, y + 16, { align: 'right' });
+
+  // reference & date under title
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+  const reference = order.reference || ('REF-' + Math.random().toString(36).slice(2, 8).toUpperCase());
+  doc.text(`Ref: ${reference}`, right - 6, y + 36, { align: 'right' });
+  const paidAt = order.paidAt ? new Date(order.paidAt) : new Date();
+  doc.text(`Date: ${paidAt.toLocaleString()}`, right - 6, y + 50, { align: 'right' });
+
+  y += 72;
+
+  // Seller / Buyer blocks
+  const colW = (usableW - gap) / 2;
+  // seller
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(11);
+  doc.text('From', left, y);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
+  doc.text('Tiny Threads', left, y + lineH);
+  doc.text('One-of-a-kind kids dresses', left, y + lineH * 2);
+  doc.text('Email: hello@tinythreads.example', left, y + lineH * 3);
+
+  // buyer
+  const buyerX = left + colW + gap;
+  doc.setFont('helvetica', 'bold');
+  doc.text('Bill to', buyerX, y);
+  doc.setFont('helvetica', 'normal');
+  const buyerName = (order.buyerDetails && order.buyerDetails.name) ? order.buyerDetails.name : (order.buyerEmail || '—');
+  const buyerLines = [];
+  buyerLines.push(buyerName || '—');
+  if (order.buyerEmail) buyerLines.push(order.buyerEmail);
+  if (order.buyerDetails && order.buyerDetails.phone) buyerLines.push(order.buyerDetails.phone);
+  if (order.buyerDetails && order.buyerDetails.address1) buyerLines.push(order.buyerDetails.address1);
+  if (order.buyerDetails && order.buyerDetails.city) buyerLines.push(order.buyerDetails.city + (order.buyerDetails.postal ? (', ' + order.buyerDetails.postal) : ''));
+  const wrapBuyer = doc.splitTextToSize(buyerLines.join('\n'), colW);
+  doc.setFontSize(10);
+  doc.text(wrapBuyer, buyerX, y + lineH);
+
+  // move Y below blocks
+  y += Math.max( lineH * 4, (wrapBuyer.length * lineH) + 8 );
+  y += 6;
+
+  // items header: draw table headers
+  const tableLeft = left;
+  const descW = usableW * 0.52;              // description column
+  const qtyW = 48;
+  const unitW = 90;
+  const totalW = 90;
+  const thumbW = imageThumbSize + 6;
+  const colX = {
+    thumb: tableLeft,
+    desc: tableLeft + thumbW,
+    qty: tableLeft + thumbW + descW,
+    unit: tableLeft + thumbW + descW + qtyW,
+    line: tableLeft + thumbW + descW + qtyW + unitW
+  };
+
+  // header background
+  doc.setFillColor(250, 250, 250);
+  doc.rect(tableLeft, y - 6, usableW, 22, 'F');
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.text('Item description', colX.desc + 2, y + 10);
+  doc.text('Qty', colX.qty + 6, y + 10);
+  doc.text('Unit', colX.unit + unitW - 6, y + 10, { align: 'right' });
+  doc.text('Total', right - 6, y + 10, { align: 'right' });
+
+  y += 26;
+
+  // draw each item row
+  const items = order.items || [];
+  for (const it of items) {
+    // guard and product lookup
+    const prod = products.find(p => p.id === it.id) || {};
+    const title = prod.title || it.id;
+    const qty = Number(it.qty || 1);
+    const unit = Number(prod.price || it.unit || 0);
+    const line = +(qty * unit);
+
+    // prepare description text (title + small desc + id)
+    const descParts = [title];
+    if (prod && prod.description) descParts.push(prod.description);
+    descParts.push(`ID: ${it.id}`);
+    const descText = descParts.join(' • ');
+    const descMaxW = descW - 8;
+
+    // possibly include product thumbnail
+    let thumbData = null;
+    if (prod && prod.images && prod.images[0]) {
+      try { thumbData = await fetchImageAsDataURL(prod.images[0]); } catch (e) { thumbData = null; }
+    }
+
+    // measure and wrap description
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    const descLines = doc.splitTextToSize(descText, descMaxW);
+
+    // compute row height
+    const rowH = Math.max(imageThumbSize, descLines.length * lineH);
+
+    // page break if needed
+    if (y + rowH > pageH - 120) {
+      doc.addPage();
+      y = 36;
+    }
+
+    // thumbnail
+    if (thumbData) {
+      try {
+        doc.addImage(thumbData, 'JPEG', colX.thumb + 4, y - 2, imageThumbSize, imageThumbSize, undefined, 'SLOW');
+      } catch (e) {
+        // ignore image errors
+      }
+    } else {
+      // placeholder rounded rect
+      doc.setDrawColor(230);
+      doc.roundedRect(colX.thumb + 4, y - 2, imageThumbSize, imageThumbSize, 6, 6, 'S');
+    }
+
+    // description
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    // title on first line (bold)
+    const titleLines = doc.splitTextToSize(title, descMaxW);
+    doc.text(titleLines, colX.desc + 2, y + 10);
+    // remaining meta lines (smaller)
+    doc.setFont('helvetica', 'normal');
+    const metaText = descText.replace(title, '').trim().replace(/^•\s*/, '');
+    const metaLines = metaText ? doc.splitTextToSize(metaText, descMaxW) : [];
+    const combined = titleLines.concat(metaLines);
+    // re-render combined starting at proper y (we already placed title; to simplify, place combined)
+    // draw combined at desc position
+    doc.text(combined, colX.desc + 2, y + 10);
+
+    // qty / unit / line
+    doc.text(String(qty), colX.qty + 6, y + 10);
+    doc.text(formatPrice(unit), colX.unit + unitW - 6, y + 10, { align: 'right' });
+    doc.text(formatPrice(line), right - 6, y + 10, { align: 'right' });
+
+    // thin divider under row
+    doc.setDrawColor(235);
+    doc.line(tableLeft, y + rowH - 6, right, y + rowH - 6);
+    y += rowH + 6;
+  }
+
+  // totals area: ensure space
+  if (y + 120 > pageH - 80) {
+    doc.addPage();
+    y = 36;
+  }
+
+  // draw totals box on right
+  const totalsW = 260;
+  const totalsX = right - totalsW;
+  const totalsY = y + 8;
+  doc.setFillColor(250, 250, 250);
+  doc.roundedRect(totalsX, totalsY, totalsW, 88, 8, 8, 'F');
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
+  doc.text('Subtotal', totalsX + 12, totalsY + 22);
+  doc.text(formatPrice(subtotal), totalsX + totalsW - 12, totalsY + 22, { align: 'right' });
+
+  doc.text('Processing fee', totalsX + 12, totalsY + 40);
+  doc.text(formatPrice(Number(order.processingFee || ((order.total || 0) * 0.0295)).toFixed(2)), totalsX + totalsW - 12, totalsY + 40, { align: 'right' });
+
+  // optional: shipping if present
+  const shipping = Number(order.shipping || 0);
+  if (shipping && shipping > 0) {
+    doc.text('Shipping', totalsX + 12, totalsY + 58);
+    doc.text(formatPrice(shipping), totalsX + totalsW - 12, totalsY + 58, { align: 'right' });
+  }
+
+  // large total
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(14);
+  doc.text('Total', totalsX + 12, totalsY + 78);
+  doc.text(formatPrice(order.total || 0), totalsX + totalsW - 12, totalsY + 78, { align: 'right' });
+
+  y = Math.max(y, totalsY + 100);
+
+  // footer note
+  if (y + 80 > pageH - 32) { doc.addPage(); y = 36; }
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.setTextColor(99, 102, 106);
+  doc.text('Thank you for shopping with Tiny Threads — find us at hello@tinythreads.example', left, y + 18);
+
+  // output blob URL
+  const blob = doc.output('blob');
+  const url = URL.createObjectURL(blob);
+  return { url, blob };
+}
+
+/* Replace fallback to call the improved generator */
+async function generateInvoicePDFFallback(order) {
+  try {
+    const info = await generateInvoiceBlobUrl(order);
+    if (info && info.url) {
+      const a = document.createElement('a');
+      a.href = info.url;
+      a.download = `Invoice-${(order.reference || 'receipt')}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      // revoke after a minute
+      setTimeout(() => { try { URL.revokeObjectURL(info.url); } catch (e) {} }, 60000);
+      return info;
+    }
+  } catch (err) {
+    console.error('generateInvoicePDFFallback error', err);
+    try {
+      const { jsPDF } = window.jspdf || {};
+      if (jsPDF) {
+        const d = new jsPDF();
+        d.text('Invoice — Tiny Threads', 20, 20);
+        d.save(`Invoice-${(order.reference || 'receipt')}.pdf`);
+      }
+    } catch (e) { console.error(e); }
+  }
+}
 
   /* ======================= UI Wiring: modal buttons that depend on product modal ======================= */
   // Replace modal add & buy behaviours to be resilient (no size required if you removed UI)
@@ -2666,6 +3912,152 @@ let PAYSTACK_PUBLIC_KEY = 'pk_test_297586e51710e83d3c159bfe71ff45c7e23411fa';
     $('#newsletter')?.addEventListener('submit', (e) => { e.preventDefault(); const em = $('#newsletter input[type="email"]')?.value; if (!em || !em.includes('@')) { toast('Provide a valid email'); return; } toast('Subscribed (demo). Add a backend to store emails.'); $('#newsletter').reset(); });
   }
 
+
+(function purchaseHistoryInit(){
+  const historyToggle = document.getElementById('history-toggle');
+  const historyBadge = document.getElementById('history-badge');
+  const historyModal = document.getElementById('history-modal');
+  const historyList = document.getElementById('history-list');
+  const historyClose = document.getElementById('history-close');
+  const historyCloseBottom = document.getElementById('history-close-bottom');
+  const historyCountEl = document.getElementById('history-count');
+  const historyClearAll = document.getElementById('history-clear-all');
+
+  function readOrders() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEYS.ORDERS);
+      const arr = raw ? JSON.parse(raw) : [];
+      if (!Array.isArray(arr)) return [];
+      return arr;
+    } catch (e) { return []; }
+  }
+
+  function formatDate(iso) {
+    try { return new Date(iso).toLocaleString(); } catch(e) { return iso || ''; }
+  }
+
+  function updateHistoryBadge() {
+    const orders = readOrders();
+    historyBadge.textContent = orders.length || 0;
+    historyCountEl.textContent = (orders.length || 0) + ' order' + (orders.length === 1 ? '' : 's');
+  }
+
+  function renderHistoryList() {
+    const orders = readOrders();
+    historyList.innerHTML = '';
+    if (!orders || orders.length === 0) {
+      historyList.innerHTML = `<div style="padding:18px;border-radius:10px;background:linear-gradient(180deg,#fff,#fffefc);box-shadow:var(--shadow);text-align:center;color:var(--muted)"><i class="fa fa-box-open fa-2x"></i><div style="margin-top:8px">No purchases yet.</div></div>`;
+      return;
+    }
+    orders.forEach((order, idx) => {
+      const itemCount = (order.items || []).length;
+      const firstProduct = (order.items && order.items[0]) ? (products.find(p => p.id === order.items[0].id) || {}) : {};
+      const thumb = (firstProduct.images && firstProduct.images[0]) || '';
+      const title = firstProduct.title || (order.items && order.items[0] && order.items[0].id) || `Order ${idx+1}`;
+      const d = document.createElement('div');
+      d.className = 'history-item';
+      d.innerHTML = `
+        <div class="history-left">
+          <div class="history-thumb">${thumb ? `<img src="${thumb}" style="width:100%;height:100%;object-fit:cover;border-radius:8px" alt="${title}">` : title.charAt(0) || 'O'}</div>
+          <div class="history-meta">
+            <div class="title">${title}</div>
+            <div class="sm">${formatDate(order.paidAt)} • ${itemCount} item${itemCount===1?'':'s'} • ${formatPrice(order.total||0)}</div>
+          </div>
+        </div>
+        <div class="history-actions">
+          <button class="btn tiny outline view-receipt" data-ref="${order.reference}">View PDF</button>
+          <button class="btn tiny download-receipt" data-ref="${order.reference}">Download</button>
+          <button class="btn tiny" title="Delete order" data-ref="${order.reference}"><i class="fa fa-trash"></i></button>
+        </div>
+      `;
+      historyList.appendChild(d);
+    });
+
+    // wire actions
+    historyList.querySelectorAll('.view-receipt').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        const ref = btn.dataset.ref;
+        const orders = readOrders();
+        const order = orders.find(o => o.reference === ref);
+        if (!order) { toast('Order not found'); return; }
+        // generate PDF and show using your showReceiptModal
+        try {
+          const pdfInfo = await generateInvoiceBlobUrl(order);
+          showReceiptModal(order, pdfInfo);
+        } catch (err) {
+          console.error('generateInvoiceBlobUrl failed', err);
+          toast('Could not generate PDF — see console.');
+          // fallback to opening receipt modal without PDF
+          showReceiptModal(order, null);
+        }
+      });
+    });
+
+    historyList.querySelectorAll('.download-receipt').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        const ref = btn.dataset.ref;
+        const orders = readOrders();
+        const order = orders.find(o => o.reference === ref);
+        if (!order) { toast('Order not found'); return; }
+        try {
+          const pdfInfo = await generateInvoiceBlobUrl(order);
+          const a = document.createElement('a'); a.href = pdfInfo.url; a.download = `Invoice-${order.reference||'receipt'}.pdf`; document.body.appendChild(a); a.click(); a.remove();
+          // revoke later to free memory
+          setTimeout(() => { try{ URL.revokeObjectURL(pdfInfo.url); }catch(e){} }, 60000);
+        } catch (err) {
+          console.error('download pdf failed', err);
+          toast('Could not create PDF for download.');
+        }
+      });
+    });
+
+    // delete action
+    historyList.querySelectorAll('.history-item .fa-trash, .history-item button[title="Delete order"]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const ref = btn.dataset.ref;
+        if (!confirm('Remove this order from local history?')) return;
+        const orders = readOrders().filter(o => o.reference !== ref);
+        localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(orders));
+        renderHistoryList(); updateHistoryBadge();
+        toast('Order removed from history');
+      });
+    });
+  }
+
+  // open/close handlers
+  function openHistoryModal() {
+    renderHistoryList();
+    updateHistoryBadge();
+    historyModal.classList.add('open');
+    historyModal.style.display = 'flex';
+    historyModal.setAttribute('aria-hidden','false');
+    setTimeout(() => { document.querySelector('#history-list .view-receipt')?.focus(); }, 120);
+  }
+  function closeHistoryModal() {
+    historyModal.classList.remove('open');
+    historyModal.style.display = 'none';
+    historyModal.setAttribute('aria-hidden','true');
+  }
+
+  historyToggle?.addEventListener('click', (e) => { e.preventDefault(); const isOpen = historyModal.classList.contains('open'); if (isOpen) closeHistoryModal(); else openHistoryModal(); });
+  historyClose?.addEventListener('click', closeHistoryModal);
+  historyCloseBottom?.addEventListener('click', closeHistoryModal);
+  historyClearAll?.addEventListener('click', () => {
+    if (!confirm('Clear all saved purchase history from this device?')) return;
+    localStorage.removeItem(STORAGE_KEYS.ORDERS);
+    renderHistoryList(); updateHistoryBadge(); toast('Purchase history cleared');
+  });
+
+  // click outside to close
+  historyModal?.addEventListener('click', (e) => { if (e.target === historyModal) closeHistoryModal(); });
+
+  // keep badge in sync: poll localStorage every 2s (simple & reliable)
+  updateHistoryBadge();
+  const __historyPoll = setInterval(updateHistoryBadge, 2000);
+  // optional: clear interval on unload
+  window.addEventListener('unload', () => clearInterval(__historyPoll));
+})();
+
   document.addEventListener('DOMContentLoaded', () => { init(); });
 
   /* ======================= Backwards-compatible PDF generator (used previously) ======================= */
@@ -2692,6 +4084,110 @@ let PAYSTACK_PUBLIC_KEY = 'pk_test_297586e51710e83d3c159bfe71ff45c7e23411fa';
 })();
 </script>
 
+<script>
+/* Contact form UX enhancements */
+(function contactEnhance(){
+  function onReady(fn){ if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fn); else fn(); }
+
+  onReady(() => {
+    const form = document.getElementById('contact-form');
+    const actions = document.querySelectorAll('.contact-action');
+
+    // Click-to-actions: call / whatsapp / copy email
+    actions.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const action = btn.dataset.action;
+        const value = btn.dataset.value;
+        if (action === 'call') {
+          // phone
+          window.location.href = `tel:${value}`;
+        } else if (action === 'whatsapp') {
+          // open whatsapp (mobile or web)
+          const phone = value.replace(/\s+/g,'');
+          const msg = encodeURIComponent('Hi! I have a question about a dress...');
+          const url = `https://wa.me/${phone.replace(/^\+/, '')}?text=${msg}`;
+          window.open(url, '_blank');
+        } else if (action === 'copy') {
+          // copy email to clipboard
+          const text = value;
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(()=> toast('Email copied to clipboard'));
+          } else {
+            // fallback
+            const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta);
+            ta.select(); try { document.execCommand('copy'); toast('Email copied'); } catch(e){ toast('Copy failed'); }
+            ta.remove();
+          }
+        }
+      });
+    });
+
+    // Contact form: client validation + toast (demo: no server)
+    form?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = (form.querySelector('#name')?.value||'').trim();
+      const email = (form.querySelector('#email')?.value||'').trim();
+      const message = (form.querySelector('#message')?.value||'').trim();
+      if (!name) { toast('Please provide your name'); form.querySelector('#name')?.focus(); return; }
+      if (!email || !email.includes('@')) { toast('Please provide a valid email'); form.querySelector('#email')?.focus(); return; }
+      if (!message || message.length < 6) { toast('Write a message (6+ characters)'); form.querySelector('#message')?.focus(); return; }
+
+      // Demo: show success toast and reset form. Replace with XHR/fetch to backend as needed.
+      toast('Thanks! Message sent (demo). We will reply soon.');
+      form.reset();
+    });
+
+    // Reset handler to re-focus first input
+    form?.addEventListener('reset', () => setTimeout(() => form.querySelector('#name')?.focus(), 40));
+  });
+})();
+</script>
+<script>
+/* Footer & newsletter wiring (Task 6) */
+(function footerInit(){
+  // set year
+  try { document.getElementById('footer-year').textContent = new Date().getFullYear(); } catch(e){}
+
+  // newsletter logic
+  const form = document.getElementById('footer-newsletter');
+  const emailInput = document.getElementById('footer-email');
+  const clearBtn = document.getElementById('footer-newsletter-clear');
+  form?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const em = (emailInput.value || '').trim();
+    if (!em || !em.includes('@')) { toast('Provide a valid email'); emailInput.focus(); return; }
+    // demo behavior: store to localStorage & thank user
+    try {
+      const list = JSON.parse(localStorage.getItem('tiny_newsletters_v1') || '[]');
+      if (list.includes(em)) { toast('Already subscribed'); return; }
+      list.unshift(em);
+      localStorage.setItem('tiny_newsletters_v1', JSON.stringify(list));
+      toast('Subscribed — thanks! (demo)');
+      form.reset();
+    } catch (err) {
+      console.warn('newsletter save failed', err);
+      toast('Subscribed (demo)');
+    }
+  });
+  clearBtn?.addEventListener('click', () => { form.reset(); emailInput.focus(); });
+
+  // back-to-top behavior
+  const back = document.getElementById('back-to-top');
+  function checkScroll() {
+    if (window.scrollY > 320) { back.classList.add('show'); } else { back.classList.remove('show'); }
+  }
+  window.addEventListener('scroll', checkScroll, { passive:true });
+  checkScroll();
+  back?.addEventListener('click', () => { window.scrollTo({ top: 0, behavior: 'smooth' }); back.blur(); });
+
+  // keyboard accessible skip: allow Enter on payment badges to open (if any)
+  document.querySelectorAll('.payment-badge').forEach(b => { b.setAttribute('tabindex','0'); b.addEventListener('keypress', (e) => { if (e.key === 'Enter') { b.click(); } }); });
+
+  // improve footer link focus outlines for keyboard users
+  document.querySelectorAll('.footer-links a, .legal a, .footer-socials a').forEach(a => a.addEventListener('focus', () => a.classList.add('focused')));
+})();
+</script>
 
 </body>
 </html>
