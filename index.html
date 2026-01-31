@@ -1642,12 +1642,7 @@ a:focus, button:focus, input:focus, select:focus, textarea:focus {
    ----------------------------*/
 </style>
 <style>
-  /* =========================
-   MODAL: fixed header + scrollable content
-   ========================= */
-
-/* Make modal inner a column flex container so header (close, header elements)
-   can remain non-scrolling while the content area scrolls */
+ 
 .modal .modal-inner {
   display: flex;
   flex-direction: column;
@@ -1657,18 +1652,7 @@ a:focus, button:focus, input:focus, select:focus, textarea:focus {
   scrollbar-gutter: stable both-edges;
 }
 
-/* Treat top-of-modal controls as the header area.
-   Keep the close button and any immediate header elements sticky at the top. */
-.modal .modal-close,
-.modal .modal-inner > header,
-.modal .modal-inner > .modal-header,
-.modal .modal-inner > .sticker,               /* if a header uses sticker or similar */
-#checkout-modal .modal-close,
-#receipt-modal .modal-close {
-  position: sticky !important;
-  top: 12px;
-  z-index: 80;
-}
+
 
 /* Prevent header items from overlapping content: reserve padding in modal inner */
 .modal .modal-inner {
@@ -1731,7 +1715,6 @@ a:focus, button:focus, input:focus, select:focus, textarea:focus {
   border-radius: 10px;
   padding: 8px;
   margin: 6px;
-  right: 12px;
   /* keep it on top of other header content */
   z-index: 120;
 }
@@ -1842,54 +1825,7 @@ a:focus, button:focus, input:focus, select:focus, textarea:focus {
    - visually place Qty / Add / Buy controls immediately under the large image
    ========================= */
 @media (max-width: 720px) {
-  /* Stack the modal's two columns */
-  #product-modal .modal-inner { padding-top: 56px; }
-  #product-modal .modal-grid { display: flex !important; flex-direction: column; gap: 12px; min-height: 0; }
-  #product-modal .modal-media { order: 1; min-height: 220px; position: relative; padding-bottom: 96px; /* reserve space for pulled-up controls */ }
-  #product-modal #modal-gallery { min-height: 240px; max-height: 56vh; overflow: hidden; }
 
-  /* Info section becomes normal flow below image */
-  #product-modal .modal-info { order: 2; padding-top: 6px; }
-
-  /* Ensure the content area scrolls and shows visible scrollbar */
-  #product-modal .modal-inner > .modal-grid,
-  #product-modal .modal-media,
-  #product-modal .modal-info {
-    overflow: auto !important;
-    scrollbar-gutter: stable both-edges;
-  }
-
-  /* Pull the main action controls visually up so they appear immediately under the big image.
-     We keep space in .modal-media to avoid overlap. This is a purely visual repositioning so
-     keyboard / screen-reader order remains unchanged (the DOM isn't re-written). */
-  #product-modal .modal-info .modal-controls {
-    transform: translateY(-82px);
-    margin-bottom: 6px;
-    z-index: 40;
-    position: relative;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    align-items: center;
-    justify-content: flex-start;
-  }
-
-  /* Make Qty, Add and Buy buttons larger and full-width for comfortable tapping */
-  #product-modal .modal-info .modal-controls select,
-  #product-modal .modal-info .modal-controls input[type="number"] { min-width: 92px; }
-
-  #product-modal #modal-add,
-  #product-modal #modal-buy {
-    min-width: 120px;
-    flex: 1 1 auto;
-  }
-
-  /* ensure there is no accidental overlap of content due to translation */
-  #product-modal .modal-media::after {
-    content: "";
-    display: block;
-    height: 92px; /* same as reserved padding-bottom to keep layout space for pulled-up controls */
-  }
 
   /* Make vertical scrollbar visible for the modal-grid specifically */
   #product-modal .modal-inner > .modal-grid::-webkit-scrollbar { width: 12px; }
