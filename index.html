@@ -2466,58 +2466,59 @@ a:focus, button:focus, input:focus, select:focus, textarea:focus {
 </div>
 
 <script>
-/* ------------------------------------------------------------
-   Consolidated app script — paste to replace the previous script
-   - Fixes modal close buttons
-   - Removes iframe sandbox so blob URLs show correctly
-   - Keeps Paystack simulation when key missing
-   - Keeps jsPDF invoice generation and ensures blob URL not revoked
-   ------------------------------------------------------------*/
-(function () {
+(() => {
   'use strict';
 
-  /* ---------------------
-     Config
-     ---------------------*/
-  let PAYSTACK_PUBLIC_KEY = 'pk_test_297586e51710e83d3c159bfe71ff45c7e23411fa';
+  /* ============= CONFIG ============= */
+  const PAYSTACK_PUBLIC_KEY = 'pk_test_297586e51710e83d3c159bfe71ff45c7e23411fa';
   const PAYSTACK_CURRENCY = 'GHS';
-  const CURRENCY_SYMBOL = '₵';
+  let CURRENCY_SYMBOL = '₵';
   const STORAGE_KEYS = { PRODUCTS: 'tiny_products_v1', CART: 'tiny_cart_v1', ORDERS: 'tiny_orders_v1' };
   const LOAD_BATCH = 10;
   const MOBILE_BREAKPOINT = 720;
 
-  /* ---------------------
-     Small helpers
-     ---------------------*/
-  const $ = (s, root = document) => root.querySelector(s);
-  const $$ = (s, root = document) => Array.from(root.querySelectorAll(s));
-  const formatPrice = (n) => `${CURRENCY_SYMBOL}${Number(n || 0).toFixed(2)}`;
+  /* ============= HELPERS ============= */
+  const $ = (sel, root = document) => root.querySelector(sel);
+  const $$ = (sel, root = document) => Array.from((root || document).querySelectorAll(sel));
   const nowISO = () => new Date().toISOString();
+  const formatPrice = (p) => `${CURRENCY_SYMBOL}${Number(p || 0).toFixed(2)}`;
 
-  function toast(msg, timeout = 2000) {
+  function toast(msg, time = 2200) {
     try {
       const t = document.createElement('div');
       t.className = 'tiny-toast';
       t.textContent = msg;
       document.body.appendChild(t);
       requestAnimationFrame(() => t.classList.add('show'));
-      setTimeout(() => { t.classList.remove('show'); setTimeout(()=>t.remove(),300); }, timeout);
+      setTimeout(() => { t.classList.remove('show'); setTimeout(()=>t.remove(), 280); }, time);
     } catch (e) { console.warn(e); }
   }
 
-  /* ---------------------
-     Load products (use existing local storage or built-in)
-     ---------------------*/
-  // For brevity reuse products stored earlier if present; otherwise fallback to any inline sample in page.
-  let builtIn = [];
-  try {
-    const maybe = localStorage.getItem(STORAGE_KEYS.PRODUCTS);
-    if (maybe) builtIn = JSON.parse(maybe);
-  } catch (e) {}
-  // If nothing in storage, try to reuse page's global 'builtInProducts' if present (older script); otherwise create small fallback.
-  let products = window.builtInProducts && Array.isArray(window.builtInProducts)
-    ? JSON.parse(JSON.stringify(window.builtInProducts))
-    : (Array.isArray(builtIn) && builtIn.length ? JSON.parse(JSON.stringify(builtIn)) : [
+  async function fetchImageAsDataURL(url) {
+    if (!url) return null;
+    try {
+      const r = await fetch(url, { cache: 'no-cache' });
+      if (!r.ok) return null;
+      const blob = await r.blob();
+      return await new Promise((res, rej) => {
+        const fr = new FileReader();
+        fr.onloadend = () => res(fr.result);
+        fr.onerror = rej;
+        fr.readAsDataURL(blob);
+      });
+    } catch (e) { return null; }
+  }
+
+  /* ============= SAMPLE PRODUCTS (local) ============= */
+  // Keep your original built-in list — shortened here for brevity in this snippet.
+  // The page already has a long builtInProducts list; try to reuse it if present.
+  const builtInProducts = (function () {
+    try {
+      // if the page already defines a global builtInProducts use that (compatibility)
+      if (window.builtInProducts && Array.isArray(window.builtInProducts) && window.builtInProducts.length) return window.builtInProducts;
+    } catch (e) {}
+    // Minimal fallback sample (in case nothing exists)
+    return [
       { id: "DRESS-001", title: "Floral Ruffles", price: 40.00, description: "One-of-a-kind floral ruffle dress", sizes: ["4","5"], ageCategory: "4-5", images: ["IMG_5700.JPG","IMG_5700.JPG"], available: true, createdAt: new Date(Date.now()-1*86400000).toISOString() },
   { id: "DRESS-002", title: "Sunshine Dress", price: 30.00, description: "Bright yellow play dress", sizes: ["6","7"], ageCategory: "4-5", images: ["IMG_5701.JPG"], available: true, createdAt: new Date(Date.now()-2*86400000).toISOString() },
   { id: "DRESS-003", title: "Party Bow Dress", price: 35.00, description: "Elegant dress for special occasions", sizes: ["7","8"], ageCategory: "4-5", images: ["IMG_5702.JPG","IMG_5702.JPG"], available: true, createdAt: new Date(Date.now()-3*86400000).toISOString() },
@@ -2572,822 +2573,861 @@ a:focus, button:focus, input:focus, select:focus, textarea:focus {
   { id: "DRESS-048", title: "Dotted Dreams", price: 60.00, description: "Subtle dotted pattern", sizes: ["8","9"], ageCategory: "4-5", images: ["IMG_5746.JPG"], available: true, createdAt: new Date(Date.now()-48*86400000).toISOString() },
   { id: "DRESS-049", title: "Little Luxe", price: 80.00, description: "Tiny luxe finish", sizes: ["9","10"], ageCategory: "7-8", images: ["IMG_5747.JPG","IMG_5747.JPG"], available: true, createdAt: new Date(Date.now()-49*86400000).toISOString() },
   { id: "DRESS-050", title: "Pocket Garden", price: 40.00, description: "Playful pockets and cotton", sizes: ["10","12"], ageCategory: "4-5", images: ["IMG_5748.JPG"], available: true, createdAt: new Date(Date.now()-50*86400000).toISOString() }
-    ]);
+];
 
-  function persistProducts() { try { localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(products)); } catch(e){} }
+  })();
 
-  /* ---------------------
-     Cart & orders persistence
-     ---------------------*/
+  let products = (function loadLocalProducts() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEYS.PRODUCTS);
+      if (raw) { const parsed = JSON.parse(raw); if (Array.isArray(parsed) && parsed.length) return parsed; }
+    } catch (e) {}
+    // clone builtInProducts to avoid mutation
+    return JSON.parse(JSON.stringify(builtInProducts));
+  })();
+
+  function saveProductsLocal() {
+    try { localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(products)); } catch (e) {}
+  }
+
+  /* ============= CART & ORDERS ============= */
   function loadCart() { try { const r = localStorage.getItem(STORAGE_KEYS.CART); return r ? JSON.parse(r) : []; } catch(e){ return []; } }
-  function saveCart(c) { try { localStorage.setItem(STORAGE_KEYS.CART, JSON.stringify(c||[])); } catch(e){} }
-  function loadOrders() { try { const r = localStorage.getItem(STORAGE_KEYS.ORDERS); return r ? JSON.parse(r) : []; } catch(e){ return []; } }
-  function saveOrders(arr) { try { localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(arr||[])); } catch(e){} }
-  function pushOrder(o) { const arr = loadOrders(); arr.unshift(o); saveOrders(arr); }
+  function saveCart(c) { try { localStorage.setItem(STORAGE_KEYS.CART, JSON.stringify(c || [])); } catch(e){} }
+  function readOrders() { try { const r = localStorage.getItem(STORAGE_KEYS.ORDERS); return r ? JSON.parse(r) : []; } catch(e){ return []; } }
+  function pushOrder(o) { try { const arr = readOrders(); arr.unshift(o); localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(arr)); } catch(e){} }
 
   let cart = loadCart();
+  let currentBatchIndex = 0;
+  let activeFilters = { ageCategory: null, search: '', sort: 'featured' };
 
-  /* ---------------------
-     Generic modal open/close utilities
-     ---------------------*/
+  /* ============= PRODUCT RENDER ============= */
+  const productGrid = $('#product-grid');
+  const productTemplate = document.getElementById('product-card-template')?.content;
+
+  function setProductButtonState(productId, inCart) {
+    const card = document.querySelector(`.product-card[data-product-id="${productId}"]`);
+    if (card) {
+      const addBtn = card.querySelector('[data-action="add-to-cart"]');
+      if (addBtn) {
+        if (inCart) {
+          addBtn.innerHTML = '<i class="fa fa-times-circle"></i> Remove';
+          addBtn.classList.add('in-cart');
+          addBtn.setAttribute('aria-pressed', 'true');
+        } else {
+          addBtn.innerHTML = '<i class="fa fa-shopping-cart"></i> Add';
+          addBtn.classList.remove('in-cart');
+          addBtn.setAttribute('aria-pressed', 'false');
+        }
+      }
+    }
+    const modalAdd = $('#modal-add');
+    if (modalAdd && window.modalCurrentProduct && window.modalCurrentProduct.id === productId) {
+      if (inCart) { modalAdd.innerHTML = '<i class="fa fa-times-circle"></i> Remove from cart'; modalAdd.dataset.state = 'remove'; }
+      else { modalAdd.innerHTML = '<i class="fa fa-shopping-cart"></i> Add to cart'; modalAdd.dataset.state = 'add'; }
+    }
+  }
+
+  function createProductCard(p) {
+    const node = document.importNode(productTemplate, true);
+    const art = node.querySelector('.product-card');
+    art.dataset.productId = p.id;
+    const img = node.querySelector('.product-image');
+    img.src = (p.images && p.images[0]) || '';
+    img.alt = p.title || p.id;
+    node.querySelector('.product-title').textContent = p.title || p.id;
+    node.querySelector('.product-size').textContent = (p.sizes || []).join(' • ');
+    node.querySelector('.product-id').textContent = p.id;
+    node.querySelector('.price').textContent = formatPrice(p.price);
+    const addBtn = node.querySelector('[data-action="add-to-cart"]');
+    const moreBtn = node.querySelector('.more-info');
+    const quickBtn = node.querySelector('[data-action="open-modal"]');
+
+    if (!p.available) {
+      art.classList.add('sold-out');
+      const tag = node.querySelector('.product-tag .tag-text'); if (tag) tag.textContent = 'Sold';
+      if (addBtn) { addBtn.disabled = true; addBtn.textContent = 'Sold'; }
+    }
+
+    // initial state
+    setProductButtonState(p.id, cart.some(c => c.id === p.id));
+
+    addBtn && addBtn.addEventListener('click', (ev) => {
+      ev.preventDefault();
+      const inCart = cart.some(c => c.id === p.id);
+      if (inCart) { removeFromCart(p.id); return; }
+      if (p.sizes && p.sizes.length) { openProductModal(p.id); return; }
+      addToCart(p.id, 1, '');
+    });
+
+    [moreBtn, quickBtn].forEach(btn => btn && btn.addEventListener('click', (ev) => { ev.preventDefault(); openProductModal(p.id); }));
+
+    return node;
+  }
+
+  function getFilteredSortedProducts() {
+    let list = products.slice().filter(x => x.available !== false);
+    if (activeFilters.ageCategory) list = list.filter(p => p.ageCategory === activeFilters.ageCategory);
+    const q = (activeFilters.search || '').trim().toLowerCase();
+    if (q) list = list.filter(p => (p.title||'').toLowerCase().includes(q) || (p.id||'').toLowerCase().includes(q) || (p.description||'').toLowerCase().includes(q));
+    switch (activeFilters.sort) {
+      case 'newest': list.sort((a,b)=> new Date(b.createdAt)-new Date(a.createdAt)); break;
+      case 'price-asc': list.sort((a,b)=> a.price-b.price); break;
+      case 'price-desc': list.sort((a,b)=> b.price-a.price); break;
+      default: break;
+    }
+    return list;
+  }
+
+  function renderProductsBatch(reset = false) {
+    if (!productGrid) return;
+    if (reset) { currentBatchIndex = 0; productGrid.innerHTML = ''; }
+    const filtered = getFilteredSortedProducts();
+    const start = currentBatchIndex * LOAD_BATCH;
+    const batch = filtered.slice(start, start + LOAD_BATCH);
+    if (batch.length === 0 && start === 0) { productGrid.innerHTML = `<div class="no-results"><i class="fa fa-frown"></i><p>No dresses found.</p></div>`; return; }
+    batch.forEach(p => productGrid.appendChild(createProductCard(p)));
+    currentBatchIndex++;
+    const loadMore = $('#load-more');
+    if (start + LOAD_BATCH >= filtered.length) loadMore && (loadMore.style.display = 'none'); else loadMore && (loadMore.style.display = 'inline-block');
+  }
+
+  /* ============= MODAL UTILITIES ============= */
   function openModal(modalEl) {
     if (!modalEl) return;
     modalEl.setAttribute('aria-hidden', 'false');
-    modalEl.style.display = 'flex';
     modalEl.classList.add('open');
+    modalEl.style.display = 'flex';
     document.body.classList.add('modal-open');
-    // focus first focusable control inside
+    // focus first focusable element inside modal
     setTimeout(() => {
-      const focusEl = modalEl.querySelector('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
-      if (focusEl) try { focusEl.focus(); } catch(e) {}
+      const f = modalEl.querySelector('button, [tabindex], input, a');
+      if (f) try { f.focus(); } catch(e) {}
     }, 80);
   }
   function closeModal(modalEl) {
     if (!modalEl) return;
-    modalEl.setAttribute('aria-hidden','true');
+    modalEl.setAttribute('aria-hidden', 'true');
     modalEl.classList.remove('open');
-    modalEl.style.display = 'none';
+    try { modalEl.style.display = 'none'; } catch(e) {}
     document.body.classList.remove('modal-open');
-    // revoke any stored blob URL on the modal (receipt modal uses _invoiceBlob)
-    try {
-      if (modalEl._invoiceBlobUrl) {
-        // keep a short delay for UX (not necessary) then revoke
-        const url = modalEl._invoiceBlobUrl;
-        modalEl._invoiceBlobUrl = null;
-        setTimeout(()=>{ try{ URL.revokeObjectURL(url); }catch(e){} }, 60000);
-      }
-    } catch(e){}
+    // revoke any attached blob url
+    try { if (modalEl._pdfUrl && modalEl._pdfUrl.startsWith('blob:')) { URL.revokeObjectURL(modalEl._pdfUrl); modalEl._pdfUrl = null; } } catch(e) {}
   }
-
-  // close by delegation: any element with data-action starting with "close" will close its nearest .modal ancestor
+  // wire close buttons and backdrop dismiss
   document.addEventListener('click', (ev) => {
-    const target = ev.target;
-    // if clicking a close button (data-action or .modal-close)
-    const actionEl = target.closest('[data-action]') || target.closest('.modal-close');
-    if (actionEl) {
-      const act = actionEl.getAttribute('data-action') || actionEl.dataset.action || '';
-      if (act && act.startsWith('close')) {
-        const modal = actionEl.closest('.modal');
-        if (modal) closeModal(modal);
-        // some actions like close-cart
-        if (act === 'close-cart') {
-          const cp = document.getElementById('cart-panel'); if (cp) closeModal(cp);
-        }
-        return;
-      }
+    const btn = ev.target.closest('.modal-close, [data-action="close-modal"], [data-action="close-checkout"], [data-action="close-buynow"]');
+    if (btn) {
+      const modal = btn.closest('.modal');
+      if (modal) closeModal(modal);
+      return;
     }
-    // clicking outside modal content to close
-    const modalRoot = target.closest('.modal');
-    if (modalRoot && modalRoot.classList.contains('open') && target === modalRoot) {
-      closeModal(modalRoot);
-    }
+    // close when clicking backdrop (only when clicking the modal container itself)
+    if (ev.target.classList && ev.target.classList.contains('modal')) closeModal(ev.target);
   });
-
-  // ESC to close topmost modal
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
+  document.addEventListener('keydown', (ev) => {
+    if (ev.key === 'Escape') {
+      // close top-most open modal
       const openModalEl = document.querySelector('.modal.open');
       if (openModalEl) closeModal(openModalEl);
     }
   });
 
-  /* ---------------------
-     Product rendering
-     ---------------------*/
-  const productGrid = $('#product-grid');
-  const productTemplate = document.getElementById('product-card-template')?.content;
-
-  function createProductCard(product) {
-    if (!productTemplate) {
-      const p = document.createElement('article');
-      p.textContent = product.title || product.id;
-      return p;
-    }
-    const node = document.importNode(productTemplate, true);
-    const art = node.querySelector('.product-card');
-    art.dataset.productId = product.id;
-    const img = node.querySelector('.product-image');
-    img.src = (product.images && product.images[0]) || '';
-    img.alt = product.title || product.id;
-    node.querySelector('.product-title').textContent = product.title || product.id;
-    node.querySelector('.product-size').textContent = (product.sizes||[]).join(' • ');
-    node.querySelector('.product-id').textContent = product.id;
-    node.querySelector('.price').textContent = formatPrice(product.price);
-    // actions
-    node.querySelector('[data-action="add-to-cart"]')?.addEventListener('click', (e) => {
-      e.preventDefault();
-      if (!product.available) { toast('Sold out'); return; }
-      // if product has sizes, open modal
-      if (product.sizes && product.sizes.length) openProductModal(product.id);
-      else addToCart(product.id,1,'');
-    });
-    node.querySelector('.more-info')?.addEventListener('click', (e)=>{ e.preventDefault(); openProductModal(product.id); });
-    node.querySelector('[data-action="open-modal"]')?.addEventListener('click', (e)=>{ e.preventDefault(); openProductModal(product.id); });
-    return node;
-  }
-
-  function renderProducts(reset = true) {
-    if (!productGrid) return;
-    if (reset) productGrid.innerHTML = '';
-    const list = products.filter(p => p.available !== false);
-    const toShow = list.slice(0, LOAD_BATCH * (parseInt(productGrid.dataset.renderBatch||1) || 1));
-    toShow.forEach(p => productGrid.appendChild(createProductCard(p)));
-    const loadMore = $('#load-more');
-    if (list.length <= toShow.length) loadMore && (loadMore.style.display = 'none'); else loadMore && (loadMore.style.display = 'inline-block');
-  }
-
-  // Load more
-  $('#load-more')?.addEventListener('click', (e) => {
-    e.preventDefault();
-    productGrid.dataset.renderBatch = (parseInt(productGrid.dataset.renderBatch||1) + 1).toString();
-    renderProducts(false);
-  });
-
-  /* ---------------------
-     Simple product modal
-     ---------------------*/
+  /* ============= PRODUCT MODAL ============= */
   const productModal = $('#product-modal');
-  function openProductModal(id) {
-    const p = products.find(x => x.id === id);
-    if (!p) { toast('Product not found'); return; }
-    // fill content
+  window.modalCurrentProduct = null;
+
+  function openProductModal(productId) {
+    const p = products.find(x => x.id === productId);
+    if (!p) return;
+    window.modalCurrentProduct = p;
+
     const gallery = $('#modal-gallery'); const thumbs = $('#modal-thumbs');
-    const title = $('#modal-title'); const desc = $('.modal-desc'); const priceEl = document.querySelector('.modal-price');
-    const metaId = document.querySelector('.meta-id'); const qty = $('#modal-qty');
-    if (gallery) gallery.innerHTML = '';
-    if (thumbs) thumbs.innerHTML = '';
-    (p.images || []).forEach((src, idx) => {
-      const img = document.createElement('img'); img.src = src; img.alt = p.title + ' ' + (idx+1); img.dataset.idx = idx;
-      if (idx !== 0) img.style.display = 'none';
-      img.className = 'modal-main-img';
-      gallery && gallery.appendChild(img);
-      const t = document.createElement('img'); t.src = src; t.className = 'thumb'; t.addEventListener('click', ()=> {
-        $$('.modal-main-img', gallery).forEach(i=>i.style.display='none');
+    gallery.innerHTML = ''; thumbs.innerHTML = '';
+    (p.images||[]).forEach((src, idx) => {
+      const main = document.createElement('img'); main.src = src; main.alt = `${p.title} ${idx+1}`; main.dataset.idx = idx; main.className = 'modal-main-img';
+      if (idx !== 0) main.style.display = 'none';
+      gallery.appendChild(main);
+      const t = document.createElement('img'); t.src = src; t.className = 'thumb'; t.dataset.idx = idx; t.alt = `thumb ${idx+1}`;
+      t.addEventListener('click', () => {
+        $$('.modal-main-img', gallery).forEach(i => i.style.display = 'none');
         gallery.querySelector(`img[data-idx="${idx}"]`).style.display = '';
       });
-      thumbs && thumbs.appendChild(t);
+      thumbs.appendChild(t);
     });
-    if (title) title.textContent = p.title || '';
-    if (priceEl) priceEl.textContent = formatPrice(p.price || 0);
-    if (desc) desc.textContent = p.description || '';
-    if (metaId) metaId.textContent = p.id || '';
-    if (qty) qty.value = 1;
-    // open
-    productModal && openModal(productModal);
-    // set current product pointer
-    productModal._currentProduct = p;
+
+    $('#modal-title').textContent = p.title || '';
+    $('.modal-price') && ($('.modal-price').textContent = formatPrice(p.price || 0));
+    $('.modal-desc') && ($('.modal-desc').textContent = p.description || '');
+    $('.meta-id') && ($('.meta-id').textContent = p.id || '');
+
+    // sizes
+    const sizeSel = $('#modal-size');
+    if (sizeSel) { sizeSel.innerHTML = '<option value="">Select size</option>'; (p.sizes||[]).forEach(s => { const o = document.createElement('option'); o.value = s; o.textContent = s; sizeSel.appendChild(o); }); }
+    $('#modal-qty').value = 1;
+
+    if (p.available === false) { try { $('.availability').textContent = 'Sold'; } catch(e){}; $('#modal-add') && ($('#modal-add').disabled = true); $('#modal-buy') && ($('#modal-buy').disabled = true); }
+    else { try { $('.availability').textContent = 'In stock'; } catch(e){}; $('#modal-add') && ($('#modal-add').disabled = false); $('#modal-buy') && ($('#modal-buy').disabled = false); }
+
+    openModal(productModal);
   }
 
-  /* ---------------------
-     Cart UI functions
-     ---------------------*/
+  function closeProductModal() { closeModal(productModal); window.modalCurrentProduct = null; }
+
+  // modal add / buy buttons
+  $('#modal-add')?.addEventListener('click', (ev) => {
+    ev.preventDefault();
+    if (!window.modalCurrentProduct) return;
+    const qty = Number($('#modal-qty')?.value || 1);
+    const already = cart.some(c => c.id === window.modalCurrentProduct.id);
+    if (already) { removeFromCart(window.modalCurrentProduct.id); closeProductModal(); return; }
+    addToCart(window.modalCurrentProduct.id, qty, '');
+    closeProductModal();
+  });
+  $('#modal-buy')?.addEventListener('click', (ev) => {
+    ev.preventDefault();
+    if (!window.modalCurrentProduct) return;
+    const qty = Number($('#modal-qty')?.value || 1);
+    openBuyNowModal({ id: window.modalCurrentProduct.id, qty, size: '' });
+  });
+
+  /* ============= CART ============= */
   const cartPanel = $('#cart-panel');
+  const cartBadge = $('#cart-badge');
+  const cartContents = $('#cart-contents');
+  const cartSubtotalEl = $('#cart-subtotal');
+
   function updateCartUI() {
-    const cartContents = $('#cart-contents');
-    const cartBadge = $('#cart-badge');
-    const cartSubtotalEl = $('#cart-subtotal');
     if (!cartContents) return;
     cartContents.innerHTML = '';
     if (!cart || cart.length === 0) {
       cartContents.innerHTML = `<div class="cart-empty"><i class="fa fa-box-open fa-3x"></i><p>Your cart is empty. Add a dress you love!</p></div>`;
-      if (cartBadge) cartBadge.textContent = '0';
-      if (cartSubtotalEl) cartSubtotalEl.textContent = formatPrice(0);
+      cartBadge && (cartBadge.textContent = 0);
+      cartSubtotalEl && (cartSubtotalEl.textContent = '₵0.00');
       $('#cart-header-checkout') && ($('#cart-header-checkout').disabled = true);
       $('#checkout-btn') && ($('#checkout-btn').disabled = true);
       return;
     }
+    cartBadge && (cartBadge.textContent = cart.length);
     let subtotal = 0;
     cart.forEach(item => {
-      const prod = products.find(p => p.id === item.id) || {};
+      const p = products.find(pp => pp.id === item.id) || {};
       const tpl = document.getElementById('cart-item-template').content.cloneNode(true);
       const el = tpl.querySelector('.cart-item');
       el.dataset.productId = item.id;
-      el.querySelector('.cart-item-thumb').src = (prod.images && prod.images[0]) || '';
-      el.querySelector('.cart-item-title').textContent = prod.title || item.id;
-      el.querySelector('.cart-item-meta').textContent = `${item.size || ''} • ${prod.id || ''}`;
-      el.querySelector('.unit-price').textContent = `Unit: ${formatPrice(prod.price||0)}`;
-      el.querySelector('.cart-item-qty').value = item.qty || 1;
-      el.querySelector('.item-price').textContent = formatPrice((prod.price||0) * (item.qty||1));
-      // qty change
-      el.querySelector('.cart-item-qty').addEventListener('change', (ev)=>{
-        let v = Number(ev.target.value||1); if (v < 1) v = 1;
-        item.qty = v; saveCart(cart); updateCartUI();
+      el.querySelector('.cart-item-thumb').src = (p.images && p.images[0]) || '';
+      el.querySelector('.cart-item-title').textContent = p.title || item.id;
+      el.querySelector('.cart-item-meta').textContent = `${item.size || ''} • ${p.id || ''}`;
+      el.querySelector('.unit-price').textContent = `Unit: ${formatPrice(p.price || 0)}`;
+      el.querySelector('.cart-item-qty').value = item.qty;
+      el.querySelector('.item-price').textContent = formatPrice((p.price || 0) * item.qty);
+
+      el.querySelector('.cart-item-qty').addEventListener('change', (ev) => {
+        let v = Number(ev.target.value || 1);
+        if (v < 1) { v = 1; ev.target.value = 1; }
+        const idx = cart.findIndex(c => c.id === item.id);
+        if (idx >= 0) { cart[idx].qty = v; saveCart(cart); updateCartUI(); }
       });
-      el.querySelector('.cart-item-remove').addEventListener('click', (ev)=>{
+
+      el.querySelector('.cart-item-remove').addEventListener('click', (ev) => {
         ev.preventDefault();
-        cart = cart.filter(c => c.id !== item.id);
-        saveCart(cart);
-        updateCartUI();
+        removeFromCart(item.id);
       });
+
       cartContents.appendChild(tpl);
-      subtotal += (prod.price || 0) * (item.qty || 1);
+      subtotal += (p.price || 0) * item.qty;
     });
-    if (cartBadge) cartBadge.textContent = String(cart.length || 0);
-    if (cartSubtotalEl) cartSubtotalEl.textContent = formatPrice(subtotal);
+    cartSubtotalEl && (cartSubtotalEl.textContent = formatPrice(subtotal));
     $('#cart-header-checkout') && ($('#cart-header-checkout').disabled = false);
     $('#checkout-btn') && ($('#checkout-btn').disabled = false);
   }
 
-  // open/close cart
-  $('#cart-toggle')?.addEventListener('click', ()=> {
-    if (!cartPanel) return;
-    const open = cartPanel.classList.contains('open');
-    if (open) closeModal(cartPanel); else { openModal(cartPanel); updateCartUI(); }
-  });
-  document.querySelectorAll('[data-action="close-cart"]').forEach(btn => btn.addEventListener('click', ()=> closeModal(cartPanel)));
-  $('#clear-cart')?.addEventListener('click', (e) => { e.preventDefault(); cart = []; saveCart(cart); updateCartUI(); toast('Cart cleared'); });
-
-  function addToCart(id, qty = 1, size = '') {
-    const p = products.find(pp => pp.id === id);
-    if (!p || p.available === false) { toast('Item unavailable'); return; }
-    if (cart.some(c => c.id === id)) { toast('Item already in cart'); return; }
-    cart.push({ id, qty: Math.max(1, Number(qty||1)), size: size || '' });
-    saveCart(cart); updateCartUI();
+  function addToCart(productId, qty = 1, size = '') {
+    const p = products.find(x => x.id === productId);
+    if (!p || p.available === false) { toast('Sorry — this dress is not available'); return; }
+    if (cart.some(c => c.id === productId)) { toast('Item already in cart'); return; }
+    const item = { id: productId, qty: Math.max(1, Number(qty || 1)), size: size || '' };
+    cart.push(item);
+    saveCart(cart);
+    updateCartUI();
+    setProductButtonState(productId, true);
     toast('Added to cart');
-    openModal(cartPanel);
+    openCart();
   }
 
-  /* ---------------------
-     Checkout modal & pay flow (uses PaystackPop or simulation)
-     ---------------------*/
-  async function openCheckoutModal(items) {
-    const modalEl = $('#checkout-modal');
-    if (!modalEl) return;
-    const itemsWrap = $('#checkout-items');
-    const sub = $('#checkout-subtotal');
-    const sub2 = $('#checkout-subtotal-2');
-    const feeEl = $('#checkout-fee');
-    const feeEl2 = $('#checkout-fee-2');
-    const totEl = $('#checkout-total');
-    const totEl2 = $('#checkout-total-2');
-    const countEl = $('#checkout-count');
+  function removeFromCart(productId) {
+    const existed = cart.some(c => c.id === productId);
+    if (!existed) return;
+    cart = cart.filter(c => c.id !== productId);
+    saveCart(cart);
+    setProductButtonState(productId, false);
+    updateCartUI();
+    toast('Removed from cart');
+  }
+
+  function openCart() { if (!cartPanel) return; cartPanel.setAttribute('aria-hidden','false'); cartPanel.classList.add('open'); updateCartUI(); document.body.classList.add('modal-open'); }
+  function closeCart() { if (!cartPanel) return; cartPanel.setAttribute('aria-hidden','true'); cartPanel.classList.remove('open'); document.body.classList.remove('modal-open'); }
+
+  $('#cart-toggle')?.addEventListener('click', (e) => { e.preventDefault(); const open = cartPanel?.classList.contains('open'); if (open) closeCart(); else openCart(); });
+  $$('.cart-close').forEach(b => b.addEventListener('click', closeCart));
+  $('#clear-cart')?.addEventListener('click', (e)=> { e.preventDefault(); cart=[]; saveCart(cart); updateCartUI(); toast('Cart cleared'); });
+
+  /* ============= CHECKOUT & PAYSTACK (fallback sim) ============= */
+  $('#checkout-btn')?.addEventListener('click', (e) => { e.preventDefault(); if (!cart || cart.length===0) { toast('Your cart is empty'); return; } startCheckout(cart); });
+  $('#cart-header-checkout')?.addEventListener('click', (e) => { e.preventDefault(); if (!cart || cart.length===0) { toast('Your cart is empty'); return; } startCheckout(cart); });
+
+  function startCheckout(items) { openCheckoutModal(items); }
+
+  /* Checkout modal implementation (collects buyer info and triggers payment) */
+  function openCheckoutModal(items) {
+    const modalEl = $('#checkout-modal'); if (!modalEl) return;
+    const itemsWrap = $('#checkout-items'); const subtotalEl = $('#checkout-subtotal'); const subtotalEl2 = $('#checkout-subtotal-2');
+    const feeEl = $('#checkout-fee'); const feeEl2 = $('#checkout-fee-2'); const totalEl = $('#checkout-total'); const totalEl2 = $('#checkout-total-2');
+    const countEl = $('#checkout-count'); const refEl = $('#checkout-ref'); const dateEl = $('#checkout-date');
     if (!itemsWrap) return;
-    itemsWrap.innerHTML = '';
-    const enriched = items.map(it => {
-      const p = products.find(pp => pp.id === it.id) || {};
-      const unit = p.price || 0; const qty = Number(it.qty||1); const line = +(unit * qty);
-      return { id: it.id, title: p.title||it.id, image: (p.images&&p.images[0])||'', size: it.size||'', qty, unit, line };
-    });
-    const subtotal = enriched.reduce((s,x)=>s + x.line, 0);
+    // prepare enriched items
+    const enriched = items.map(it => { const p = products.find(pp => pp.id === it.id) || {}; const unit = p.price || 0; const qty = Number(it.qty || 1); return { id: it.id, title: p.title || it.id, image: (p.images && p.images[0]) || '', size: it.size || '', qty, unit, line: +(unit * qty) }; });
+    const subtotal = enriched.reduce((s,x)=> s + x.line, 0);
     const fee = +(subtotal * 0.0295).toFixed(2);
     const total = +(subtotal + fee).toFixed(2);
+    itemsWrap.innerHTML = '';
     enriched.forEach(it => {
       const row = document.createElement('div'); row.className = 'checkout-item';
-      row.innerHTML = `<img src="${it.image}" alt="${it.title}" /><div class="meta">${it.title}<small style="display:block;color:var(--muted)">${it.size?('Size: '+it.size+' • '):''}Qty: ${it.qty} • ID: ${it.id}</small></div><div style="margin-left:auto;text-align:right"><div style="font-weight:800">${formatPrice(it.unit)}</div><div style="color:var(--muted)">${formatPrice(it.line)}</div></div>`;
+      row.innerHTML = `<img src="${it.image}" alt="${it.title}" /><div style="flex:1"><div class="meta">${it.title}</div><small>${it.size ? `Size: ${it.size} • ` : ''}Qty: ${it.qty} • ID: ${it.id}</small></div><div style="text-align:right;min-width:96px;"><div style="font-weight:800">${formatPrice(it.unit)}</div><div style="color:var(--muted)">${formatPrice(it.line)}</div></div>`;
       itemsWrap.appendChild(row);
     });
-    sub && (sub.textContent = formatPrice(subtotal));
-    sub2 && (sub2.textContent = formatPrice(subtotal));
-    feeEl && (feeEl.textContent = formatPrice(fee));
-    feeEl2 && (feeEl2.textContent = formatPrice(fee));
-    totEl && (totEl.textContent = formatPrice(total));
-    totEl2 && (totEl2.textContent = formatPrice(total));
-    countEl && (countEl.textContent = String(enriched.length));
-    // attach snapshot for later
-    modalEl._checkoutItems = enriched;
-    modalEl._checkoutSubtotal = subtotal;
-    modalEl._checkoutFee = fee;
-    modalEl._checkoutTotal = total;
-    // wire actions
-    $('#checkout-cancel')?.addEventListener('click', ()=> closeModal(modalEl));
-    $('#checkout-clear')?.addEventListener('click', ()=> { cart = []; saveCart(cart); updateCartUI(); toast('Cart cleared'); closeModal(modalEl); });
-    $('#checkout-pay')?.onclick = async function () {
-      // minimal validation
-      const name = (document.getElementById('checkout-name')?.value || '').trim();
-      const email = (document.getElementById('checkout-email')?.value || '').trim();
-      if (!name) { toast('Enter your name'); return; }
-      if (!email || !email.includes('@')) { toast('Provide a valid email'); return; }
-      // prepare buyer snapshot
-      modalEl._buyer = {
-        name, email,
-        phone: (document.getElementById('checkout-phone')?.value||'').trim(),
-        address1: (document.getElementById('checkout-address1')?.value||'').trim(),
-        city: (document.getElementById('checkout-city')?.value||'').trim(),
-        postal: (document.getElementById('checkout-postal')?.value||'').trim(),
-      };
-      // call process
-      await processCheckoutPayment();
-    };
+    subtotalEl.textContent = subtotalEl2.textContent = formatPrice(subtotal);
+    feeEl.textContent = feeEl2.textContent = formatPrice(fee);
+    totalEl.textContent = totalEl2.textContent = formatPrice(total);
+    countEl.textContent = enriched.length;
+    refEl.textContent = `Ref: ${'CHK-' + Math.random().toString(36).slice(2,8).toUpperCase()}`;
+    dateEl.textContent = new Date().toLocaleString();
+    modalEl._checkoutItems = enriched; modalEl._checkoutSubtotal = subtotal; modalEl._checkoutFee = fee; modalEl._checkoutTotal = total;
     openModal(modalEl);
+
+    // wire actions
+    $('#checkout-cancel').onclick = () => closeModal(modalEl);
+    $('#checkout-clear').onclick = (e) => { e.preventDefault(); cart = []; saveCart(cart); updateCartUI(); modalEl._checkoutItems = []; itemsWrap.innerHTML = ''; subtotalEl.textContent = totalEl.textContent = '₵0.00'; toast('Cart cleared'); closeModal(modalEl); };
+
+    $('#checkout-pay').onclick = async () => {
+      // simple validation
+      const name = ($('#checkout-name')?.value || '').trim(); const email = ($('#checkout-email')?.value || '').trim();
+      if (!name) { toast('Please provide your full name'); return; }
+      if (!email || !email.includes('@')) { toast('Please provide a valid email'); return; }
+
+      // ensure items still available
+      for (const it of modalEl._checkoutItems || []) {
+        const prod = products.find(p => p.id === it.id);
+        if (!prod || prod.available === false) { toast(`${it.id} is no longer available`); return; }
+      }
+
+      // store buyer details
+      modalEl._buyer = {
+        name, email, phone: ($('#checkout-phone')?.value || '').trim(),
+        address1: ($('#checkout-address1')?.value || '').trim(),
+        city: ($('#checkout-city')?.value || '').trim(),
+        postal: ($('#checkout-postal')?.value || '').trim(),
+        delivery: ($('#checkout-delivery')?.value || '').trim(),
+        notes: ($('#checkout-notes')?.value || '').trim()
+      };
+
+      // If Paystack not available or test key, simulate
+      if (!window.PaystackPop || PAYSTACK_PUBLIC_KEY.includes('YOUR_PAYSTACK_PUBLIC_KEY_HERE')) {
+        const proceed = confirm(`Paystack not configured. Simulate payment of ${formatPrice(modalEl._checkoutTotal)}?`);
+        if (!proceed) return;
+        const fakeRef = 'SIM-' + Math.random().toString(36).slice(2,10).toUpperCase();
+        await handleSuccessfulPayment(fakeRef, modalEl._buyer.email, (modalEl._checkoutItems || []).map(i=>({id:i.id, qty:i.qty, size:i.size})), modalEl._checkoutTotal, modalEl._buyer);
+        closeModal(modalEl);
+        return;
+      }
+
+      // real Paystack flow - keep in try/catch
+      try {
+        const amountMinor = Math.round((modalEl._checkoutTotal || 0) * 100);
+        const handler = PaystackPop.setup({
+          key: PAYSTACK_PUBLIC_KEY,
+          email: modalEl._buyer.email,
+          amount: amountMinor,
+          currency: PAYSTACK_CURRENCY,
+          metadata: { custom_fields: [{ display_name: "Name", variable_name: "buyer_name", value: modalEl._buyer.name }] },
+          onClose: function() { toast('Payment window closed'); },
+          callback: function(response) {
+            try {
+              handleSuccessfulPayment(response.reference, modalEl._buyer.email, (modalEl._checkoutItems || []).map(i=>({id:i.id, qty:i.qty, size:i.size})), modalEl._checkoutTotal, modalEl._buyer);
+            } catch(err) { console.error(err); }
+            closeModal(modalEl);
+          }
+        });
+        handler.openIframe();
+      } catch (err) {
+        console.error('Paystack start failed', err);
+        toast('Could not start payment — check console.');
+      }
+    };
   }
 
   function closeCheckoutModal() { closeModal($('#checkout-modal')); }
 
-  async function processCheckoutPayment() {
-    const modal = $('#checkout-modal');
-    if (!modal || !modal._checkoutItems) return;
-    const subtotal = modal._checkoutSubtotal || 0;
-    const fee = modal._checkoutFee || 0;
-    const total = modal._checkoutTotal || subtotal + fee;
-    const buyer = modal._buyer || {};
-    const email = buyer.email || '';
-    const name = buyer.name || '';
-    // check Paystack
-    if (!window.PaystackPop || !PAYSTACK_PUBLIC_KEY || PAYSTACK_PUBLIC_KEY.includes('YOUR_PAYSTACK_PUBLIC_KEY_HERE')) {
-      // simulate
-      const ok = confirm(`Paystack not configured. Simulate payment of ${formatPrice(total)}?`);
-      if (!ok) return;
-      const fakeRef = 'SIM-' + Math.random().toString(36).slice(2, 10).toUpperCase();
-      await handleSuccessfulPayment(fakeRef, email || name || 'guest@example.com', modal._checkoutItems.map(i=>({ id: i.id, qty: i.qty, size: i.size })), total, { name: buyer.name, phone: buyer.phone, address1: buyer.address1 });
-      closeCheckoutModal();
-      return;
-    }
-    try {
-      const amount = Math.round(total * 100);
-      const handler = PaystackPop.setup({
-        key: PAYSTACK_PUBLIC_KEY,
-        email: email,
-        amount: amount,
-        currency: PAYSTACK_CURRENCY,
-        metadata: { custom_fields: [ { display_name: 'Buyer', variable_name:'buyer', value: buyer.name || '' } ] },
-        callback: function(response){
-          try {
-            handleSuccessfulPayment(response.reference, email, modal._checkoutItems.map(i=>({ id: i.id, qty: i.qty, size: i.size })), total, { name: buyer.name, phone: buyer.phone });
-          } catch(err) { console.error(err); }
-          closeCheckoutModal();
-        },
-        onClose: function(){ toast('Payment closed'); }
-      });
-      handler.openIframe();
-    } catch (err) {
-      console.error('Paystack error', err);
-      toast('Could not start payment — see console.');
-    }
-  }
-
-  /* ---------------------
-     Buy now (single item)
-     ---------------------*/
+  /* ============= BUY NOW ============= */
   function openBuyNowModal(single) {
-    const modal = $('#buynow-modal'); if (!modal) return;
-    const wrap = $('#buynow-item'); if (!wrap) return;
-    const p = products.find(pp=>pp.id === single.id);
-    if (!p) { toast('Item not found'); return; }
+    const p = products.find(pp => pp.id === single.id);
+    if (!p || p.available === false) { toast('This item is not available'); return; }
+    const modalEl = $('#buynow-modal'); const wrap = $('#buynow-item');
+    if (!modalEl || !wrap) return;
     wrap.innerHTML = '';
+    const unit = p.price || 0; const qty = Number(single.qty || 1); const line = +(unit * qty).toFixed(2);
+    const subtotal = line; const fee = +(subtotal * 0.0295).toFixed(2); const total = +(subtotal + fee).toFixed(2);
     const row = document.createElement('div'); row.className = 'checkout-item';
-    row.innerHTML = `<img src="${(p.images && p.images[0]) || ''}" alt="${p.title}" /><div class="meta">${p.title}<small style="display:block;color:var(--muted)">${single.size?('Size: '+single.size+' • '):''}Qty: ${single.qty}</small></div><div style="margin-left:auto;text-align:right"><div style="font-weight:800">${formatPrice(p.price)}</div><div style="color:var(--muted)">${formatPrice((p.price||0)*single.qty)}</div></div>`;
+    row.innerHTML = `<img src="${(p.images && p.images[0])||''}" alt="${p.title}" /><div class="meta"><div class="title">${p.title}</div><div class="sub">${single.size ? 'Size: '+single.size+' • ':' '}Qty: ${qty}</div></div><div style="margin-left:auto;text-align:right;"><div style="font-weight:800">${formatPrice(unit)}</div><div style="color:var(--muted)">${formatPrice(line)}</div></div>`;
     wrap.appendChild(row);
-    // attach totals
-    $('#buynow-subtotal') && ($('#buynow-subtotal').textContent = formatPrice((p.price||0)*single.qty));
-    const fee = +(((p.price||0)*single.qty) * 0.0295).toFixed(2);
-    $('#buynow-fee') && ($('#buynow-fee').textContent = formatPrice(fee));
-    $('#buynow-total') && ($('#buynow-total').textContent = formatPrice((p.price||0)*single.qty + fee));
-    modal._buynowItem = { id: single.id, qty: single.qty, size: single.size, subtotal: (p.price||0)*single.qty, fee, total: (p.price||0)*single.qty + fee };
-    // wire cancel/pay
-    $('#buynow-cancel')?.addEventListener('click', ()=> closeModal(modal));
-    $('#buynow-pay')?.addEventListener('click', async ()=> {
-      const name = (document.getElementById('buynow-name')?.value||'').trim();
-      const email = (document.getElementById('buynow-email')?.value||'').trim();
-      if (!name) { toast('Name required'); return; }
-      if (!email || !email.includes('@')) { toast('Valid email required'); return; }
-      // simulate/pay as checkout
-      if (!window.PaystackPop || !PAYSTACK_PUBLIC_KEY || PAYSTACK_PUBLIC_KEY.includes('YOUR_PAYSTACK_PUBLIC_KEY_HERE')) {
-        const ok = confirm(`Paystack not configured. Simulate payment of ${formatPrice(modal._buynowItem.total)}?`);
-        if (!ok) return;
+    $('#buynow-subtotal').textContent = formatPrice(subtotal);
+    $('#buynow-fee').textContent = formatPrice(fee);
+    $('#buynow-total').textContent = formatPrice(total);
+    modalEl._buynowItem = { id: single.id, qty, size: single.size, unit, line, subtotal, fee, total };
+    openModal(modalEl);
+
+    $('#buynow-cancel').onclick = () => closeModal(modalEl);
+    $('#buynow-pay').onclick = async () => {
+      const name = ($('#buynow-name')?.value || '').trim(); const email = ($('#buynow-email')?.value || '').trim();
+      if (!name) { toast('Please provide name'); return; }
+      if (!email || !email.includes('@')) { toast('Provide valid email'); return; }
+      const item = modalEl._buynowItem;
+      if (!item) return;
+      // simulate Paystack or real
+      if (!window.PaystackPop || PAYSTACK_PUBLIC_KEY.includes('YOUR_PAYSTACK_PUBLIC_KEY_HERE')) {
+        const proceed = confirm(`Paystack not configured. Simulate payment of ${formatPrice(item.total)}?`);
+        if (!proceed) return;
         const fakeRef = 'SIM-' + Math.random().toString(36).slice(2,10).toUpperCase();
-        await handleSuccessfulPayment(fakeRef, email, [{ id: modal._buynowItem.id, qty: modal._buynowItem.qty, size: modal._buynowItem.size }], modal._buynowItem.total, { name, phone: (document.getElementById('buynow-phone')?.value||'').trim() });
-        closeModal(modal);
+        await handleSuccessfulPayment(fakeRef, email, [{ id: item.id, qty: item.qty, size: item.size }], item.total, { name, phone: ($('#buynow-phone')?.value || '').trim() });
+        closeModal(modalEl);
         return;
       }
-      // otherwise use Paystack similar to checkout
       try {
-        const amount = Math.round(modal._buynowItem.total * 100);
+        const amountMinor = Math.round(item.total * 100);
         const handler = PaystackPop.setup({
-          key: PAYSTACK_PUBLIC_KEY,
-          email,
-          amount,
-          currency: PAYSTACK_CURRENCY,
-          metadata: { custom_fields: [{ display_name: "Buyer", variable_name: "buyer_name", value: name }] },
-          callback: function(response) {
-            handleSuccessfulPayment(response.reference, email, [{ id: modal._buynowItem.id, qty: modal._buynowItem.qty, size: modal._buynowItem.size }], modal._buynowItem.total, { name });
-          },
-          onClose: function(){ toast('Payment closed'); }
+          key: PAYSTACK_PUBLIC_KEY, email, amount: amountMinor, currency: PAYSTACK_CURRENCY,
+          metadata: { custom_fields: [{ display_name: "Name", variable_name: "buyer_name", value: name }] },
+          onClose: function(){ toast('Payment window closed'); },
+          callback: function(response){ handleSuccessfulPayment(response.reference, email, [{ id: item.id, qty: item.qty, size: item.size }], item.total, { name, phone: ($('#buynow-phone')?.value || '').trim() }); closeModal(modalEl); }
         });
         handler.openIframe();
-      } catch (err) { console.error(err); toast('Payment error'); }
-    });
-    openModal(modal);
+      } catch (err) { console.error(err); toast('Payment start failed'); }
+    };
   }
 
-  // hook modal buy button on product modal
-  $('#modal-buy')?.addEventListener('click', (e) => {
-    e.preventDefault();
-    const p = productModal && productModal._currentProduct;
-    if (!p) return;
-    const qty = Number($('#modal-qty')?.value || 1);
-    openBuyNowModal({ id: p.id, qty, size: '' });
-  });
-  // hook modal add-to-cart inside product modal
-  $('#modal-add')?.addEventListener('click', (e) => {
-    e.preventDefault();
-    const p = productModal && productModal._currentProduct;
-    if (!p) return;
-    const qty = Number($('#modal-qty')?.value || 1);
-    addToCart(p.id, qty, '');
-    closeModal(productModal);
-  });
+  function closeBuyNowModal(){ closeModal($('#buynow-modal')); }
 
-  /* ---------------------
-     Simple invoice PDF generation using jsPDF
-     Returns object { url, blob }
-     ---------------------*/
-  async function fetchImageAsDataURL(url) {
-    if (!url) return null;
-    try {
-      const res = await fetch(url, { cache:'no-cache' });
-      if (!res.ok) return null;
-      const blob = await res.blob();
-      return await new Promise((resolve, reject) => {
-        const r = new FileReader();
-        r.onloadend = () => resolve(r.result);
-        r.onerror = reject;
-        r.readAsDataURL(blob);
-      });
-    } catch (e) { return null; }
-  }
-
+  /* ============= INVOICE PDF GENERATION (jsPDF) ============= */
   async function generateInvoiceBlobUrl(order) {
-    const { jsPDF } = window.jspdf || {};
-    if (!jsPDF) throw new Error('jsPDF missing');
+    if (!order) throw new Error('No order');
+    const jspdf = window.jspdf;
+    const jsPDF = jspdf && jspdf.jsPDF ? jspdf.jsPDF : (window.jsPDF ? window.jsPDF : null);
+    if (!jsPDF) throw new Error('jsPDF not available');
+
     const doc = new jsPDF({ unit: 'pt', format: 'a4' });
-    let y = 40;
-    doc.setFontSize(18); doc.text('Tiny Threads — Invoice', 40, y); y += 24;
-    doc.setFontSize(11);
-    doc.text(`Ref: ${(order.reference||'REF-'+Math.random().toString(36).slice(2,8).toUpperCase())}`, 40, y); y += 16;
-    doc.text(`Date: ${new Date(order.paidAt||nowISO()).toLocaleString()}`, 40, y); y += 18;
-    doc.setFont('helvetica','bold'); doc.text('Billed to:', 40, y); doc.setFont('helvetica','normal'); y += 14;
-    const buyerName = (order.buyerDetails && order.buyerDetails.name) || order.buyerEmail || '—';
-    doc.text(String(buyerName), 40, y); y += 14;
-    if (order.buyerDetails && order.buyerDetails.address1) { doc.text(String(order.buyerDetails.address1), 40, y); y += 14; }
-    y += 8;
-    // items
-    doc.setFont('helvetica','bold'); doc.text('Items', 40, y); y += 14;
+    const left = 36; let y = 36;
+    doc.setFontSize(20); doc.setFont('helvetica','bold'); doc.text('Tiny Threads — Invoice', left, y);
+    y += 26;
+    doc.setFontSize(11); doc.setFont('helvetica','normal');
+    doc.text(`Reference: ${order.reference || 'REF-'+Math.random().toString(36).slice(2,8).toUpperCase()}`, left, y); y += 14;
+    doc.text(`Date: ${new Date(order.paidAt || nowISO()).toLocaleString()}`, left, y); y += 20;
+
+    // buyer
+    doc.setFont('helvetica','bold'); doc.text('Bill to:', left, y); doc.setFont('helvetica','normal');
+    const buyerName = (order.buyerDetails && order.buyerDetails.name) ? order.buyerDetails.name : (order.buyerEmail || '—');
+    const buyerLines = [buyerName || '—', order.buyerEmail || '', (order.buyerDetails && order.buyerDetails.phone) || '', (order.buyerDetails && order.buyerDetails.address1) || ''].filter(Boolean);
+    doc.text(buyerLines.join('\n'), left, y + 14);
+    y += Math.max(28, 14 * buyerLines.length) + 6;
+
+    // table header
+    doc.setFont('helvetica','bold'); doc.text('Item', left, y); doc.text('Qty', 360, y); doc.text('Unit', 420, y, { align:'right' }); doc.text('Line', 500, y, { align:'right' });
+    y += 12; doc.setDrawColor(220); doc.line(left, y, doc.internal.pageSize.getWidth()-left, y); y += 8;
     doc.setFont('helvetica','normal');
+
+    // items
+    let subtotal = 0;
     for (const it of (order.items||[])) {
       const prod = products.find(p => p.id === it.id) || {};
       const title = prod.title || it.id;
-      const qty = Number(it.qty||1);
       const unit = Number(prod.price || it.unit || 0);
-      const line = +(qty * unit);
-      const text = `${title} — ${it.size ? 'Size: '+it.size+' • ' : ''}ID: ${it.id}`;
-      const lines = doc.splitTextToSize(text, 380);
-      doc.text(lines, 40, y); // multi line
-      // price at right
-      doc.text(formatPrice(line), 520, y, { align: 'right' });
-      // compute line height
-      y += (lines.length * 12) + 6;
-      if (y > doc.internal.pageSize.getHeight() - 120) { doc.addPage(); y = 40; }
+      const qty = Number(it.qty || 1);
+      const line = +(unit * qty);
+      subtotal += line;
+      const lines = doc.splitTextToSize(title, 320);
+      doc.text(lines, left, y);
+      doc.text(String(qty), 360, y);
+      doc.text(formatPrice(unit), 420, y, { align:'right' });
+      doc.text(formatPrice(line), 500, y, { align:'right' });
+      y += Math.max(14, lines.length * 12) + 8;
+      if (y > doc.internal.pageSize.getHeight() - 120) { doc.addPage(); y = 36; }
     }
-    y += 10;
-    doc.setFont('helvetica','bold');
-    doc.text('Subtotal', 360, y); doc.text(formatPrice(order.total ? (order.total - (order.processingFee||0)) : 0), 520, y, { align: 'right' }); y += 14;
-    doc.text('Processing fee', 360, y); doc.text(formatPrice(order.processingFee || 0), 520, y, { align: 'right' }); y += 16;
-    doc.setFontSize(14); doc.setFont('helvetica','bold');
-    doc.text('Total', 360, y); doc.text(formatPrice(order.total || 0), 520, y, { align: 'right' });
-    // footer
-    doc.setFontSize(9); doc.setFont('helvetica','normal');
-    doc.text('Thank you for shopping with Tiny Threads', 40, doc.internal.pageSize.getHeight() - 40);
+
+    const processingFee = Number(order.processingFee || +(subtotal * 0.0295).toFixed(2));
+    const total = Number(order.total || (subtotal + processingFee));
+
+    // totals block
+    y += 8;
+    const right = doc.internal.pageSize.getWidth() - left;
+    doc.setFont('helvetica','normal');
+    doc.text('Subtotal', 400, y); doc.text(formatPrice(subtotal), right, y, { align:'right' }); y += 14;
+    doc.text('Processing', 400, y); doc.text(formatPrice(processingFee), right, y, { align:'right' }); y += 18;
+    doc.setFont('helvetica','bold'); doc.text('Total', 400, y); doc.text(formatPrice(total), right, y, { align:'right' });
+
+    // footer note
+    y += 26;
+    if (y > doc.internal.pageSize.getHeight()-80) { doc.addPage(); y = 36; }
+    doc.setFontSize(10); doc.setFont('helvetica','normal'); doc.setTextColor(120);
+    doc.text('Thank you for shopping with Tiny Threads — contact hello@tinythreads.example', left, y);
+
     const blob = doc.output('blob');
     const url = URL.createObjectURL(blob);
     return { url, blob };
   }
 
-  /* ---------------------
-     showReceiptModal wiring
-     ---------------------*/
-  function showReceiptModal(order, pdfInfo) {
-    const modal = $('#receipt-modal'); if (!modal) return;
-    const summary = $('#receipt-summary'); const itemsWrap = $('#receipt-items');
-    const totalEl = $('#receipt-total'); const subEl = $('#receipt-subtotal'); const procEl = $('#receipt-processing');
-    const refEl = $('#receipt-ref'); const refEl2 = $('#receipt-ref-2'); const dateEl = $('#receipt-date'); const methodEl = $('#receipt-method'); const statusEl = $('#receipt-status');
-    const viewBtn = $('#receipt-view'); const dlBtn = $('#receipt-download'); const printBtn = $('#receipt-print');
-    const previewWrap = $('#receipt-preview-wrap'); const previewFrame = $('#receipt-preview'); const loader = $('#preview-loader');
-
-    // clear previous
-    itemsWrap && (itemsWrap.innerHTML = '');
-    summary && (summary.innerHTML = '');
-
-    // header
-    const reference = order.reference || ('REF-' + Math.random().toString(36).slice(2,8).toUpperCase());
-    refEl && (refEl.textContent = reference);
-    refEl2 && (refEl2.textContent = reference);
-    dateEl && (dateEl.textContent = new Date(order.paidAt||nowISO()).toLocaleString());
-    methodEl && (methodEl.textContent = order.method || 'Paystack');
-    statusEl && (statusEl.textContent = (order.status||'paid').toUpperCase());
-
-    // summary block
-    const buyerName = (order.buyerDetails && order.buyerDetails.name) || order.buyerEmail || '—';
-    const buyerEmail = order.buyerEmail || (order.buyerDetails && order.buyerDetails.email) || '';
-    summary && (summary.innerHTML = `<div style="font-weight:800">${buyerName}</div><div style="color:var(--muted)">${buyerEmail}</div>`);
-
-    // items
-    (order.items||[]).forEach(it => {
-      const prod = products.find(p => p.id === it.id) || {};
-      const title = prod.title || it.id;
-      const unit = prod.price || it.unit || 0;
-      const qty = Number(it.qty||1);
-      const line = +(unit * qty);
-      const node = document.createElement('div'); node.className = 'receipt-item';
-      node.innerHTML = `<img src="${(prod.images && prod.images[0])||''}" alt="${title}" /><div class="it-meta"><div style="font-weight:800">${title}</div><div style="color:var(--muted);font-size:13px">${it.size?('Size: '+it.size+' • '):''}ID: ${it.id}</div></div><div class="it-price"><div>${formatPrice(unit)}</div><div style="color:var(--muted);font-size:13px">${qty} ×</div><div style="font-weight:900;margin-top:6px">${formatPrice(line)}</div></div>`;
-      itemsWrap && itemsWrap.appendChild(node);
-    });
-
-    // totals
-    const processingFee = Number(order.processingFee || ((order.total||0) * 0.0295));
-    const subtotal = +(((order.total||0) - processingFee).toFixed(2));
-    subEl && (subEl.textContent = formatPrice(subtotal));
-    procEl && (procEl.textContent = formatPrice(processingFee));
-    totalEl && (totalEl.textContent = formatPrice(order.total || 0));
-
-    // preview & actions
-    previewWrap && (previewWrap.style.display = 'none');
-    previewFrame && (previewFrame.src = '');
-    // important: remove sandbox attribute if present so blob URI can render
-    if (previewFrame && previewFrame.hasAttribute('sandbox')) previewFrame.removeAttribute('sandbox');
-
-    // clear previous stored blob on modal
-    if (modal._invoiceBlobUrl) {
-      try { URL.revokeObjectURL(modal._invoiceBlobUrl); } catch(e) {}
-      modal._invoiceBlobUrl = null;
+  async function generateInvoicePDFFallback(order) {
+    try {
+      const info = await generateInvoiceBlobUrl(order);
+      if (info && info.url) {
+        const a = document.createElement('a');
+        a.href = info.url;
+        a.download = `Invoice-${order.reference || 'receipt'}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(()=>{ try { URL.revokeObjectURL(info.url); } catch(e){} }, 60000);
+        return info;
+      }
+    } catch (err) {
+      console.error('fallback generator failed', err);
+      try {
+        const jspdf = window.jspdf; const jsPDF = jspdf && jspdf.jsPDF ? jspdf.jsPDF : (window.jsPDF ? window.jsPDF : null);
+        if (jsPDF) { const d = new jsPDF(); d.text('Invoice', 20,20); d.save(`Invoice-${(order.reference||'receipt')}.pdf`); }
+      } catch (e) { console.error(e); }
     }
-
-    // disable actions by default
-    if (viewBtn) viewBtn.disabled = true;
-    if (dlBtn) dlBtn.disabled = true;
-    if (printBtn) printBtn.disabled = true;
-
-    if (pdfInfo && pdfInfo.url) {
-      modal._invoiceBlobUrl = pdfInfo.url;
-      if (viewBtn) {
-        viewBtn.disabled = false;
-        viewBtn.onclick = (ev) => {
-          ev.preventDefault();
-          previewWrap.style.display = '';
-          loader.style.display = '';
-          previewFrame.onload = () => { try { loader.style.display = 'none'; } catch(e) {} };
-          previewFrame.src = pdfInfo.url;
-          // open in new tab as well (try; may be blocked by popup blocker)
-          try { window.open(pdfInfo.url, '_blank'); } catch(e) {}
-        };
-      }
-      if (dlBtn) {
-        dlBtn.disabled = false;
-        dlBtn.onclick = (ev) => {
-          ev.preventDefault();
-          const a = document.createElement('a');
-          a.href = pdfInfo.url;
-          a.download = `Invoice-${reference}.pdf`;
-          document.body.appendChild(a);
-          a.click();
-          a.remove();
-        };
-      }
-      if (printBtn) {
-        printBtn.disabled = false;
-        printBtn.onclick = (ev) => {
-          ev.preventDefault();
-          // prefer direct iframe print
-          if (previewFrame && previewFrame.src) {
-            try {
-              // focus and print the iframe content
-              previewFrame.contentWindow.focus();
-              previewFrame.contentWindow.print();
-            } catch (e) {
-              // fallback: open new tab then call print
-              const win = window.open(pdfInfo.url, '_blank');
-              if (!win) { toast('Popup blocked — use Download'); return; }
-              win.onload = () => { try { win.focus(); win.print(); } catch(e){} };
-            }
-          } else {
-            // ensure preview loaded then print
-            previewWrap.style.display = '';
-            loader.style.display = '';
-            previewFrame.onload = () => { try { loader.style.display = 'none'; previewFrame.contentWindow.focus(); previewFrame.contentWindow.print(); } catch(e){} };
-            previewFrame.src = pdfInfo.url;
-          }
-        };
-      }
-
-      // pre-load into iframe (improves UX)
-      setTimeout(()=> {
-        try {
-          previewWrap.style.display = '';
-          loader.style.display = '';
-          previewFrame.onload = () => { try { loader.style.display = 'none'; } catch(e){} };
-          previewFrame.src = pdfInfo.url;
-        } catch(e){}
-      }, 120);
-    } else {
-      // no pdf available: keep buttons disabled and show modal (user can still close)
-      if (viewBtn) viewBtn.onclick = () => toast('No PDF available');
-      if (dlBtn) dlBtn.onclick = () => toast('No PDF available');
-      if (printBtn) printBtn.onclick = () => toast('No PDF available');
-    }
-
-    // wire close buttons
-    $('#receipt-close')?.addEventListener('click', ()=> closeModal(modal));
-    $('#receipt-close-bottom')?.addEventListener('click', ()=> closeModal(modal));
-
-    openModal(modal);
   }
 
-  /* ---------------------
-     Payment success handling: mark items sold, save order locally, generate invoice and show receipt
-     ---------------------*/
+  /* ============= RECEIPT / HISTORY UI ============= */
+  function showReceiptModal(order, pdfInfo) {
+    try {
+      const modal = $('#receipt-modal'); if (!modal) return;
+      const summary = $('#receipt-summary'); const itemsWrap = $('#receipt-items');
+      const totalEl = $('#receipt-total'); const subEl = $('#receipt-subtotal'); const procEl = $('#receipt-processing');
+      const refEl = $('#receipt-ref'); const refEl2 = $('#receipt-ref-2'); const dateEl = $('#receipt-date');
+      const methodEl = $('#receipt-method'); const statusEl = $('#receipt-status');
+      const viewBtn = $('#receipt-view'); const dlBtn = $('#receipt-download'); const printBtn = $('#receipt-print');
+      const previewWrap = $('#receipt-preview-wrap'); const previewFrame = $('#receipt-preview'); const loader = $('#preview-loader');
+
+      if (!summary || !itemsWrap) return;
+      itemsWrap.innerHTML = ''; summary.innerHTML = '';
+
+      const reference = order.reference || ('REF-' + Math.random().toString(36).slice(2,8).toUpperCase());
+      const paidAt = order.paidAt ? new Date(order.paidAt) : new Date();
+      refEl.textContent = reference; refEl2.textContent = reference; dateEl.textContent = paidAt.toLocaleString();
+
+      const buyerName = (order.buyerDetails && order.buyerDetails.name) ? order.buyerDetails.name : (order.buyerEmail || '—');
+      const buyerEmail = order.buyerEmail || (order.buyerDetails && order.buyerDetails.email) || '—';
+      const buyerPhone = (order.buyerDetails && order.buyerDetails.phone) || '';
+      const processingFee = Number(order.processingFee || +( (order.total||0) * 0.0295 ).toFixed(2));
+      const subtotal = +( (order.total || 0) - processingFee ).toFixed(2);
+      const total = +(order.total || 0).toFixed(2);
+
+      summary.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;">
+        <div><div style="font-weight:800">${buyerName}</div><div style="color:var(--muted);font-size:13px">${buyerEmail}${buyerPhone ? ' • '+buyerPhone : ''}</div></div>
+        <div style="text-align:right;"><div style="color:var(--muted);font-size:12px">Status</div><div style="font-weight:800;color:var(--brand-1)">${(order.status||'PAID').toUpperCase()}</div></div>
+      </div>
+      <div style="margin-top:10px;color:var(--muted);font-size:13px">${(order.buyerDetails && (order.buyerDetails.address1 || order.buyerDetails.city)) ? `${order.buyerDetails.address1 || ''} ${order.buyerDetails.city || ''}` : ''}</div>`;
+
+      (order.items || []).forEach(it => {
+        const prod = products.find(p=>p.id===it.id) || {};
+        const title = prod.title || it.id; const unit = prod.price || (it.unit||0); const qty = Number(it.qty||1); const line = +(unit*qty).toFixed(2);
+        const itemNode = document.createElement('div'); itemNode.className='receipt-item';
+        itemNode.innerHTML = `<img src="${(prod.images && prod.images[0])||''}" alt="${title}" /><div class="it-meta"><div style="font-weight:800">${title}</div><div style="color:var(--muted);font-size:13px">${it.size?`Size: ${it.size} • `:''}ID: ${it.id}</div></div><div class="it-price"><div>${formatPrice(unit)}</div><div style="color:var(--muted);font-size:13px">${qty} ×</div><div style="font-weight:900;margin-top:6px">${formatPrice(line)}</div></div>`;
+        itemsWrap.appendChild(itemNode);
+      });
+
+      subEl.textContent = formatPrice(subtotal);
+      procEl.textContent = formatPrice(processingFee);
+      totalEl.textContent = formatPrice(total);
+      methodEl.textContent = order.method || 'Paystack';
+      statusEl.textContent = (order.status || 'PAID').toUpperCase();
+
+      // cleanup previous blob
+      try { if (modal._pdfUrl && modal._pdfUrl.startsWith('blob:')) { URL.revokeObjectURL(modal._pdfUrl); modal._pdfUrl = null; } } catch(e){}
+
+      viewBtn.disabled = dlBtn.disabled = printBtn.disabled = true;
+      previewWrap.style.display = 'none';
+      previewFrame.src = '';
+      // if we got pdfInfo with blob url, wire actions
+      if (pdfInfo && pdfInfo.url) {
+        const url = pdfInfo.url;
+        modal._pdfUrl = url;
+        viewBtn.disabled = dlBtn.disabled = printBtn.disabled = false;
+
+        // ensure iframe does not have restrictive sandbox attribute when loading blob URLs
+        if (previewFrame.hasAttribute('sandbox')) previewFrame.removeAttribute('sandbox');
+
+        viewBtn.onclick = () => {
+          previewWrap.style.display = '';
+          loader.style.display = '';
+          previewFrame.onload = () => { loader.style.display = 'none'; };
+          previewFrame.src = url;
+          try { window.open(url, '_blank'); } catch (e) {}
+        };
+
+        dlBtn.onclick = () => {
+          const a = document.createElement('a'); a.href = url; a.download = `Invoice-${reference || 'receipt'}.pdf`; document.body.appendChild(a); a.click(); a.remove();
+        };
+
+        printBtn.onclick = () => {
+          // open new window/tab (some browsers block if not user gesture but this is a click handler)
+          const w = window.open(url, '_blank');
+          if (!w) { toast('Popup blocked — use Download'); return; }
+          w.onload = () => { try { w.focus(); w.print(); } catch (e) { console.error(e); } };
+        };
+
+        // preload small preview
+        setTimeout(()=>{ previewWrap.style.display=''; loader.style.display=''; previewFrame.onload = ()=>{ loader.style.display='none'; }; previewFrame.src = url; }, 120);
+      } else {
+        viewBtn.onclick = dlBtn.onclick = printBtn.onclick = null;
+      }
+
+      $('#receipt-close') && ($('#receipt-close').onclick = () => closeModal(modal));
+      $('#receipt-close-bottom') && ($('#receipt-close-bottom').onclick = () => closeModal(modal));
+      openModal(modal);
+    } catch (err) { console.error('showReceiptModal error', err); toast('Could not show receipt'); }
+  }
+
+  /* ============= after-success payment handler ============= */
   async function handleSuccessfulPayment(reference, buyerEmail, items, total, buyerDetails = {}) {
     try {
-      // normalize items array
-      const snapshotItems = (items||[]).map(it => ({ id: it.id, qty: it.qty || 1, size: it.size || '' }));
-      // mark items as unavailable
-      snapshotItems.forEach(it => {
-        const p = products.find(pp => pp.id === it.id);
-        if (p) p.available = false;
-      });
-      persistProducts();
-      // calculate processing fee
-      const processingFee = +((total * 0.0295) || 0).toFixed(2);
+      if (!Array.isArray(items)) items = [];
+      const snapshotItems = items.map(it => ({ id: it.id, qty: it.qty||1, size: it.size||'' }));
+
+      // mark products unavailable
+      for (const it of snapshotItems) { const p = products.find(pp => pp.id === it.id); if (p) p.available = false; }
+      saveProductsLocal();
+
+      const processingFee = +( (total * 0.0295) ).toFixed(2);
       const order = {
-        reference: reference || ('REF-' + Math.random().toString(36).slice(2,8).toUpperCase()),
-        buyerEmail: buyerEmail || '',
+        reference: reference || ('REF-' + Math.random().toString(36).slice(2,9).toUpperCase()),
+        buyerEmail: buyerEmail || (buyerDetails && buyerDetails.email) || '',
         buyerDetails: buyerDetails || {},
         items: snapshotItems,
-        total: +(total || 0).toFixed(2),
+        total: total || 0,
         processingFee,
         paidAt: nowISO(),
         status: 'paid',
         method: 'Paystack'
       };
-      // store order locally
       pushOrder(order);
-      // remove purchased from cart
+
+      // remove purchased items from cart
       const purchasedIds = snapshotItems.map(i => i.id);
       cart = cart.filter(c => !purchasedIds.includes(c.id));
       saveCart(cart);
+
       updateCartUI();
-      renderProducts(true);
-      // generate invoice and show receipt
+      renderProductsBatch(true);
+      closeCart();
+      closeProductModal();
+
       toast('Payment successful — generating receipt...');
+
+      // generate pdf & show receipt
       try {
         const pdfInfo = await generateInvoiceBlobUrl(order);
         showReceiptModal(order, pdfInfo);
       } catch (err) {
-        console.error('Invoice generation failed', err);
+        console.error('invoice gen failed', err);
+        try { await generateInvoicePDFFallback(order); } catch(e) {}
         showReceiptModal(order, null);
       }
+
       return order;
     } catch (err) {
-      console.error('handleSuccessfulPayment error', err);
-      toast('Payment recorded but an error occurred (see console)');
+      console.error('handleSuccessfulPayment', err); toast('Payment processed but an error occurred.');
       return null;
     }
   }
-
-  // expose globally for Paystack callback compatibility
+  // expose globally (Paystack callback compatibility)
   window.handleSuccessfulPayment = handleSuccessfulPayment;
 
-  /* ---------------------
-     Purchase history panel
-     ---------------------*/
-  (function historyInit(){
-    const historyToggle = $('#history-toggle');
-    const historyModal = $('#history-modal');
-    const historyList = $('#history-list');
-    const historyBadge = $('#history-badge');
-    const historyCount = $('#history-count');
+  /* ============= PURCHASE HISTORY UI ============= */
+  (function purchaseHistoryInit() {
+    const historyToggle = $('#history-toggle'); const historyBadge = $('#history-badge'); const historyModal = $('#history-modal'); const historyList = $('#history-list');
+    const historyClose = $('#history-close'); const historyCloseBottom = $('#history-close-bottom'); const historyClearAll = $('#history-clear-all'); const historyCountEl = $('#history-count');
 
-    function render() {
-      const orders = loadOrders();
-      historyBadge && (historyBadge.textContent = String(orders.length || 0));
-      historyCount && (historyCount.textContent = (orders.length || 0) + ' order' + (orders.length === 1 ? '' : 's'));
+    function formatDate(iso) { try { return new Date(iso).toLocaleString(); } catch(e) { return iso || ''; } }
+
+    function updateHistoryBadge() {
+      const orders = readOrders();
+      historyBadge && (historyBadge.textContent = orders.length || 0);
+      historyCountEl && (historyCountEl.textContent = (orders.length || 0) + ' order' + (orders.length===1 ? '' : 's'));
+    }
+
+    function renderHistoryList() {
+      const orders = readOrders();
       if (!historyList) return;
       historyList.innerHTML = '';
       if (!orders || orders.length === 0) {
-        historyList.innerHTML = `<div style="padding:18px;border-radius:10px;background:linear-gradient(180deg,#fff,#fffefc);text-align:center;color:var(--muted)"><i class="fa fa-box-open fa-2x"></i><div style="margin-top:8px">No purchases yet.</div></div>`;
+        historyList.innerHTML = `<div style="padding:18px;border-radius:10px;background:linear-gradient(180deg,#fff,#fffefc);box-shadow:var(--shadow);text-align:center;color:var(--muted)"><i class="fa fa-box-open fa-2x"></i><div style="margin-top:8px">No purchases yet.</div></div>`;
         return;
       }
       orders.forEach(order => {
-        const div = document.createElement('div'); div.className = 'history-item';
-        const first = order.items && order.items[0] ? (products.find(p=>p.id===order.items[0].id) || {}) : {};
-        const thumb = (first.images && first.images[0]) || '';
-        const title = first.title || (order.items && order.items[0] && order.items[0].id) || 'Order';
-        div.innerHTML = `<div class="history-left"><div class="history-thumb">${thumb ? `<img src="${thumb}" style="width:100%;height:100%;object-fit:cover;border-radius:8px">` : title.charAt(0)||'O'}</div><div class="history-meta"><div class="title">${title}</div><div class="sm">${new Date(order.paidAt).toLocaleString()} • ${order.items.length} item${order.items.length===1?'':'s'} • ${formatPrice(order.total)}</div></div></div><div class="history-actions"><button class="btn tiny outline view-receipt" data-ref="${order.reference}">View PDF</button><button class="btn tiny download-receipt" data-ref="${order.reference}">Download</button><button class="btn tiny delete-order" data-ref="${order.reference}"><i class="fa fa-trash"></i></button></div>`;
-        historyList.appendChild(div);
+        const itemCount = (order.items||[]).length;
+        const firstProduct = (order.items && order.items[0]) ? (products.find(p => p.id === order.items[0].id) || {}) : {};
+        const thumb = (firstProduct.images && firstProduct.images[0]) || '';
+        const title = firstProduct.title || (order.items && order.items[0] && order.items[0].id) || `Order`;
+        const d = document.createElement('div'); d.className = 'history-item';
+        d.innerHTML = `<div class="history-left"><div class="history-thumb">${thumb ? `<img src="${thumb}" style="width:100%;height:100%;object-fit:cover;border-radius:8px" alt="${title}">` : (title.charAt(0)||'O')}</div><div class="history-meta"><div class="title">${title}</div><div class="sm">${formatDate(order.paidAt)} • ${itemCount} item${itemCount===1?'':'s'} • ${formatPrice(order.total||0)}</div></div></div><div class="history-actions"><button class="btn tiny outline view-receipt" data-ref="${order.reference}">View PDF</button><button class="btn tiny download-receipt" data-ref="${order.reference}">Download</button><button class="btn tiny delete-order" data-ref="${order.reference}" title="Delete order"><i class="fa fa-trash"></i></button></div>`;
+        historyList.appendChild(d);
       });
-      // wire buttons
+
+      // wire actions
       historyList.querySelectorAll('.view-receipt').forEach(btn => btn.addEventListener('click', async (e) => {
-        const ref = btn.dataset.ref;
-        const orders = loadOrders();
-        const order = orders.find(o => o.reference === ref);
+        const ref = btn.dataset.ref; const orders = readOrders(); const order = orders.find(o => o.reference === ref);
         if (!order) { toast('Order not found'); return; }
         try {
           const pdfInfo = await generateInvoiceBlobUrl(order);
           showReceiptModal(order, pdfInfo);
         } catch (err) {
-          console.error(err); showReceiptModal(order, null);
+          console.error(err); toast('Could not generate PDF — check console.'); showReceiptModal(order, null);
         }
       }));
-      historyList.querySelectorAll('.download-receipt').forEach(btn => btn.addEventListener('click', async (e)=> {
-        const ref = btn.dataset.ref;
-        const orders = loadOrders();
-        const order = orders.find(o => o.reference === ref);
+
+      historyList.querySelectorAll('.download-receipt').forEach(btn => btn.addEventListener('click', async (e) => {
+        const ref = btn.dataset.ref; const orders = readOrders(); const order = orders.find(o => o.reference === ref);
         if (!order) { toast('Order not found'); return; }
         try {
           const pdfInfo = await generateInvoiceBlobUrl(order);
-          const a = document.createElement('a'); a.href = pdfInfo.url; a.download = `Invoice-${order.reference}.pdf`; document.body.appendChild(a); a.click(); a.remove();
-          setTimeout(()=>{ try{ URL.revokeObjectURL(pdfInfo.url); }catch(e){} }, 60000);
-        } catch (err) { console.error(err); toast('Could not create PDF'); }
+          const a = document.createElement('a'); a.href = pdfInfo.url; a.download = `Invoice-${order.reference||'receipt'}.pdf`; document.body.appendChild(a); a.click(); a.remove();
+          setTimeout(()=>{ try { URL.revokeObjectURL(pdfInfo.url); } catch(e){} }, 60000);
+        } catch (err) { console.error(err); toast('Could not create PDF for download.'); }
       }));
-      historyList.querySelectorAll('.delete-order').forEach(btn => btn.addEventListener('click', (e)=>{
+
+      historyList.querySelectorAll('.delete-order').forEach(btn => btn.addEventListener('click', (e) => {
         const ref = btn.dataset.ref;
         if (!confirm('Remove this order from local history?')) return;
-        const arr = loadOrders().filter(o=>o.reference !== ref);
-        saveOrders(arr);
-        render();
-        toast('Order removed from history');
+        const newOrders = readOrders().filter(o => o.reference !== ref);
+        localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(newOrders));
+        renderHistoryList(); updateHistoryBadge(); toast('Order removed from history');
       }));
     }
 
-    historyToggle?.addEventListener('click', (e)=>{
-      e.preventDefault();
-      if (!historyModal) return;
-      const open = historyModal.classList.contains('open');
-      if (open) closeModal(historyModal);
-      else { render(); openModal(historyModal); }
-    });
+    function openHistoryModal() { renderHistoryList(); updateHistoryBadge(); openModal(historyModal); }
+    function closeHistoryModal() { closeModal(historyModal); }
 
-    $('#history-close')?.addEventListener('click', ()=> closeModal($('#history-modal')));
-    $('#history-close-bottom')?.addEventListener('click', ()=> closeModal($('#history-modal')));
-    $('#history-clear-all')?.addEventListener('click', ()=>{
+    historyToggle?.addEventListener('click', (e)=>{ e.preventDefault(); const isOpen = historyModal.classList.contains('open'); if (isOpen) closeHistoryModal(); else openHistoryModal(); });
+    historyClose?.addEventListener('click', closeHistoryModal);
+    historyCloseBottom?.addEventListener('click', closeHistoryModal);
+    historyClearAll?.addEventListener('click', ()=> {
       if (!confirm('Clear all saved purchase history from this device?')) return;
       localStorage.removeItem(STORAGE_KEYS.ORDERS);
-      render();
-      toast('Purchase history cleared');
+      renderHistoryList(); updateHistoryBadge(); toast('Purchase history cleared');
     });
 
-    render();
+    updateHistoryBadge();
+    setInterval(updateHistoryBadge, 2000);
   })();
 
-  /* ---------------------
-     Mobile nav toggle
-     ---------------------*/
-  (function mobileNav() {
-    const toggle = $('#mobile-toggle'); const nav = $('#mobile-nav');
-    if (!toggle || !nav) return;
-    toggle.addEventListener('click', (e)=> {
-      e.preventDefault();
-      nav.classList.toggle('open');
-      const open = nav.classList.contains('open');
-      nav.setAttribute('aria-hidden', open ? 'false' : 'true');
-      toggle.setAttribute('aria-expanded', String(open));
-    });
-    // close when clicking a link
-    $$('#mobile-nav a').forEach(a => a.addEventListener('click', ()=> { nav.classList.remove('open'); nav.setAttribute('aria-hidden','true'); toggle.setAttribute('aria-expanded','false'); }));
-    // ensure visibility on resize
-    window.addEventListener('resize', ()=> {
-      if (window.innerWidth > MOBILE_BREAKPOINT) { nav.classList.remove('open'); nav.setAttribute('aria-hidden','true'); toggle.setAttribute('aria-expanded','false'); }
-    });
+  /* ============= HERO SLIDER ============= */
+  (function heroInit(){
+    const slider = document.querySelector('.hero-slider'); if (!slider) return;
+    const slides = $$('.hero-slider .slide'); const dotsWrap = $('.hero-dots');
+    let idx = 0; const total = slides.length; let timer = null;
+    function show(i) {
+      slides.forEach(s=>{ s.classList.remove('active'); s.style.display='none'; });
+      slides[i].style.display=''; slides[i].classList.add('active');
+      dotsWrap.innerHTML='';
+      for (let d=0; d<total; d++){ const b=document.createElement('button'); b.className='dot'+(d===i?' active':''); b.setAttribute('aria-label',`Go to slide ${d+1}`); b.addEventListener('click',()=>{ idx=d; resetTimer(); show(idx); }); dotsWrap.appendChild(b); }
+    }
+    function next(){ idx=(idx+1)%total; show(idx); }
+    function prev(){ idx=(idx-1+total)%total; show(idx); }
+    $('.hero-next')?.addEventListener('click', (e)=>{ e.preventDefault(); resetTimer(); next(); });
+    $('.hero-prev')?.addEventListener('click', (e)=>{ e.preventDefault(); resetTimer(); prev(); });
+    function resetTimer(){ if (timer) clearInterval(timer); timer = setInterval(next, 4000); }
+    show(0); resetTimer();
   })();
 
-  /* ---------------------
-     UI fixes: footer year & newsletter binding
-     ---------------------*/
-  document.addEventListener('DOMContentLoaded', ()=> {
-    // set footer year
-    const fy = document.getElementById('footer-year');
-    if (fy) fy.textContent = new Date().getFullYear();
+  /* ============= NAV / SEARCH / UI ============= */
+  // category chips
+  $$('.category-chips .chip').forEach(chip => chip.addEventListener('click', () => {
+    const key = chip.dataset.filter;
+    if (activeFilters.ageCategory === key) { activeFilters.ageCategory = null; chip.classList.remove('active'); }
+    else { activeFilters.ageCategory = key; $$('.category-chips .chip').forEach(c=>c.classList.remove('active')); chip.classList.add('active'); }
+    renderProductsBatch(true);
+  }));
 
-    // newsletter
-    const newsletter = document.getElementById('footer-newsletter');
-    newsletter?.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const em = document.getElementById('footer-email')?.value || '';
-      if (!em || !em.includes('@')) { toast('Provide a valid email'); return; }
-      toast('Subscribed (demo). Add backend to save emails.');
-      newsletter.reset();
+  $('#search-input')?.addEventListener('input', (e)=>{ activeFilters.search = e.target.value; clearTimeout(window.__searchTimer); window.__searchTimer = setTimeout(()=>renderProductsBatch(true), 220); });
+  $('#search-clear')?.addEventListener('click', ()=>{ $('#search-input').value=''; activeFilters.search=''; renderProductsBatch(true); });
+  $('#sort-select')?.addEventListener('change', (e)=>{ activeFilters.sort = e.target.value; renderProductsBatch(true); });
+  $('#load-more')?.addEventListener('click', (e)=>{ e.preventDefault(); renderProductsBatch(false); });
+
+  // mobile nav toggle
+  (function mobileNavInit(){
+    const mobileToggle = $('#mobile-toggle'); const mobileNav = $('#mobile-nav');
+    if (!mobileToggle || !mobileNav) return;
+    function ensure() {
+      if (window.innerWidth <= MOBILE_BREAKPOINT) { mobileToggle.style.display='inline-flex'; mobileToggle.setAttribute('aria-hidden','false'); }
+      else { mobileToggle.style.display=''; mobileNav.classList.remove('open'); mobileNav.setAttribute('aria-hidden','true'); mobileToggle.setAttribute('aria-expanded','false'); }
+    }
+    ensure(); window.addEventListener('resize', ensure);
+    mobileToggle.addEventListener('click', (ev)=>{ ev.preventDefault(); const isOpen = mobileNav.classList.contains('open'); mobileNav.classList.toggle('open', !isOpen); mobileNav.setAttribute('aria-hidden', (!isOpen).toString()); mobileToggle.setAttribute('aria-expanded', (!isOpen).toString()); });
+    $$('#mobile-nav a').forEach(a => a.addEventListener('click', ()=>{ mobileNav.classList.remove('open'); mobileNav.setAttribute('aria-hidden','true'); mobileToggle.setAttribute('aria-expanded','false'); }));
+  })();
+
+  // search overlay behavior
+  (function headerSearchInit(){
+    const searchToggle = $('#search-toggle'); const searchInput = $('#search-input'); const searchWrap = document.querySelector('.search-wrap');
+    if (!searchToggle || !searchInput) return;
+    function openSearch(){ document.body.classList.add('search-open'); if (searchWrap) searchWrap.style.zIndex = 230; setTimeout(()=>searchInput.focus(),120); searchToggle.setAttribute('aria-expanded','true'); }
+    function closeSearch(){ document.body.classList.remove('search-open'); searchToggle.setAttribute('aria-expanded','false'); }
+    searchToggle.addEventListener('click', ()=>{ const is = document.body.classList.contains('search-open'); if (is) closeSearch(); else openSearch(); });
+    document.addEventListener('click', (e)=>{ if (!document.body.classList.contains('search-open')) return; const t = e.target; if (searchWrap && !searchWrap.contains(t) && !searchToggle.contains(t)) closeSearch(); });
+  })();
+
+  /* ============= CONTACT ACTIONS ============= */
+  (function contactEnhance(){
+    const actions = $$('.contact-action');
+    actions.forEach(btn => {
+      btn.addEventListener('click', (ev) => {
+        ev.preventDefault();
+        const action = btn.dataset.action;
+        const value = btn.dataset.value;
+        if (action === 'call' && value) { window.location.href = `tel:${value}`; }
+        else if (action === 'whatsapp' && value) {
+          // prepare phone for wa.me
+          const cleaned = value.replace(/\D/g,'').replace(/^0+/,''); // basic sanitization
+          // prefer international with plus stripped
+          let number = cleaned;
+          if (!number.startsWith('233') && !number.startsWith('234') && !number.startsWith('234') && number.length <= 10) {
+            // assume local GH number; don't force
+            number = cleaned;
+          }
+          try { window.open(`https://wa.me/${number}`, '_blank'); } catch(e){ window.location.href = `https://wa.me/${number}`; }
+        }
+        else if (action === 'copy' && value) {
+          navigator.clipboard?.writeText(value).then(()=> toast('Copied to clipboard'), ()=> { toast('Could not copy — select and copy manually'); });
+        }
+      });
     });
 
     // contact form
-    const contactForm = document.getElementById('contact-form');
-    contactForm?.addEventListener('submit', (e) => {
-      e.preventDefault();
-      toast('Thanks! Message sent (demo). Owner needs a backend to actually receive messages.');
-      contactForm.reset();
+    const form = $('#contact-form');
+    form?.addEventListener('submit', (ev) => {
+      ev.preventDefault(); toast('Thanks! Message sent (demo). Owner needs a backend to actually receive messages.'); form.reset();
     });
+  })();
 
-    // initial render & cart UI
-    renderProducts(true);
-    updateCartUI();
-  });
+  /* ============= SMALL INITS ============= */
+  function syncHeaderSpace() { const header = document.querySelector('.site-header'); if (!header) return; const h = header.offsetHeight || 0; document.documentElement.style.setProperty('--header-space', h + 'px'); }
+  document.addEventListener('DOMContentLoaded', () => { syncHeaderSpace(); setTimeout(syncHeaderSpace, 120); renderProductsBatch(true); updateCartUI(); });
+  window.addEventListener('resize', () => setTimeout(syncHeaderSpace, 160));
 
-  /* ---------------------
-     Expose small debug API
-     ---------------------*/
-  window._tinyThreads = {
-    getState: ()=> ({ products, cart, orders: loadOrders() }),
-    setPaystackKey: (k) => { if (!k) return; PAYSTACK_PUBLIC_KEY = k; console.log('Paystack key set'); }
-  };
+  /* Expose small debug API */
+  window._tinyThreads = { getState: ()=>({ products, cart }), setPaystackKey: (k,c)=>{ if (!k) return; /* do nothing here: key is const in this build */ console.log('setPaystackKey called (ignored in this build)'); } };
 
-  console.log('[tinythreads] script loaded — modal close + receipt preview fix applied');
+  console.log('[tinythreads] script loaded (improved modal + PDF handling). Paystack key present?', !!PAYSTACK_PUBLIC_KEY);
+
 })();
 </script>
 
