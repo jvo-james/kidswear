@@ -2003,64 +2003,7 @@ a:focus, button:focus, input:focus, select:focus, textarea:focus {
     padding-right: 6px;
   }
 
-  /* icon buttons: rounded solid background with subtle gradient */
-  .header-actions .icon-btn,
-  .header-actions .hamburger {
-    background: linear-gradient(180deg, #ffffff, #fffaf6);
-    border-radius: 12px;
-    min-width: 44px;
-    min-height: 44px;
-    padding: 8px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 8px 26px rgba(12,18,28,0.06);
-    border: 1px solid rgba(15,23,42,0.04);
-    color: var(--muted);
-  }
-
-  /* Make the icon glyphs larger and centered */
-  .header-actions .icon-btn i,
-  .header-actions .hamburger i {
-    font-size: 16px;
-    line-height: 1;
-    display: block;
-  }
-
-  /* visual emphasis on cart/history: gradient & color */
-  #cart-toggle, #history-toggle {
-    background: linear-gradient(90deg,var(--brand-1),var(--brand-2));
-    color: #fff;
-    border: 0;
-  }
-  #cart-toggle i, #history-toggle i { color: #fff; }
-
-  /* badges: smaller, neat, placed top-right of button */
-  #cart-badge, #history-badge {
-    position: relative;
-    top: -10px;
-    right: 6px;
-    transform: none;
-    min-width: 18px;
-    height: 18px;
-    font-size: 11px;
-    padding: 0 6px;
-    border-radius: 999px;
-    line-height: 18px;
-    box-shadow: 0 6px 18px rgba(12,18,28,0.08);
-    vertical-align: top;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  /* ensure cart & history icon sit closely together with hamburger to the right */
-  .header-actions #history-toggle { order: 1; }
-  .header-actions #cart-toggle    { order: 2; }
-  .header-actions #mobile-toggle, .header-actions .hamburger { order: 3; }
-
-  /* Slightly reduce header spacing to fit more items */
-  .header-inner { gap: 6px; padding-right: 8px; padding-left: 8px; }
+ 
 
   /* ------------------------
      Tweak product-card text lines (already stacked) — ensure spacing/compactness
