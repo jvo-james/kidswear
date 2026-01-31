@@ -1826,7 +1826,7 @@ a:focus, button:focus, input:focus, select:focus, textarea:focus {
    ========================= */
 @media (max-width: 720px) {
 
-
+.main-nav { display: none; }
   /* Make vertical scrollbar visible for the modal-grid specifically */
   #product-modal .modal-inner > .modal-grid::-webkit-scrollbar { width: 12px; }
 }
@@ -1875,6 +1875,233 @@ a:focus, button:focus, input:focus, select:focus, textarea:focus {
 /* END */
 
 </style>
+  <style>
+  
+
+@media (max-width: 720px) {
+
+  /* ------------------------
+     Sizes & Age Groups (chips)
+     ------------------------ */
+  .categories { padding-left: 8px; padding-right: 8px; }
+  .category-chips {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 6px 4px;
+    align-items: center;
+    scrollbar-gutter: stable both-edges;
+  }
+
+  /* small, pill-like chips that wrap/scroll gracefully */
+  .category-chips .chip {
+    flex: 0 0 auto;
+    white-space: nowrap;
+    padding: 6px 10px !important;
+    font-size: 0.85rem !important;
+    border-radius: 999px !important;
+    background: linear-gradient(90deg, rgba(255,255,255,0.96), rgba(255,255,255,0.9));
+    border: 1px solid rgba(15,23,42,0.06);
+    box-shadow: 0 6px 18px rgba(12,18,28,0.04);
+    color: var(--muted);
+    min-height: 36px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: transform 160ms ease, box-shadow 160ms ease;
+  }
+  .category-chips .chip:active,
+  .category-chips .chip:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(12,18,28,0.06); }
+
+  /* active chip visual */
+  .category-chips .chip.active {
+    background: linear-gradient(90deg, var(--brand-1), var(--brand-2));
+    color: #fff;
+    box-shadow: 0 12px 36px rgba(255,107,138,0.12);
+  }
+
+  /* make the chip icons slightly smaller to save space */
+  .category-chips .chip i { font-size: 0.92rem; line-height: 1; }
+
+  /* Minimum padding on container so chips don't sit flush to edges */
+  .container .categories { padding-inline: 6px; }
+
+  /* ------------------------
+     Product card buttons (Add / Remove / More)
+     ------------------------ */
+  .product-card .card-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    margin-top: 6px;
+  }
+
+  /* Make the small action buttons equal width, good tap target, stylish */
+  .product-card .card-actions .btn {
+    flex: 1 1 48%;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 0.92rem;
+    padding: 10px 10px;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 0 8px 22px rgba(12,18,28,0.06);
+  }
+
+  /* "Add"/"Remove" primary style */
+  .product-card .card-actions .btn.add-cart,
+  .product-card .card-actions .btn.in-cart,
+  .product-card .card-actions .btn.btn {
+    background: linear-gradient(90deg, var(--brand-1), var(--brand-2));
+    color: #fff;
+    border: 0;
+  }
+
+  /* Outline / More button */
+  .product-card .card-actions .btn.outline {
+    background: linear-gradient(180deg,#fff,#fffefc);
+    border: 1px solid rgba(15,23,42,0.06);
+    color: var(--text);
+  }
+
+  /* ensure icons inside buttons keep space and do not cause overflow */
+  .product-card .card-actions .btn i {
+    font-size: 0.95rem;
+    flex-shrink: 0;
+    line-height: 1;
+  }
+
+  /* shorten Remove width possibility: allow icon-only appearance if label overflows */
+  .product-card .card-actions .btn span,
+  .product-card .card-actions .btn .label {
+    display: inline-block;
+    max-width: calc(100% - 28px);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Slight hover/active affordance on touch devices */
+  .product-card .card-actions .btn:active { transform: translateY(1px); }
+
+  /* ------------------------
+     Header actions: history, cart, hamburger (mobile)
+     ------------------------ */
+  .header-actions {
+    display: flex !important;
+    align-items: center;
+    gap: 8px;
+    padding-left: 4px;
+    padding-right: 6px;
+  }
+
+  /* icon buttons: rounded solid background with subtle gradient */
+  .header-actions .icon-btn,
+  .header-actions .hamburger {
+    background: linear-gradient(180deg, #ffffff, #fffaf6);
+    border-radius: 12px;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 26px rgba(12,18,28,0.06);
+    border: 1px solid rgba(15,23,42,0.04);
+    color: var(--muted);
+  }
+
+  /* Make the icon glyphs larger and centered */
+  .header-actions .icon-btn i,
+  .header-actions .hamburger i {
+    font-size: 16px;
+    line-height: 1;
+    display: block;
+  }
+
+  /* visual emphasis on cart/history: gradient & color */
+  #cart-toggle, #history-toggle {
+    background: linear-gradient(90deg,var(--brand-1),var(--brand-2));
+    color: #fff;
+    border: 0;
+  }
+  #cart-toggle i, #history-toggle i { color: #fff; }
+
+  /* badges: smaller, neat, placed top-right of button */
+  #cart-badge, #history-badge {
+    position: relative;
+    top: -10px;
+    right: 6px;
+    transform: none;
+    min-width: 18px;
+    height: 18px;
+    font-size: 11px;
+    padding: 0 6px;
+    border-radius: 999px;
+    line-height: 18px;
+    box-shadow: 0 6px 18px rgba(12,18,28,0.08);
+    vertical-align: top;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* ensure cart & history icon sit closely together with hamburger to the right */
+  .header-actions #history-toggle { order: 1; }
+  .header-actions #cart-toggle    { order: 2; }
+  .header-actions #mobile-toggle, .header-actions .hamburger { order: 3; }
+
+  /* Slightly reduce header spacing to fit more items */
+  .header-inner { gap: 6px; padding-right: 8px; padding-left: 8px; }
+
+  /* ------------------------
+     Tweak product-card text lines (already stacked) — ensure spacing/compactness
+     ------------------------ */
+  .product-card .product-title { font-size: 0.98rem; line-height: 1.15; margin-bottom: 4px; }
+  .product-card .product-meta { font-size: 0.84rem; color: var(--muted); margin-bottom: 4px; }
+  .product-card .price-wrap .price { font-size: 1rem; letter-spacing: 0.2px; }
+
+  /* ------------------------
+     Accessibility & visual feedback
+     ------------------------ */
+  .category-chips .chip:focus,
+  .product-card .card-actions .btn:focus,
+  .header-actions .icon-btn:focus {
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(110,231,183,0.14);
+  }
+
+  /* ------------------------
+     Prevent accidental overflow from long product names or badges
+     ------------------------ */
+  .product-card .product-title,
+  .product-card .product-meta,
+  .product-card .price-wrap,
+  .product-card .card-actions .btn {
+    min-width: 0;
+  }
+
+ 
+  .product-card .card-actions .btn.in-cart {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+  .product-card .card-actions .btn.in-cart span { display:none; }
+  .product-card .card-actions .btn.in-cart::after {
+    content: "\f2ed"; font-family: "Font Awesome 6 Free"; font-weight: 900; margin-left:0;
+  }
+  */
+}
+
+  </style>
 </head>
 <body>
   <!-- SITE HEADER -->
@@ -1929,9 +2156,7 @@ a:focus, button:focus, input:focus, select:focus, textarea:focus {
     <li><a href="#contact"><i class="fa fa-envelope"></i> Contact</a></li>
     <li><a href="#about"><i class="fa fa-info-circle"></i> About</a></li>
   </ul>
-  <div class="mobile-nav-footer">
-    <a class="btn tiny" href="#"><i class="fa fa-user"></i> Admin</a>
-  </div>
+
 </nav>
 
   </header>
