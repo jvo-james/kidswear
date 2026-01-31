@@ -13,32 +13,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <!-- STYLE: full page styles (place inside <head> or a CSS file) -->
 
-<!-- Firebase (compat) - add this near the top of <head> BEFORE your app script -->
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 
-<script>
-  // ---------- REPLACE with your Firebase config (copy from Firebase console) ----------
-  const FIREBASE_CONFIG = {  
-    apiKey: "AIzaSyDkMmXNchhrC_Mfhwvqy7iSGOl-MABroJw",
-    authDomain: "kidswear-ad8ca.firebaseapp.com",
-    databaseURL: "https://kidswear-ad8ca-default-rtdb.firebaseio.com",
-    projectId: "kidswear-ad8ca",
-    storageBucket: "kidswear-ad8ca.firebasestorage.app",
-    messagingSenderId: "784273336752",
-    appId: "1:784273336752:web:fc82385f63b3ef50d74e75",
-    measurementId: "G-32FT2N7BGG"
-  };
-  if (!window.firebase || !firebase.apps) {
-    console.error('Firebase SDK load issue?');
-  }
-  if (!firebase.apps.length) {
-    firebase.initializeApp(FIREBASE_CONFIG);
-  }
-  const db = firebase.database();
-  const auth = firebase.auth();
-</script>
 
 
 <style>
@@ -1624,15 +1599,17 @@ body.search-open #search-clear {
   'use strict';
 
   /* ======================= CONFIG ======================= */
-  const PAYSTACK_PUBLIC_KEY = 'pk_test_297586e51710e83d3c159bfe71ff45c7e23411fa';
-  const STORAGE_KEYS = { PRODUCTS: 'tiny_products_v1', CART: 'tiny_cart_v1', ORDERS: 'tiny_orders_v1' };
+let PAYSTACK_PUBLIC_KEY = 'pk_test_297586e51710e83d3c159bfe71ff45c7e23411fa';
+  // The app will charge ONLY in Ghana cedis (GHS). Symbol used in UI:
+  let PAYSTACK_CURRENCY = 'GHS';
+  let CURRENCY_SYMBOL = '₵';  const STORAGE_KEYS = { PRODUCTS: 'tiny_products_v1', CART: 'tiny_cart_v1', ORDERS: 'tiny_orders_v1' };
   const LOAD_BATCH = 10;
   const MOBILE_BREAKPOINT = 720;
 
   /* ======================= HELPERS ======================= */
   const $ = (sel, el = document) => el.querySelector(sel);
   const $$ = (sel, el = document) => Array.from(el.querySelectorAll(sel));
-  const formatPrice = (p) => `₵${Number(p || 0).toFixed(2)}`;
+ const formatPrice = (p) => `${CURRENCY_SYMBOL}${Number(p || 0).toFixed(2)}`;
   const nowISO = () => new Date().toISOString();
 
   function toast(msg, timeout = 2500) {
@@ -2183,6 +2160,7 @@ body.search-open #search-clear {
         key: PAYSTACK_PUBLIC_KEY,
         email: email,
         amount: amountMinor,
+       currency: PAYSTACK_CURRENCY,
         metadata: {
           custom_fields: [
             { display_name: "Buyer name", variable_name: "buyer_name", value: name },
@@ -2198,7 +2176,7 @@ body.search-open #search-clear {
           closeCheckoutModal();
         }
       });
-      handler.openIframe();
+     handler.openIframe();
     } catch (err) {
       console.error('Failed to start Paystack transaction', err);
       toast('Could not start transaction — check console.');
@@ -2261,10 +2239,11 @@ body.search-open #search-clear {
 
     try {
       const amountMinor = Math.round(total * 100);
-      const handler = PaystackPop.setup({
+     const handler = PaystackPop.setup({
         key: PAYSTACK_PUBLIC_KEY,
         email,
         amount: amountMinor,
+        currency: PAYSTACK_CURRENCY,
         metadata: {
           custom_fields: [
             { display_name: "Buyer name", variable_name: "buyer_name", value: name },
@@ -2698,7 +2677,15 @@ body.search-open #search-clear {
   /* Expose minimal debugging utilities */
   window._tinyThreads = {
     getState: () => ({ products, cart }),
-    setPaystackKey: (k) => { if (k) { console.log('[app] overriding paystack key (dev)'); /* eslint-disable-next-line no-unused-expressions */ (PAYSTACK_PUBLIC_KEY = k); } }
+   setPaystackKey: (k, currency) => {
+      if (!k) return;
+      PAYSTACK_PUBLIC_KEY = k;
+      if (currency) {
+        PAYSTACK_CURRENCY = String(currency).toUpperCase();
+        CURRENCY_SYMBOL = (PAYSTACK_CURRENCY === 'GHS') ? '₵' : (PAYSTACK_CURRENCY === 'NGN' ? '₦' : '');
+      }
+      console.log('[tinythreads] Paystack key and currency overridden (dev). Currency:', PAYSTACK_CURRENCY);
+    }
   };
 
   console.log('[tinythreads] consolidated script initialized (Paystack key present? ', !!PAYSTACK_PUBLIC_KEY, ')');
