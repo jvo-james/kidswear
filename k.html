@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title> Valentine's Packages</title>
+  <title> April Blossoms</title>
 
   <!-- Font & Icons -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -785,7 +785,17 @@ input, textarea, select{
   }
   function saveCart() {
     localStorage.setItem(CONFIG.localKeys.cart, JSON.stringify(state.cart));
-    updateCartUI();
+    // update visible UI with the canonical functions we have
+    try {
+      renderCartItems();
+      updateCartTotals();
+      updateCartBadge();
+    } catch (err) {
+      // If something unexpected happens, log it but don't crash the app
+      // (this prevents UI update errors from bubbling up)
+      // eslint-disable-next-line no-console
+      console.warn('saveCart UI update error', err);
+    }
   }
   function clearCart() {
     state.cart = [];
