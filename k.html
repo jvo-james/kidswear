@@ -607,10 +607,9 @@ input, textarea, select{
           <h4 style="margin-top:0">Payments & trust</h4>
           <p style="margin:0 0 8px 0;color:rgba(255,255,255,0.9)">Secure payments via Paystack</p>
           <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
-            <img src="paystack.svg" alt="Paystack" style="height:36px" />
-            <img src="visa.svg" alt="Visa" style="height:24px" />
-            <img src="mastercard.svg" alt="Mastercard" style="height:24px" />
-          </div>
+           <img src="paystack.svg" alt="Paystack" style="height:36px" onerror="this.style.display='none'" />
+           <img src="visa.svg" alt="Visa" style="height:24px" onerror="this.style.display='none'" />
+            <img src="mastercard.svg" alt="Mastercard" style="height:24px" onerror="this.style.display='none'" />          </div>
 
           <h4 style="margin:8px 0 6px 0">Follow</h4>
           <div style="display:flex;gap:8px">
@@ -668,8 +667,14 @@ input, textarea, select{
   const fmt = (n) => `${CONFIG.currencySymbol} ${Number(n).toFixed(2)}`;
   const nowISO = () => new Date().toISOString();
 
-  function safeParseJSON(s, fallback) {
-    try { return JSON.parse(s); } catch (e) { return fallback; }
+   function safeParseJSON(s, fallback) {
+    try {
+      const parsed = JSON.parse(s);
+      // JSON.parse(null) -> null, we want fallback in that case
+      return (parsed === null) ? fallback : parsed;
+    } catch (e) {
+      return fallback;
+    }
   }
 
   function showToast(msg, opts = {}) {
@@ -803,7 +808,8 @@ input, textarea, select{
 
   function loadHistory() {
     const raw = localStorage.getItem(CONFIG.localKeys.history);
-    return safeParseJSON(raw, []);
+    const parsed = safeParseJSON(raw, []);
+    return Array.isArray(parsed) ? parsed : [];
   }
   function saveHistory() {
     localStorage.setItem(CONFIG.localKeys.history, JSON.stringify(state.history));
