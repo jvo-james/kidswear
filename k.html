@@ -642,9 +642,7 @@ input, textarea, select{
 
   </div>
 
-  <!-- END BODY -->
-</body>
-<script>
+ <script>
 (() => {
   /* =========================
      CONFIG
@@ -781,7 +779,8 @@ input, textarea, select{
      ========================= */
   function loadCart() {
     const raw = localStorage.getItem(CONFIG.localKeys.cart);
-    return safeParseJSON(raw, []);
+   const parsed = safeParseJSON(raw, []);
+   return Array.isArray(parsed) ? parsed : [];
   }
   function saveCart() {
     localStorage.setItem(CONFIG.localKeys.cart, JSON.stringify(state.cart));
@@ -1562,12 +1561,7 @@ input, textarea, select{
     init();
   }
 
-  /* =========================
-     SMALL EXTRA HELPERS
-     ========================= */
-  // Quick HTML-escape available globally inside script
-  function escapeHtml(s='') { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-
+ 
   // Expose some helpers to window for debugging in dev
   window.AB = {
     state,
@@ -1584,5 +1578,7 @@ input, textarea, select{
 
 })();
 </script>
+</body>
+
 
 </html>
