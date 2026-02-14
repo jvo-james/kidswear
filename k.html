@@ -3687,30 +3687,29 @@ main{
   <!-- Accessibility helpers -->
   <div class="sr-only" aria-live="polite" id="a11yLive"></div>
 
-
 <script>
 /* =========================
-   April Blossoms — Complete Script (REPLACE entire previous <script> block)
-   - Full feature parity with robust image fallback
-   - No external changes required; paste this in place of your old script block
+   April Blossoms — Robust Inline Script
+   Replace your existing <script> block with this entire block.
+   - Defensive: handles missing elements and blocked resources gracefully
+   - Image-safe: uses repository-root filenames (no folder required)
+   - Debug-friendly: logs key lifecycle events to console
    ========================= */
 (function () {
   "use strict";
 
-  /* -------------
+  console.info("April Blossoms script initializing —", new Date().toISOString());
+
+  /* =============
      CONFIG
-  ------------- */
+     - Edit these values if needed.
+     ============= */
   const PAYSTACK_PUBLIC_KEY = window.PAYSTACK_PUBLIC_KEY || "PASTE_YOUR_PAYSTACK_PUBLIC_KEY_HERE";
   const FORMSPREE_ENDPOINT = window.FORMSPREE_ENDPOINT || "PASTE_YOUR_FORMSPREE_ENDPOINT_HERE";
   const STORE_CURRENCY = "GHS";
   const STORE_CURRENCY_SYMBOL = "₵";
-
-  // contact defaults (update if you like)
-  const CONTACT = {
-    phone: "+233000000000",
-    whatsapp: "233000000000",
-    email: "hello@aprilblossoms.shop",
-  };
+  // Images in repo root; change to "./images/" if you later move them to a folder.
+  const IMAGE_PATH_PREFIX = "";
 
   const DELIVERY_FEES = { standard: 15, express: 30, pickup: 0 };
   const PROMOS = [
@@ -3719,7 +3718,17 @@ main{
     { code: "FREESHIP", type: "ship", value: 0 },
   ];
 
-const IMAGE_PATH_PREFIX = (typeof window.IMAGE_PATH_PREFIX !== "undefined") ? window.IMAGE_PATH_PREFIX : "./";
+  // CONTACT defaults for receipts
+  const CONTACT = {
+    phone: "+233000000000",
+    whatsapp: "233000000000",
+    email: "hello@aprilblossoms.shop",
+  };
+
+  /* =============
+     PRODUCTS (50 items)
+     - Uses repository-root filenames (no folder). Keep filenames exact.
+     ============= */
   const PRODUCTS = [
     { id: "DRESS-001", title: "Floral Ruffles", price: 40.0, description: "One-of-a-kind floral ruffle dress", sizes: ["4","5"], ageCategory: "4-5", images: ["IMG_5700.JPG","IMG_5700.JPG"], available: true, createdAt: new Date(Date.now()-1*86400000).toISOString() },
     { id: "DRESS-002", title: "Sunshine Dress", price: 30.0, description: "Bright yellow play dress", sizes: ["6","7"], ageCategory: "4-5", images: ["IMG_5701.JPG"], available: true, createdAt: new Date(Date.now()-2*86400000).toISOString() },
@@ -3777,62 +3786,44 @@ const IMAGE_PATH_PREFIX = (typeof window.IMAGE_PATH_PREFIX !== "undefined") ? wi
     { id: "DRESS-050", title: "Pocket Garden", price: 40.0, description: "Playful pockets and cotton", sizes: ["10","12"], ageCategory: "4-5", images: ["IMG_5748.JPG"], available: true, createdAt: new Date(Date.now()-50*86400000).toISOString() }
   ];
 
-  /* -------------
+  /* =============
      UTILITIES
-  ------------- */
+     ============= */
   const $ = (sel, root = document) => root.querySelector(sel);
   const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
   const money = (n) => `${STORE_CURRENCY_SYMBOL}${Number(n || 0).toFixed(2)}`;
   const nowISO = () => new Date().toISOString();
   const uid = () => "AB-" + Math.random().toString(16).slice(2).toUpperCase() + "-" + Date.now().toString(36).toUpperCase();
   const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
+  function escapeHTML(str) { return String(str ?? "").replace(/[&<>"']/g, (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m])); }
 
-  function escapeHTML(str) {
-    return String(str ?? "").replace(/[&<>"']/g, (m) => ({
-      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
-    }[m]));
-  }
-
-  function setA11yLive(msg) {
-    const el = $("#a11yLive");
-    if (!el) return;
-    // Clear then set to force screen-readers to notice repeated messages
-    el.textContent = "";
-    setTimeout(() => { el.textContent = String(msg || ""); }, 50);
-  }
-  
-  const placeholderSVG = (() => {
-    // base64 inline SVG placeholder returned as data URI
-    const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='800' height='1000' viewBox='0 0 800 1000'>
-      <rect width='100%' height='100%' fill='#f8f6ff'/>
-      <g fill='#efe8ff' transform='translate(80 60)'>
-        <circle cx='120' cy='120' r='120'/>
-        <rect x='0' y='300' width='640' height='480' rx='18' />
-      </g>
-      <text x='50%' y='95%' font-family='Arial' font-size='24' fill='#bdb7ef' text-anchor='middle'>Image not available</text>
-    </svg>`;
+  // inline SVG placeholder (base64)
+  const placeholderSVG = (function () {
+    const svg = "<svg xmlns='http://www.w3.org/2000/svg' width='800' height='1000' viewBox='0 0 800 1000'><rect width='100%' height='100%' fill='#f8f6ff'/><g fill='#efe8ff' transform='translate(80 60)'><circle cx='120' cy='120' r='120'/><rect x='0' y='300' width='640' height='480' rx='18' /></g><text x='50%' y='95%' font-family='Arial' font-size='24' fill='#bdb7ef' text-anchor='middle'>Image not available</text></svg>";
     return "data:image/svg+xml;base64," + btoa(svg);
   })();
 
-   function safeImageUrl(fn) {
-    // If nothing provided, use inline placeholder.
-    if (!fn) return placeholderSVG;
-    if (typeof fn !== "string") return placeholderSVG;
-
-    // Full URLs, data URIs, or absolute paths pass through unchanged.
-    if (fn.startsWith("http://") || fn.startsWith("https://") || fn.startsWith("data:") || fn.startsWith("/")) {
-      return fn;
-    }
-
-    // Use IMAGE_PATH_PREFIX (fallback to "./" if not set).
-    const prefix = (typeof IMAGE_PATH_PREFIX !== "undefined" && IMAGE_PATH_PREFIX !== null) ? IMAGE_PATH_PREFIX : "./";
-    return prefix + fn;
+  function safeImageUrl(filename) {
+    if (!filename) return placeholderSVG;
+    // if already absolute or data: or starts with slash, use as-is
+    if (/^(https?:\/\/|data:|\/)/i.test(filename)) return filename;
+    return IMAGE_PATH_PREFIX + filename;
   }
 
+  // global image error handler: fall back to placeholder
+  document.addEventListener("error", (ev) => {
+    const t = ev.target;
+    if (t && t.tagName === "IMG") {
+      if (!t.dataset.fallbackSet) {
+        t.dataset.fallbackSet = "1";
+        t.src = placeholderSVG;
+      }
+    }
+  }, true);
 
-  /* -------------
-     LOCAL STORAGE KEYS + STATE
-  ------------- */
+  /* =============
+     LOCAL STORAGE & STATE
+     ============= */
   const LS = {
     cart: "ab_cart_v1",
     saved: "ab_saved_v1",
@@ -3863,171 +3854,41 @@ const IMAGE_PATH_PREFIX = (typeof window.IMAGE_PATH_PREFIX !== "undefined") ? wi
       localStorage.setItem(LS.customer, JSON.stringify(state.customer));
       localStorage.setItem(LS.sold, JSON.stringify(Array.from(state.soldIds)));
     } catch (e) {
-      // ignore storage errors
-      console.warn("Could not persist state", e);
+      console.warn("Persistence failed:", e);
     }
   }
 
-  /* -------------
-     IMAGE FAILURE HANDLING
-     - Global handler for <img> errors
-     - Also preloads background images used in hero slides and fixes them if missing
-  ------------- */
-  document.addEventListener("error", (ev) => {
-    const t = ev.target;
-    if (t && t.tagName === "IMG") {
-      // prevent infinite loop if placeholder also errors
-      if (!t.dataset.fallbackSet) {
-        t.dataset.fallbackSet = "1";
-        t.src = placeholderSVG;
-      }
-    }
-  }, true);
-
-  function ensureHeroBackgrounds() {
-    const slides = $$(".hero-slide");
-    slides.forEach(slide => {
-      // read style --bg (expected like: url('hero-1.jpg'))
-      const raw = (slide.style && slide.style.getPropertyValue("--bg")) || getComputedStyle(slide).getPropertyValue("--bg");
-      const urlMatch = raw && raw.match(/url\((['"]?)(.*?)\1\)/);
-      const url = urlMatch ? urlMatch[2] : null;
-      if (!url) {
-        // fallback: try data-attr or first img inside slide
-        const img = slide.querySelector("img");
-        const fallback = img ? (img.src || img.getAttribute("src")) : null;
-        if (fallback) slide.style.setProperty("--bg", `url("${fallback}")`);
-        else slide.style.setProperty("--bg", `url("${placeholderSVG}")`);
-        return;
-      }
-      // preload to check existence
-      const img = new Image();
-      img.onload = () => { /* OK */ };
-      img.onerror = () => {
-        slide.style.setProperty("--bg", `url("${placeholderSVG}")`);
-      };
-      img.src = safeImageUrl(url);
-    });
-  }
-
-  /* -------------
-     MODALS & DRAWERS
-  ------------- */
-  function openModal(id) {
-    const m = document.getElementById(id);
-    if (!m) return;
-    m.classList.add("open");
-    m.setAttribute("aria-hidden", "false");
-    document.body.classList.add("modal-open");
-    const focusable = m.querySelector("button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])");
-    focusable && focusable.focus({ preventScroll: true });
-  }
-  function closeModal(id) {
-    const m = document.getElementById(id);
-    if (!m) return;
-    m.classList.remove("open");
-    m.setAttribute("aria-hidden", "true");
-    document.body.classList.remove("modal-open");
-  }
-  function openDrawer(id) {
-    const d = document.getElementById(id);
-    if (!d) return;
-    d.classList.add("open");
-    d.setAttribute("aria-hidden", "false");
-    document.body.classList.add("drawer-open");
-  }
-  function closeDrawer(id) {
-    const d = document.getElementById(id);
-    if (!d) return;
-    d.classList.remove("open");
-    d.setAttribute("aria-hidden", "true");
-    document.body.classList.remove("drawer-open");
-  }
-  function closeAllOverlays() {
-    $$(".modal.open").forEach(m => closeModal(m.id));
-    $$(".cart-drawer.open").forEach(d => closeDrawer(d.id));
-  }
-
-  document.addEventListener("click", (e) => {
-    const openM = e.target.closest("[data-open-modal]");
-    const closeM = e.target.closest("[data-close-modal]");
-    const openD = e.target.closest("[data-open-drawer]");
-    const closeD = e.target.closest("[data-close-drawer]");
-
-    if (openM) { e.preventDefault(); openModal(openM.getAttribute("data-open-modal")); }
-    if (closeM) { e.preventDefault(); closeModal(closeM.getAttribute("data-close-modal")); }
-    if (openD) { e.preventDefault(); openDrawer(openD.getAttribute("data-open-drawer")); if (openD.getAttribute("data-open-drawer")==="cartDrawer") renderCart(); }
-    if (closeD) { e.preventDefault(); closeDrawer(closeD.getAttribute("data-close-drawer")); }
-  });
-
-  document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeAllOverlays(); });
-
-  /* -------------
-     HERO SLIDER
-  ------------- */
-  function initHero() {
-    const slider = $("[data-hero-slider]");
-    if (!slider) return;
-    const slides = $$(".hero-slide", slider);
-    const dots = $$("[data-hero-dot]");
-    const prev = $("[data-hero-prev]");
-    const next = $("[data-hero-next]");
-    let i = 0;
-    let timer = null;
-
-    function show(idx) {
-      i = (idx + slides.length) % slides.length;
-      slides.forEach((s, k) => {
-        const active = k === i;
-        s.classList.toggle("is-active", active);
-        s.setAttribute("aria-hidden", active ? "false" : "true");
-      });
-      dots.forEach((d, k) => d.classList.toggle("is-active", k === i));
-    }
-
-    function start() { stop(); timer = setInterval(() => show(i + 1), 5500); }
-    function stop() { if (timer) clearInterval(timer); timer = null; }
-
-    prev && prev.addEventListener("click", () => { show(i - 1); start(); });
-    next && next.addEventListener("click", () => { show(i + 1); start(); });
-    dots.forEach(d => d.addEventListener("click", () => { show(Number(d.dataset.heroDot)); start(); }));
-
-    slider.addEventListener("mouseenter", stop);
-    slider.addEventListener("mouseleave", start);
-
-    show(0);
-    start();
-  }
-
-  /* -------------
-     PRODUCT RENDERING
-  ------------- */
+  /* =============
+     DOM refs
+     ============= */
   const productsGrid = $("#productsGrid");
   const showMoreBtn = $("#showMoreBtn");
   const showLessBtn = $("#showLessBtn");
+  const cartCountEl = $("#cartCount");
+  const savedCountEl = $("#savedCount");
+  const historyCountEl = $("#historyCount");
 
-  function isSold(id) {
-    return state.soldIds.has(id);
-  }
-  function canAddToCart(id) {
-    if (isSold(id)) return false;
-    return !state.cart.find(x => x.id === id);
-  }
+  /* =============
+     HELPERS: PRODUCTS & FILTERS
+     ============= */
+  function isSold(id) { return state.soldIds.has(id); }
+  function productById(id) { return PRODUCTS.find(p => p.id === id); }
 
   function getFilteredProducts() {
     let list = PRODUCTS.map(p => ({ ...p, available: p.available && !isSold(p.id) }));
     const f = state.filter;
 
+    // quick chips
     if (f.quick === "available") list = list.filter(p => p.available);
     if (f.quick === "under50") list = list.filter(p => p.price < 50);
     if (f.quick === "premium") list = list.filter(p => p.price >= 60);
     if (f.quick === "age-4-5") list = list.filter(p => p.ageCategory === "4-5");
     if (f.quick === "age-7-8") list = list.filter(p => p.ageCategory === "7-8");
 
+    // advanced filters
     if (f.availableOnly) list = list.filter(p => p.available);
-
     if (f.priceMin != null && !Number.isNaN(Number(f.priceMin))) list = list.filter(p => p.price >= Number(f.priceMin));
     if (f.priceMax != null && !Number.isNaN(Number(f.priceMax))) list = list.filter(p => p.price <= Number(f.priceMax));
-
     if (f.ageCat && f.ageCat !== "all") list = list.filter(p => p.ageCategory === f.ageCat);
 
     if (f.query && f.query.trim()) {
@@ -4040,36 +3901,29 @@ const IMAGE_PATH_PREFIX = (typeof window.IMAGE_PATH_PREFIX !== "undefined") ? wi
       );
     }
 
-    if (state.sort === "newest") {
-      list.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-    } else if (state.sort === "priceLow") {
-      list.sort((a, b) => a.price - b.price);
-    } else if (state.sort === "priceHigh") {
-      list.sort((a, b) => b.price - a.price);
-    }
+    if (state.sort === "newest") list.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    else if (state.sort === "priceLow") list.sort((a, b) => a.price - b.price);
+    else if (state.sort === "priceHigh") list.sort((a, b) => b.price - a.price);
 
     return list;
   }
 
+  /* =============
+     RENDER: PRODUCTS
+     ============= */
   function renderProducts() {
-    if (!productsGrid) return;
+    if (!productsGrid) { console.warn("#productsGrid not found"); return; }
     productsGrid.setAttribute("aria-busy", "false");
     productsGrid.innerHTML = "";
 
     const list = getFilteredProducts();
     const limited = list.slice(0, state.viewLimit);
 
+    // pagination buttons
     if (showMoreBtn && showLessBtn) {
-      if (list.length > 12 && state.viewLimit <= 12) {
-        showMoreBtn.classList.remove("is-hidden");
-        showLessBtn.classList.add("is-hidden");
-      } else if (list.length > 12 && state.viewLimit > 12) {
-        showMoreBtn.classList.add("is-hidden");
-        showLessBtn.classList.remove("is-hidden");
-      } else {
-        showMoreBtn.classList.add("is-hidden");
-        showLessBtn.classList.add("is-hidden");
-      }
+      if (list.length > 12 && state.viewLimit <= 12) { showMoreBtn.classList.remove("is-hidden"); showLessBtn.classList.add("is-hidden"); }
+      else if (list.length > 12 && state.viewLimit > 12) { showMoreBtn.classList.add("is-hidden"); showLessBtn.classList.remove("is-hidden"); }
+      else { showMoreBtn.classList.add("is-hidden"); showLessBtn.classList.add("is-hidden"); }
     }
 
     if (!limited.length) {
@@ -4081,13 +3935,16 @@ const IMAGE_PATH_PREFIX = (typeof window.IMAGE_PATH_PREFIX !== "undefined") ? wi
           <button class="btn btn-primary" type="button" id="resetAllBtn">Reset</button>
         </div>
       `;
-      $("#resetAllBtn")?.addEventListener("click", () => {
-        state.filter = { quick: "all", availableOnly: false, priceMin: null, priceMax: null, ageCat: "all", query: "" };
-        state.sort = "newest";
-        state.viewLimit = 12;
-        renderProducts();
-        renderSearchResults("");
-      });
+      setTimeout(() => {
+        const resetBtn = $("#resetAllBtn");
+        if (resetBtn) resetBtn.addEventListener("click", () => {
+          state.filter = { quick: "all", availableOnly: false, priceMin: null, priceMax: null, ageCat: "all", query: "" };
+          state.sort = "newest";
+          state.viewLimit = 12;
+          renderProducts();
+          renderSearchResults("");
+        });
+      }, 40);
       return;
     }
 
@@ -4095,138 +3952,108 @@ const IMAGE_PATH_PREFIX = (typeof window.IMAGE_PATH_PREFIX !== "undefined") ? wi
       const sold = !p.available;
       const saved = state.saved.includes(p.id);
       const inCart = state.cart.some(x => x.id === p.id);
-      const img = (p.images && p.images[0]) ? safeImageUrl(p.images[0]) : safeImageUrl("hero-1.jpg");
+      const imgSrc = (p.images && p.images[0]) ? safeImageUrl(p.images[0]) : safeImageUrl("hero-1.jpg");
 
       const card = document.createElement("article");
       card.className = `product-card ${sold ? "is-sold" : ""}`;
       card.setAttribute("data-product-id", p.id);
 
-      card.innerHTML = `
-        <div class="pc-media">
-          <img src="${escapeHTML(img)}" alt="${escapeHTML(p.title)}" loading="lazy">
-          <div class="pc-badges">
-            <span class="badge-pill">${escapeHTML(p.id)}</span>
-            <span class="badge-pill">${escapeHTML("Age " + p.ageCategory)}</span>
-            ${sold ? `<span class="badge-pill danger">Sold</span>` : `<span class="badge-pill success">1 left</span>`}
-          </div>
+      // Build innerHTML carefully to avoid template issues
+      card.innerHTML = ""
+        + '<div class="pc-media">'
+        +   `<img src="${escapeHTML(imgSrc)}" alt="${escapeHTML(p.title)}" loading="eager">`
+        +   '<div class="pc-badges">'
+        +     `<span class="badge-pill">${escapeHTML(p.id)}</span>`
+        +     `<span class="badge-pill">${escapeHTML("Age " + p.ageCategory)}</span>`
+        +     (sold ? `<span class="badge-pill danger">Sold</span>` : `<span class="badge-pill success">1 left</span>`)
+        +   '</div>'
+        +   `<button class="pc-icon pc-save ${saved ? "is-active" : ""}" type="button" data-action="toggle-save" aria-label="Save item">`
+        +     `<i class="fa-${saved ? "solid" : "regular"} fa-bookmark" aria-hidden="true"></i>`
+        +   `</button>`
+        +   `<button class="pc-icon pc-quick" type="button" data-action="quick-view" aria-label="Quick view">`
+        +     '<i class="fa-solid fa-eye" aria-hidden="true"></i>'
+        +   `</button>`
+        + '</div>'
+        + '<div class="pc-body">'
+        +   `<h3 class="pc-title">${escapeHTML(p.title)}</h3>`
+        +   `<p class="pc-desc">${escapeHTML(p.description)}</p>`
+        +   '<div class="pc-row">'
+        +     `<p class="pc-price">${money(p.price)}</p>`
+        +     `<p class="pc-mini">${sold ? "Unavailable" : "Ready to ship"}</p>`
+        +   '</div>'
+        +   '<div class="pc-actions">'
+        +     `<button class="btn btn-primary btn-wide" type="button" data-action="add-to-cart" ${sold || inCart ? "disabled" : ""}>`
+        +       '<i class="fa-solid fa-bag-shopping" aria-hidden="true"></i>'
+        +       `${sold ? "Sold Out" : inCart ? "In Cart" : "Add to Cart"}`
+        +     '</button>'
+        +     `<button class="btn btn-ghost" type="button" data-action="buy-now" ${sold ? "disabled" : ""}>`
+        +       '<i class="fa-solid fa-bolt" aria-hidden="true"></i>'
+        +       'Buy'
+        +     '</button>'
+        +   '</div>'
+        + '</div>';
 
-          <button class="pc-icon pc-save ${saved ? "is-active" : ""}" type="button" data-action="toggle-save" aria-label="Save item">
-            <i class="fa-${saved ? "solid" : "regular"} fa-bookmark" aria-hidden="true"></i>
-          </button>
-
-          <button class="pc-icon pc-quick" type="button" data-action="quick-view" aria-label="Quick view">
-            <i class="fa-solid fa-eye" aria-hidden="true"></i>
-          </button>
-        </div>
-
-        <div class="pc-body">
-          <h3 class="pc-title">${escapeHTML(p.title)}</h3>
-          <p class="pc-desc">${escapeHTML(p.description)}</p>
-
-          <div class="pc-row">
-            <p class="pc-price">${money(p.price)}</p>
-            <p class="pc-mini">${sold ? "Unavailable" : "Ready to ship"}</p>
-          </div>
-
-          <div class="pc-actions">
-            <button class="btn btn-primary btn-wide" type="button" data-action="add-to-cart" ${sold || inCart ? "disabled" : ""}>
-              <i class="fa-solid fa-bag-shopping" aria-hidden="true"></i>
-              ${sold ? "Sold Out" : inCart ? "In Cart" : "Add to Cart"}
-            </button>
-
-            <button class="btn btn-ghost" type="button" data-action="buy-now" ${sold ? "disabled" : ""}>
-              <i class="fa-solid fa-bolt" aria-hidden="true"></i>
-              Buy
-            </button>
-          </div>
-        </div>
-      `;
-
-      // attach image error fallback
+      // attach image fallback
       const imgEl = card.querySelector("img");
       if (imgEl) {
-        imgEl.addEventListener("error", () => { imgEl.src = placeholderSVG; });
+        imgEl.addEventListener("error", () => { try { imgEl.src = placeholderSVG; } catch (e) { /* ignore */ } });
       }
 
       productsGrid.appendChild(card);
     });
 
-    // Update stats
-    $("#statTotal") && ($("#statTotal").textContent = String(PRODUCTS.length));
-    const availableNow = PRODUCTS.filter(p => p.available && !isSold(p.id)).length;
-    $("#statAvailable") && ($("#statAvailable").textContent = String(availableNow));
+    // update stats
+    try {
+      const totalEl = $("#statTotal");
+      if (totalEl) totalEl.textContent = String(PRODUCTS.length);
+      const availableNow = PRODUCTS.filter(p => p.available && !isSold(p.id)).length;
+      const availEl = $("#statAvailable");
+      if (availEl) availEl.textContent = String(availableNow);
+    } catch (e) { /* ignore */ }
   }
 
-  function productById(id) { return PRODUCTS.find(p => p.id === id); }
-
-  /* -------------
-     CART LOGIC
-  ------------- */
-  const cartCountEl = $("#cartCount");
-  const savedCountEl = $("#savedCount");
-  const historyCountEl = $("#historyCount");
-
+  /* =============
+     BADGES, CART & SAVED
+     ============= */
   function cartItemCount() { return state.cart.reduce((sum, it) => sum + (it.qty || 1), 0); }
 
   function renderBadges() {
-    if (cartCountEl) cartCountEl.textContent = String(cartItemCount());
-    if (savedCountEl) savedCountEl.textContent = String(state.saved.length);
-    if (historyCountEl) historyCountEl.textContent = String(state.history.reduce((sum, h) => sum + (h.items?.length || 0), 0));
+    try {
+      if (cartCountEl) cartCountEl.textContent = String(cartItemCount());
+      if (savedCountEl) savedCountEl.textContent = String(state.saved.length);
+      if (historyCountEl) historyCountEl.textContent = String(state.history.reduce((sum, h) => sum + (h.items?.length || 0), 0));
+    } catch (e) { console.warn("renderBadges error", e); }
   }
 
-  function addToCart(id) {
-    const p = productById(id);
-    if (!p) return;
-    if (isSold(id)) { toast("Sorry—this item has already been purchased.", "error"); renderProducts(); return; }
-    if (!canAddToCart(id)) { toast("This item is already in your cart (one-off item).", "info"); return; }
-    state.cart.push({ id: p.id, qty: 1, addedAt: nowISO() });
-    persist();
-    renderBadges();
-    renderCart();
-    renderProducts();
-    toast(`Added “${p.title}” to cart.`, "success");
-    setA11yLive(`Added ${p.title} to cart.`);
-  }
-  function removeFromCart(id) {
-    state.cart = state.cart.filter(x => x.id !== id);
-    persist();
-    renderBadges();
-    renderCart();
-    renderProducts();
-  }
-  function clearCart() {
-    state.cart = [];
-    state.appliedPromo = null;
-    persist();
-    renderBadges();
-    renderCart();
-    toast("Cart cleared.", "info");
-  }
-  function toggleSave(id) {
-    const i = state.saved.indexOf(id);
-    if (i >= 0) state.saved.splice(i, 1); else state.saved.push(id);
-    persist();
-    renderBadges();
-    renderProducts();
-    renderSaved();
+  function renderSaved() {
+    const list = $("#savedList");
+    const empty = $("#savedEmpty");
+    if (!list) return;
+    if (!state.saved.length) {
+      empty && empty.classList.remove("is-hidden");
+      list.innerHTML = "";
+      list.appendChild(empty);
+      return;
+    }
+    empty && empty.classList.add("is-hidden");
+    list.innerHTML = "";
+    state.saved.forEach(id => {
+      const p = productById(id);
+      if (!p) return;
+      const sold = isSold(id) || !p.available;
+      const img = (p.images && p.images[0]) ? safeImageUrl(p.images[0]) : placeholderSVG;
+      const row = document.createElement("div");
+      row.className = `saved-item ${sold ? "is-sold" : ""}`;
+      row.innerHTML = `<img src="${escapeHTML(img)}" alt="${escapeHTML(p.title)}"><div class="sv-mid"><p class="sv-title">${escapeHTML(p.title)}</p><p class="mini-muted">${escapeHTML(p.id)} • Age ${escapeHTML(p.ageCategory)}</p></div><div class="sv-right"><strong>${money(p.price)}</strong><div class="sv-actions"><button class="mini-btn" type="button" data-action="open-qv" data-id="${escapeHTML(p.id)}">View</button><button class="mini-btn" type="button" data-action="unsave" data-id="${escapeHTML(p.id)}">Remove</button></div></div>`;
+      const imgEl = row.querySelector("img");
+      if (imgEl) imgEl.addEventListener("error", () => imgEl.src = placeholderSVG);
+      list.appendChild(row);
+    });
   }
 
-  function calcDiscount(subtotal, deliveryFee) {
-    const promo = state.appliedPromo;
-    if (!promo) return { discount: 0, deliveryOverride: null, label: "" };
-    if (promo.type === "percent") {
-      const d = subtotal * (promo.value / 100);
-      return { discount: d, deliveryOverride: null, label: `${promo.code} (-${promo.value}%)` };
-    }
-    if (promo.type === "flat") {
-      return { discount: promo.value, deliveryOverride: null, label: `${promo.code} (-${money(promo.value)})` };
-    }
-    if (promo.type === "ship") {
-      return { discount: 0, deliveryOverride: 0, label: `${promo.code} (Free delivery)` };
-    }
-    return { discount: 0, deliveryOverride: null, label: "" };
-  }
-
+  /* =============
+     CART: calculations and rendering
+     ============= */
   function cartSubtotal() {
     return state.cart.reduce((sum, it) => {
       const p = productById(it.id);
@@ -4236,6 +4063,15 @@ const IMAGE_PATH_PREFIX = (typeof window.IMAGE_PATH_PREFIX !== "undefined") ? wi
   }
 
   function getSelectedDeliveryKey() { return ($("#deliverySelect")?.value || "standard"); }
+
+  function calcDiscount(subtotal, deliveryFee) {
+    const promo = state.appliedPromo;
+    if (!promo) return { discount: 0, deliveryOverride: null, label: "" };
+    if (promo.type === "percent") { const d = subtotal * (promo.value / 100); return { discount: d, deliveryOverride: null, label: `${promo.code} (-${promo.value}%)` }; }
+    if (promo.type === "flat") return { discount: promo.value, deliveryOverride: null, label: `${promo.code} (-${money(promo.value)})` };
+    if (promo.type === "ship") return { discount: 0, deliveryOverride: 0, label: `${promo.code} (Free delivery)` };
+    return { discount: 0, deliveryOverride: null, label: "" };
+  }
 
   function computeTotals() {
     const subtotal = cartSubtotal();
@@ -4249,20 +4085,22 @@ const IMAGE_PATH_PREFIX = (typeof window.IMAGE_PATH_PREFIX !== "undefined") ? wi
     return { subtotal, deliveryKey, deliveryFee, discount, total, promoLabel: promoEffect.label };
   }
 
-  function renderCartProgress() {
-    const { subtotal } = computeTotals();
-    const hasItems = state.cart.length > 0;
-    const agree = $("#agreePolicies")?.checked ?? false;
-    let pct = 0;
-    if (hasItems) pct = 50;
-    if (subtotal >= 1) pct = 70;
-    if (state.cart.length >= 2) pct = 80;
-    pct = Math.min(pct, 90);
-    if (agree) pct = 100;
-    const fill = $("#cartProgressFill");
-    const label = $("#cartProgressLabel");
-    if (fill) fill.style.width = `${pct}%`;
-    if (label) label.textContent = `${pct}%`;
+  function renderCheckoutSummary() {
+    const box = $("#checkoutItems");
+    if (!box) return;
+    if (!state.cart.length) { box.innerHTML = `<p class="mini-muted">No items in cart.</p>`; return; }
+    box.innerHTML = "";
+    state.cart.forEach(it => {
+      const p = productById(it.id);
+      if (!p) return;
+      const img = (p.images && p.images[0]) ? safeImageUrl(p.images[0]) : placeholderSVG;
+      const el = document.createElement("div");
+      el.className = "summary-item";
+      el.innerHTML = `<img src="${escapeHTML(img)}" alt="${escapeHTML(p.title)}"><div class="si-mid"><p class="si-title">${escapeHTML(p.title)}</p><p class="si-sub">${escapeHTML(p.id)} • Age ${escapeHTML(p.ageCategory)}</p></div><strong class="si-price">${money(p.price)}</strong>`;
+      const imgEl = el.querySelector("img");
+      if (imgEl) imgEl.addEventListener("error", () => imgEl.src = placeholderSVG);
+      box.appendChild(el);
+    });
   }
 
   function renderCart() {
@@ -4281,13 +4119,7 @@ const IMAGE_PATH_PREFIX = (typeof window.IMAGE_PATH_PREFIX !== "undefined") ? wi
     $("#checkoutTotal") && ($("#checkoutTotal").textContent = money(totals.total));
 
     const items = state.cart
-      .map(it => {
-        const p = productById(it.id);
-        if (!p) return null;
-        const sold = isSold(p.id);
-        const img = (p.images && p.images[0]) ? safeImageUrl(p.images[0]) : placeholderSVG;
-        return { ...it, p, img, sold };
-      })
+      .map(it => { const p = productById(it.id); if (!p) return null; const sold = isSold(p.id); const img = (p.images && p.images[0]) ? safeImageUrl(p.images[0]) : placeholderSVG; return { ...it, p, img, sold }; })
       .filter(Boolean);
 
     if (!items.length) {
@@ -4300,34 +4132,7 @@ const IMAGE_PATH_PREFIX = (typeof window.IMAGE_PATH_PREFIX !== "undefined") ? wi
       items.forEach(({ p, img, sold }) => {
         const row = document.createElement("div");
         row.className = `cart-item ${sold ? "is-sold" : ""}`;
-        row.innerHTML = `
-          <div class="ci-left">
-            <img src="${escapeHTML(img)}" alt="${escapeHTML(p.title)}">
-          </div>
-          <div class="ci-mid">
-            <div class="ci-top">
-              <p class="ci-title">${escapeHTML(p.title)}</p>
-              <span class="ci-id">${escapeHTML(p.id)}</span>
-            </div>
-            <p class="ci-desc">${escapeHTML(p.description)}</p>
-            <div class="ci-meta">
-              <span class="tag">Age ${escapeHTML(p.ageCategory)}</span>
-              ${sold ? `<span class="tag danger">Sold</span>` : `<span class="tag success">Reserved</span>`}
-            </div>
-          </div>
-          <div class="ci-right">
-            <p class="ci-price">${money(p.price)}</p>
-
-            <div class="ci-actions">
-              <button class="mini-icon" type="button" data-action="move-to-saved" data-id="${escapeHTML(p.id)}" aria-label="Save for later">
-                <i class="fa-regular fa-bookmark" aria-hidden="true"></i>
-              </button>
-              <button class="mini-icon danger" type="button" data-action="remove-from-cart" data-id="${escapeHTML(p.id)}" aria-label="Remove">
-                <i class="fa-solid fa-trash" aria-hidden="true"></i>
-              </button>
-            </div>
-          </div>
-        `;
+        row.innerHTML = `<div class="ci-left"><img src="${escapeHTML(img)}" alt="${escapeHTML(p.title)}"></div><div class="ci-mid"><div class="ci-top"><p class="ci-title">${escapeHTML(p.title)}</p><span class="ci-id">${escapeHTML(p.id)}</span></div><p class="ci-desc">${escapeHTML(p.description)}</p><div class="ci-meta"><span class="tag">Age ${escapeHTML(p.ageCategory)}</span>${sold ? `<span class="tag danger">Sold</span>` : `<span class="tag success">Reserved</span>`}</div></div><div class="ci-right"><p class="ci-price">${money(p.price)}</p><div class="ci-actions"><button class="mini-icon" type="button" data-action="move-to-saved" data-id="${escapeHTML(p.id)}" aria-label="Save for later"><i class="fa-regular fa-bookmark" aria-hidden="true"></i></button><button class="mini-icon danger" type="button" data-action="remove-from-cart" data-id="${escapeHTML(p.id)}" aria-label="Remove"><i class="fa-solid fa-trash" aria-hidden="true"></i></button></div></div>`;
         const imgEl = row.querySelector("img");
         if (imgEl) imgEl.addEventListener("error", () => imgEl.src = placeholderSVG);
         listEl.appendChild(row);
@@ -4340,40 +4145,28 @@ const IMAGE_PATH_PREFIX = (typeof window.IMAGE_PATH_PREFIX !== "undefined") ? wi
     renderCartProgress();
   }
 
-  function renderCheckoutSummary() {
-    const box = $("#checkoutItems");
-    if (!box) return;
-    if (!state.cart.length) {
-      box.innerHTML = `<p class="mini-muted">No items in cart.</p>`;
-      return;
-    }
-    box.innerHTML = "";
-    state.cart.forEach(it => {
-      const p = productById(it.id);
-      if (!p) return;
-      const img = (p.images && p.images[0]) ? safeImageUrl(p.images[0]) : placeholderSVG;
-      const el = document.createElement("div");
-      el.className = "summary-item";
-      el.innerHTML = `
-        <img src="${escapeHTML(img)}" alt="${escapeHTML(p.title)}">
-        <div class="si-mid">
-          <p class="si-title">${escapeHTML(p.title)}</p>
-          <p class="si-sub">${escapeHTML(p.id)} • Age ${escapeHTML(p.ageCategory)}</p>
-        </div>
-        <strong class="si-price">${money(p.price)}</strong>
-      `;
-      const imgEl = el.querySelector("img");
-      if (imgEl) imgEl.addEventListener("error", () => imgEl.src = placeholderSVG);
-      box.appendChild(el);
-    });
+  function renderCartProgress() {
+    const { subtotal } = computeTotals();
+    const hasItems = state.cart.length > 0;
+    const agree = $("#agreePolicies")?.checked ?? false;
+    let pct = 0;
+    if (hasItems) pct = 50;
+    if (subtotal >= 1) pct = 70;
+    if (state.cart.length >= 2) pct = 80;
+    pct = Math.min(pct, 90);
+    if (agree) pct = 100;
+    const fill = $("#cartProgressFill");
+    const label = $("#cartProgressLabel");
+    if (fill) fill.style.width = `${pct}%`;
+    if (label) label.textContent = `${pct}%`;
   }
 
-  /* -------------
+  /* =============
      QUICK VIEW
-  ------------- */
+     ============= */
   function openQuickView(id) {
     const p = productById(id);
-    if (!p) return;
+    if (!p) { console.warn("Product not found for quick view:", id); return; }
     $("#quickViewTitle") && ($("#quickViewTitle").textContent = p.title);
     $("#quickViewMeta") && ($("#quickViewMeta").textContent = `${p.id} • Age ${p.ageCategory}`);
     $("#quickViewPrice") && ($("#quickViewPrice").textContent = money(p.price));
@@ -4381,37 +4174,21 @@ const IMAGE_PATH_PREFIX = (typeof window.IMAGE_PATH_PREFIX !== "undefined") ? wi
 
     const sold = isSold(p.id) || !p.available;
     const stockTag = $("#quickViewStockTag");
-    if (stockTag) {
-      stockTag.textContent = sold ? "Sold Out" : "Available • 1 left";
-      stockTag.classList.toggle("danger", sold);
-      stockTag.classList.toggle("success", !sold);
-    }
+    if (stockTag) { stockTag.textContent = sold ? "Sold Out" : "Available • 1 left"; stockTag.classList.toggle("danger", sold); stockTag.classList.toggle("success", !sold); }
     $("#quickViewAgeTag") && ($("#quickViewAgeTag").textContent = `Age ${p.ageCategory}`);
 
     const gallery = $("#quickViewGallery");
     if (gallery) {
       const imgs = (p.images && p.images.length) ? p.images.map(safeImageUrl) : [placeholderSVG];
-      gallery.innerHTML = `
-        <div class="qv-main">
-          <img id="qvMainImg" src="${escapeHTML(imgs[0])}" alt="${escapeHTML(p.title)}">
-        </div>
-        <div class="qv-thumbs">
-          ${imgs.map((src, idx) => `
-            <button type="button" class="thumb ${idx === 0 ? "is-active" : ""}" data-qv-thumb="${idx}">
-              <img src="${escapeHTML(src)}" alt="${escapeHTML(p.title)} image ${idx+1}">
-            </button>
-          `).join("")}
-        </div>
-      `;
+      gallery.innerHTML = '<div class="qv-main"><img id="qvMainImg" src="' + escapeHTML(imgs[0]) + '" alt="' + escapeHTML(p.title) + '"></div><div class="qv-thumbs">' + imgs.map((src, idx) => `<button type="button" class="thumb ${idx===0? "is-active":""}" data-qv-thumb="${idx}"><img src="${escapeHTML(src)}" alt="${escapeHTML(p.title)} image ${idx+1}"></button>`).join("") + '</div>';
       const main = $("#qvMainImg", gallery);
       $$(".thumb", gallery).forEach((btn, idx) => {
         btn.addEventListener("click", () => {
           $$(".thumb", gallery).forEach(b => b.classList.remove("is-active"));
           btn.classList.add("is-active");
-          main.src = imgs[idx];
+          if (main) main.src = imgs[idx];
         });
       });
-      // fallback for thumb images
       $$(".thumb img", gallery).forEach(imgEl => imgEl.addEventListener("error", () => imgEl.src = placeholderSVG));
       if (main) main.addEventListener("error", () => { main.src = placeholderSVG; });
     }
@@ -4419,30 +4196,53 @@ const IMAGE_PATH_PREFIX = (typeof window.IMAGE_PATH_PREFIX !== "undefined") ? wi
     const addBtn = $("#quickViewAddBtn");
     const saveBtn = $("#quickViewSaveBtn");
 
-    if (addBtn) {
-      addBtn.disabled = sold || !canAddToCart(p.id);
-      addBtn.onclick = () => {
-        addToCart(p.id);
-        openDrawer("cartDrawer");
-      };
-    }
-
+    if (addBtn) { addBtn.disabled = sold || !canAddToCart(p.id); addBtn.onclick = () => { addToCart(p.id); openDrawer("cartDrawer"); }; }
     if (saveBtn) {
-      const saved = state.saved.includes(p.id);
-      saveBtn.innerHTML = `<i class="fa-${saved ? "solid" : "regular"} fa-bookmark" aria-hidden="true"></i> ${saved ? "Saved" : "Save"}`;
-      saveBtn.onclick = () => {
-        toggleSave(p.id);
-        const s2 = state.saved.includes(p.id);
-        saveBtn.innerHTML = `<i class="fa-${s2 ? "solid" : "regular"} fa-bookmark" aria-hidden="true"></i> ${s2 ? "Saved" : "Save"}`;
-      };
+      const s = state.saved.includes(p.id);
+      saveBtn.innerHTML = `<i class="fa-${s ? "solid" : "regular"} fa-bookmark" aria-hidden="true"></i> ${s ? "Saved" : "Save"}`;
+      saveBtn.onclick = () => { toggleSave(p.id); const s2 = state.saved.includes(p.id); saveBtn.innerHTML = `<i class="fa-${s2 ? "solid" : "regular"} fa-bookmark" aria-hidden="true"></i> ${s2 ? "Saved" : "Save"`; };
     }
 
     openModal("quickViewModal");
   }
 
-  /* -------------
+  /* =============
+     CART ACTIONS
+     ============= */
+  function canAddToCart(id) {
+    if (isSold(id)) return false;
+    return !state.cart.find(x => x.id === id);
+  }
+
+  function addToCart(id) {
+    const p = productById(id);
+    if (!p) return;
+    if (isSold(id)) { toast("Sorry—this item has already been purchased.", "error"); renderProducts(); return; }
+    if (!canAddToCart(id)) { toast("This item is already in your cart (one-off item).", "info"); return; }
+    state.cart.push({ id: p.id, qty: 1, addedAt: nowISO() });
+    persist();
+    renderBadges();
+    renderCart();
+    renderProducts();
+    toast(`Added “${p.title}” to cart.`, "success");
+    setA11yLive(`Added ${p.title} to cart.`);
+  }
+
+  function removeFromCart(id) { state.cart = state.cart.filter(x => x.id !== id); persist(); renderBadges(); renderCart(); renderProducts(); }
+  function clearCart() { state.cart = []; state.appliedPromo = null; persist(); renderBadges(); renderCart(); toast("Cart cleared.", "info"); }
+
+  function toggleSave(id) {
+    const i = state.saved.indexOf(id);
+    if (i >= 0) state.saved.splice(i, 1); else state.saved.push(id);
+    persist();
+    renderBadges();
+    renderProducts();
+    renderSaved();
+  }
+
+  /* =============
      SEARCH
-  ------------- */
+     ============= */
   function renderSearchResults(query) {
     const out = $("#searchResults");
     if (!out) return;
@@ -4471,63 +4271,21 @@ const IMAGE_PATH_PREFIX = (typeof window.IMAGE_PATH_PREFIX !== "undefined") ? wi
       </button>
     `).join("");
 
-    $$("[data-search-pick]").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const id = btn.getAttribute("data-search-pick");
-        closeModal("searchModal");
-        openQuickView(id);
+    // attach click handlers
+    setTimeout(() => {
+      $$("[data-search-pick]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const id = btn.getAttribute("data-search-pick");
+          closeModal("searchModal");
+          openQuickView(id);
+        });
       });
-    });
+    }, 10);
   }
 
-  /* -------------
-     SAVED
-  ------------- */
-  function renderSaved() {
-    const list = $("#savedList");
-    const empty = $("#savedEmpty");
-    if (!list) return;
-
-    if (!state.saved.length) {
-      empty && empty.classList.remove("is-hidden");
-      list.innerHTML = "";
-      list.appendChild(empty);
-      return;
-    }
-
-    empty && empty.classList.add("is-hidden");
-    list.innerHTML = "";
-    state.saved.forEach(id => {
-      const p = productById(id);
-      if (!p) return;
-      const sold = isSold(id) || !p.available;
-      const img = (p.images && p.images[0]) ? safeImageUrl(p.images[0]) : placeholderSVG;
-
-      const row = document.createElement("div");
-      row.className = `saved-item ${sold ? "is-sold" : ""}`;
-      row.innerHTML = `
-        <img src="${escapeHTML(img)}" alt="${escapeHTML(p.title)}">
-        <div class="sv-mid">
-          <p class="sv-title">${escapeHTML(p.title)}</p>
-          <p class="mini-muted">${escapeHTML(p.id)} • Age ${escapeHTML(p.ageCategory)}</p>
-        </div>
-        <div class="sv-right">
-          <strong>${money(p.price)}</strong>
-          <div class="sv-actions">
-            <button class="mini-btn" type="button" data-action="open-qv" data-id="${escapeHTML(p.id)}">View</button>
-            <button class="mini-btn" type="button" data-action="unsave" data-id="${escapeHTML(p.id)}">Remove</button>
-          </div>
-        </div>
-      `;
-      const imgEl = row.querySelector("img");
-      if (imgEl) imgEl.addEventListener("error", () => imgEl.src = placeholderSVG);
-      list.appendChild(row);
-    });
-  }
-
-  /* -------------
-     HISTORY
-  ------------- */
+  /* =============
+     HISTORY & RECEIPTS
+     ============= */
   function renderHistory(query = "") {
     const list = $("#historyList");
     const empty = $("#historyEmpty");
@@ -4555,50 +4313,13 @@ const IMAGE_PATH_PREFIX = (typeof window.IMAGE_PATH_PREFIX !== "undefined") ? wi
     filtered.forEach(h => {
       const row = document.createElement("article");
       row.className = "history-card";
-      row.innerHTML = `
-        <div class="hc-top">
-          <div>
-            <h3 class="hc-title">${escapeHTML(h.orderId)}</h3>
-            <p class="mini-muted">
-              Paid: ${new Date(h.paidAt).toLocaleString()} • Items: ${h.items.length}
-            </p>
-          </div>
-          <div class="hc-amt">
-            <strong>${money(h.total)}</strong>
-            <span class="pill success"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Paid</span>
-          </div>
-        </div>
-
-        <div class="hc-items">
-          ${h.items.map(it => `
-            <div class="hc-item">
-              <span>${escapeHTML(it.title)} <span class="mini-muted">(${escapeHTML(it.id)})</span></span>
-              <strong>${money(it.price)}</strong>
-            </div>
-          `).join("")}
-        </div>
-
-        <div class="hc-actions">
-          <button class="btn btn-ghost" type="button" data-action="open-receipt" data-order="${escapeHTML(h.orderId)}">
-            <i class="fa-solid fa-receipt" aria-hidden="true"></i> View Receipt
-          </button>
-
-          <button class="btn btn-primary" type="button" data-action="download-receipt" data-order="${escapeHTML(h.orderId)}">
-            <i class="fa-solid fa-file-arrow-down" aria-hidden="true"></i> Download PDF
-          </button>
-        </div>
-      `;
+      row.innerHTML = `<div class="hc-top"><div><h3 class="hc-title">${escapeHTML(h.orderId)}</h3><p class="mini-muted">Paid: ${new Date(h.paidAt).toLocaleString()} • Items: ${h.items.length}</p></div><div class="hc-amt"><strong>${money(h.total)}</strong><span class="pill success"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Paid</span></div></div><div class="hc-items">${h.items.map(it => `<div class="hc-item"><span>${escapeHTML(it.title)} <span class="mini-muted">(${escapeHTML(it.id)})</span></span><strong>${money(it.price)}</strong></div>`).join("")}</div><div class="hc-actions"><button class="btn btn-ghost" type="button" data-action="open-receipt" data-order="${escapeHTML(h.orderId)}"><i class="fa-solid fa-receipt" aria-hidden="true"></i> View Receipt</button><button class="btn btn-primary" type="button" data-action="download-receipt" data-order="${escapeHTML(h.orderId)}"><i class="fa-solid fa-file-arrow-down" aria-hidden="true"></i> Download PDF</button></div>`;
       list.appendChild(row);
     });
   }
 
-  function findHistory(orderId) {
-    return state.history.find(h => h.orderId === orderId);
-  }
+  function findHistory(orderId) { return state.history.find(h => h.orderId === orderId); }
 
-  /* -------------
-     RECEIPTS (UI + download/copy)
-  ------------- */
   function fillReceipt(order) {
     if (!order) return;
     $("#receiptDate") && ($("#receiptDate").textContent = new Date(order.paidAt).toLocaleString());
@@ -4615,12 +4336,7 @@ const IMAGE_PATH_PREFIX = (typeof window.IMAGE_PATH_PREFIX !== "undefined") ? wi
 
     const itemsBox = $("#receiptItems");
     if (itemsBox) {
-      itemsBox.innerHTML = order.items.map(it => `
-        <div class="receipt-item">
-          <span>${escapeHTML(it.title)} <span class="mini-muted">(${escapeHTML(it.id)})</span></span>
-          <strong>${money(it.price)}</strong>
-        </div>
-      `).join("");
+      itemsBox.innerHTML = order.items.map(it => `<div class="receipt-item"><span>${escapeHTML(it.title)} <span class="mini-muted">(${escapeHTML(it.id)})</span></span><strong>${money(it.price)}</strong></div>`).join("");
     }
 
     $("#copyReceiptBtn") && ($("#copyReceiptBtn").onclick = async () => {
@@ -4638,116 +4354,15 @@ const IMAGE_PATH_PREFIX = (typeof window.IMAGE_PATH_PREFIX !== "undefined") ? wi
         `Total: ${money(order.total)}`,
         `Paystack Ref: ${order.paystackRef || "—"}`
       ].join("\n");
-      try {
-        await navigator.clipboard.writeText(text);
-        toast("Receipt copied.", "success");
-      } catch {
-        toast("Could not copy. Your browser may block clipboard access.", "error");
-      }
+      try { await navigator.clipboard.writeText(text); toast("Receipt copied.", "success"); } catch { toast("Could not copy. Your browser may block clipboard access.", "error"); }
     });
 
     $("#downloadReceiptBtn") && ($("#downloadReceiptBtn").onclick = () => downloadReceiptPDF(order));
   }
 
   function receiptHTML(order) {
-    const items = order.items.map(it => `
-      <tr>
-        <td style="padding:8px 0; border-bottom:1px solid #eee;">
-          <div style="font-weight:600;">${escapeHTML(it.title)}</div>
-          <div style="color:#666; font-size:12px;">${escapeHTML(it.id)} • Age ${escapeHTML(it.ageCategory || "")}</div>
-        </td>
-        <td style="padding:8px 0; border-bottom:1px solid #eee; text-align:right; font-weight:600;">
-          ${money(it.price)}
-        </td>
-      </tr>
-    `).join("");
-
-    return `
-<!doctype html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>Receipt ${escapeHTML(order.orderId)}</title>
-  <style>
-    *{box-sizing:border-box}
-    body{font-family:Arial, sans-serif; margin:24px; color:#111}
-    .top{display:flex; justify-content:space-between; align-items:flex-start; gap:16px}
-    .brand{display:flex; gap:12px; align-items:center}
-    .logo{width:52px; height:52px; object-fit:cover; border-radius:12px}
-    h1{font-size:18px; margin:0}
-    .muted{color:#666; font-size:12px; margin-top:4px}
-    .pill{display:inline-block; padding:6px 10px; border-radius:999px; background:#e8fff0; color:#0b6a2b; font-weight:700; font-size:12px}
-    hr{border:none; border-top:1px solid #eee; margin:18px 0}
-    .grid{display:grid; grid-template-columns:1fr 1fr; gap:14px}
-    .box{border:1px solid #eee; border-radius:14px; padding:12px}
-    .label{color:#666; font-size:12px}
-    .value{font-weight:600; margin-top:2px}
-    table{width:100%; border-collapse:collapse}
-    .totals{margin-top:12px}
-    .totals .row{display:flex; justify-content:space-between; padding:6px 0}
-    .totals .row.total{border-top:1px solid #eee; padding-top:10px; font-size:16px; font-weight:800}
-    .foot{margin-top:16px; color:#666; font-size:12px}
-    @media print { body{margin:0; padding:18px} .no-print{display:none} }
-  </style>
-</head>
-<body>
-  <div class="top">
-    <div class="brand">
-      <img src="logo.jpg" class="logo" alt="April Blossoms">
-      <div>
-        <h1>April Blossoms — Receipt</h1>
-        <div class="muted">Order ${escapeHTML(order.orderId)} • ${new Date(order.paidAt).toLocaleString()}</div>
-      </div>
-    </div>
-    <div style="text-align:right">
-      <div class="pill">PAID</div>
-      <div class="muted" style="margin-top:8px">Paystack Ref: ${escapeHTML(order.paystackRef || "—")}</div>
-    </div>
-  </div>
-
-  <hr>
-
-  <div class="grid">
-    <div class="box">
-      <div class="label">Customer</div>
-      <div class="value">${escapeHTML(order.customer.fullName || "—")}</div>
-      <div class="muted">${escapeHTML(order.customer.email || "—")} • ${escapeHTML(order.customer.phone || "—")}</div>
-    </div>
-    <div class="box">
-      <div class="label">Delivery</div>
-      <div class="value">${escapeHTML(order.customer.delivery || "—")}</div>
-      <div class="muted">${escapeHTML(order.customer.address || "—")}, ${escapeHTML(order.customer.city || "")} ${escapeHTML(order.customer.region || "")}</div>
-    </div>
-  </div>
-
-  <hr>
-
-  <table>
-    <thead>
-      <tr>
-        <th style="text-align:left; padding-bottom:10px; color:#666; font-size:12px;">Item</th>
-        <th style="text-align:right; padding-bottom:10px; color:#666; font-size:12px;">Price</th>
-      </tr>
-    </thead>
-    <tbody>${items}</tbody>
-  </table>
-
-  <div class="totals">
-    <div class="row"><span class="muted">Subtotal</span><strong>${money(order.subtotal)}</strong></div>
-    <div class="row"><span class="muted">Delivery</span><strong>${money(order.deliveryFee)}</strong></div>
-    <div class="row"><span class="muted">Discount</span><strong>-${money(order.discount)}</strong></div>
-    <div class="row total"><span>Total</span><span>${money(order.total)}</span></div>
-  </div>
-
-  <div class="foot">
-    Need help? WhatsApp ${CONTACT.whatsapp} • Email ${CONTACT.email}
-  </div>
-
-  <button class="no-print" onclick="window.print()" style="margin-top:18px; padding:10px 14px; border-radius:10px; border:1px solid #ddd; cursor:pointer;">
-    Print / Save as PDF
-  </button>
-</body>
-</html>`;
+    const items = order.items.map(it => `<tr><td style="padding:8px 0; border-bottom:1px solid #eee;"><div style="font-weight:600;">${escapeHTML(it.title)}</div><div style="color:#666; font-size:12px;">${escapeHTML(it.id)} • Age ${escapeHTML(it.ageCategory || "")}</div></td><td style="padding:8px 0; border-bottom:1px solid #eee; text-align:right; font-weight:600;">${money(it.price)}</td></tr>`).join("");
+    return `<!doctype html><html><head><meta charset="utf-8"><title>Receipt ${escapeHTML(order.orderId)}</title><style>*{box-sizing:border-box}body{font-family:Arial, sans-serif; margin:24px; color:#111}.top{display:flex; justify-content:space-between; align-items:flex-start; gap:16px}.brand{display:flex; gap:12px; align-items:center}.logo{width:52px; height:52px; object-fit:cover; border-radius:12px}h1{font-size:18px; margin:0}.muted{color:#666; font-size:12px; margin-top:4px}.pill{display:inline-block; padding:6px 10px; border-radius:999px; background:#e8fff0; color:#0b6a2b; font-weight:700; font-size:12px}hr{border:none; border-top:1px solid #eee; margin:18px 0}.grid{display:grid; grid-template-columns:1fr 1fr; gap:14px}.box{border:1px solid #eee; border-radius:14px; padding:12px}.label{color:#666; font-size:12px}.value{font-weight:600; margin-top:2px}table{width:100%; border-collapse:collapse}.totals{margin-top:12px}.totals .row{display:flex; justify-content:space-between; padding:6px 0}.totals .row.total{border-top:1px solid #eee; padding-top:10px; font-size:16px; font-weight:800}.foot{margin-top:16px; color:#666; font-size:12px}@media print { body{margin:0; padding:18px} .no-print{display:none} }</style></head><body><div class="top"><div class="brand"><img src="logo.jpg" class="logo" alt="April Blossoms"><div><h1>April Blossoms — Receipt</h1><div class="muted">Order ${escapeHTML(order.orderId)} • ${new Date(order.paidAt).toLocaleString()}</div></div></div><div style="text-align:right"><div class="pill">PAID</div><div class="muted" style="margin-top:8px">Paystack Ref: ${escapeHTML(order.paystackRef || "—")}</div></div></div><hr><div class="grid"><div class="box"><div class="label">Customer</div><div class="value">${escapeHTML(order.customer.fullName || "—")}</div><div class="muted">${escapeHTML(order.customer.email || "—")} • ${escapeHTML(order.customer.phone || "—")}</div></div><div class="box"><div class="label">Delivery</div><div class="value">${escapeHTML(order.customer.delivery || "—")}</div><div class="muted">${escapeHTML(order.customer.address || "—")}, ${escapeHTML(order.customer.city || "")} ${escapeHTML(order.customer.region || "")}</div></div></div><hr><table><thead><tr><th style="text-align:left; padding-bottom:10px; color:#666; font-size:12px;">Item</th><th style="text-align:right; padding-bottom:10px; color:#666; font-size:12px;">Price</th></tr></thead><tbody>${items}</tbody></table><div class="totals"><div class="row"><span class="muted">Subtotal</span><strong>${money(order.subtotal)}</strong></div><div class="row"><span class="muted">Delivery</span><strong>${money(order.deliveryFee)}</strong></div><div class="row"><span class="muted">Discount</span><strong>-${money(order.discount)}</strong></div><div class="row total"><span>Total</span><span>${money(order.total)}</span></div></div><div class="foot">Need help? WhatsApp ${CONTACT.whatsapp} • Email ${CONTACT.email}</div><button class="no-print" onclick="window.print()" style="margin-top:18px; padding:10px 14px; border-radius:10px; border:1px solid #ddd; cursor:pointer;">Print / Save as PDF</button></body></html>`;
   }
 
   function downloadReceiptPDF(order) {
@@ -4759,18 +4374,20 @@ const IMAGE_PATH_PREFIX = (typeof window.IMAGE_PATH_PREFIX !== "undefined") ? wi
     w.focus();
   }
 
-  /* -------------
-     PAYSTACK (inline)
-  ------------- */
+  /* =============
+     PAYSTACK (inline loader)
+     ============= */
   function ensurePaystackLoaded() {
     return new Promise((resolve, reject) => {
       if (window.PaystackPop) return resolve(true);
-      const script = document.createElement("script");
-      script.src = "https://js.paystack.co/v1/inline.js";
-      script.async = true;
-      script.onload = () => resolve(true);
-      script.onerror = () => reject(new Error("Paystack failed to load"));
-      document.head.appendChild(script);
+      try {
+        const script = document.createElement("script");
+        script.src = "https://js.paystack.co/v1/inline.js";
+        script.async = true;
+        script.onload = () => resolve(true);
+        script.onerror = () => reject(new Error("Paystack failed to load"));
+        document.head.appendChild(script);
+      } catch (e) { reject(e); }
     });
   }
 
@@ -4951,59 +4568,64 @@ const IMAGE_PATH_PREFIX = (typeof window.IMAGE_PATH_PREFIX !== "undefined") ? wi
           paidAt: order.paidAt
         })
       });
-    } catch {}
+    } catch (e) { console.warn("Formspree send failed", e); }
   }
 
-  /* -------------
-     CONTACT + NEWSLETTER (Formspree)
-  ------------- */
-  async function submitToFormspree(form, feedbackEl, payload) {
-    if (!FORMSPREE_ENDPOINT || FORMSPREE_ENDPOINT.includes("PASTE_YOUR")) {
-      feedbackEl && (feedbackEl.textContent = "Form endpoint missing. Add your Formspree URL in the script config.");
-      toast("Formspree endpoint missing in script config.", "error");
-      return false;
-    }
-    try {
-      const res = await fetch(FORMSPREE_ENDPOINT, {
-        method: "POST",
-        headers: { "Accept": "application/json", "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-      return res.ok;
-    } catch {
-      return false;
-    }
+  /* =============
+     UI: Modals & Drawers (safe helpers)
+     ============= */
+  function openModal(id) {
+    const m = document.getElementById(id);
+    if (!m) return;
+    m.classList.add("open");
+    m.setAttribute("aria-hidden", "false");
+    document.body.classList.add("modal-open");
+    const focusable = m.querySelector("button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])");
+    try { focusable && focusable.focus({ preventScroll: true }); } catch (e) {}
+  }
+  function closeModal(id) {
+    const m = document.getElementById(id);
+    if (!m) return;
+    m.classList.remove("open");
+    m.setAttribute("aria-hidden", "true");
+    document.body.classList.remove("modal-open");
+  }
+  function openDrawer(id) {
+    const d = document.getElementById(id);
+    if (!d) return;
+    d.classList.add("open");
+    d.setAttribute("aria-hidden", "false");
+    document.body.classList.add("drawer-open");
+  }
+  function closeDrawer(id) {
+    const d = document.getElementById(id);
+    if (!d) return;
+    d.classList.remove("open");
+    d.setAttribute("aria-hidden", "true");
+    document.body.classList.remove("drawer-open");
+  }
+  function closeAllOverlays() {
+    $$(".modal.open").forEach(m => closeModal(m.id));
+    $$(".cart-drawer.open").forEach(d => closeDrawer(d.id));
   }
 
-  async function handleContactSubmit(e) {
-    e.preventDefault();
-    const form = e.currentTarget;
-    const fb = $("#contactFeedback");
-    const data = new FormData(form);
-    const name = String(data.get("name") || "").trim();
-    const email = String(data.get("email") || "").trim();
-    const message = String(data.get("message") || "").trim();
+  document.addEventListener("click", (e) => {
+    const openM = e.target.closest("[data-open-modal]");
+    const closeM = e.target.closest("[data-close-modal]");
+    const openD = e.target.closest("[data-open-drawer]");
+    const closeD = e.target.closest("[data-close-drawer]");
 
-    if (!name || !email || !message) { fb && (fb.textContent = "Please fill in all fields."); toast("Please fill in all contact fields.", "error"); return; }
-    fb && (fb.textContent = "Sending…");
-    const ok = await submitToFormspree(form, fb, { type: "contact", name, email, message, sentAt: nowISO() });
-    if (ok) { fb && (fb.textContent = "Sent! We’ll reply soon."); toast("Message sent!", "success"); form.reset(); } else { fb && (fb.textContent = "Could not send. Please try again."); toast("Could not send message.", "error"); }
-  }
+    if (openM) { e.preventDefault(); openModal(openM.getAttribute("data-open-modal")); }
+    if (closeM) { e.preventDefault(); closeModal(closeM.getAttribute("data-close-modal")); }
+    if (openD) { e.preventDefault(); openDrawer(openD.getAttribute("data-open-drawer")); if (openD.getAttribute("data-open-drawer")==="cartDrawer") renderCart(); }
+    if (closeD) { e.preventDefault(); closeDrawer(closeD.getAttribute("data-close-drawer")); }
+  });
 
-  async function handleNewsletterSubmit(e) {
-    e.preventDefault();
-    const form = e.currentTarget;
-    const fb = $("#newsletterFeedback");
-    const email = String(new FormData(form).get("newsletterEmail") || "").trim();
-    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { fb && (fb.textContent = "Enter a valid email."); toast("Enter a valid newsletter email.", "error"); return; }
-    fb && (fb.textContent = "Subscribing…");
-    const ok = await submitToFormspree(form, fb, { type: "newsletter", email, sentAt: nowISO() });
-    if (ok) { fb && (fb.textContent = "Subscribed! 🎉"); toast("Subscribed!", "success"); form.reset(); } else { fb && (fb.textContent = "Could not subscribe. Try again."); toast("Could not subscribe.", "error"); }
-  }
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeAllOverlays(); });
 
-  /* -------------
-     EVENTS (delegation)
-  ------------- */
+  /* =============
+     Delegated UI events (single listener)
+     ============= */
   document.addEventListener("click", (e) => {
     const card = e.target.closest(".product-card");
     const actionBtn = e.target.closest("[data-action]");
@@ -5085,7 +4707,7 @@ const IMAGE_PATH_PREFIX = (typeof window.IMAGE_PATH_PREFIX !== "undefined") ? wi
     }
   });
 
-  // delivery selects
+  // delivery selects syncing
   $("#deliverySelect")?.addEventListener("change", () => renderCart());
   $("#checkoutDelivery")?.addEventListener("change", (e) => {
     const k = e.target.value;
@@ -5133,9 +4755,9 @@ const IMAGE_PATH_PREFIX = (typeof window.IMAGE_PATH_PREFIX !== "undefined") ? wi
   $("#contactForm")?.addEventListener("submit", handleContactSubmit);
   $("#newsletterForm")?.addEventListener("submit", handleNewsletterSubmit);
 
-  /* -------------
-     PROMO
-  ------------- */
+  /* =============
+     PROMOS
+     ============= */
   function applyPromoFromInput() {
     const inp = $("#promoInput");
     const code = String(inp?.value || "").trim().toUpperCase();
@@ -5159,49 +4781,222 @@ const IMAGE_PATH_PREFIX = (typeof window.IMAGE_PATH_PREFIX !== "undefined") ? wi
     state.appliedPromo = best; persist(); renderCart(); toast(`Best promo applied: ${best.code}`, "success");
   }
 
-  /* -------------
+  /* =============
+     CONTACT & NEWSLETTER (Formspree)
+     ============= */
+  async function submitToFormspree(form, feedbackEl, payload) {
+    if (!FORMSPREE_ENDPOINT || FORMSPREE_ENDPOINT.includes("PASTE_YOUR")) {
+      feedbackEl && (feedbackEl.textContent = "Form endpoint missing. Add your Formspree URL in the script config.");
+      toast("Formspree endpoint missing in script config.", "error");
+      return false;
+    }
+    try {
+      const res = await fetch(FORMSPREE_ENDPOINT, {
+        method: "POST",
+        headers: { "Accept": "application/json", "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      return res.ok;
+    } catch (e) {
+      console.warn("Formspree submit failed", e);
+      return false;
+    }
+  }
+
+  async function handleContactSubmit(e) {
+    e.preventDefault();
+    const form = e.currentTarget;
+    const fb = $("#contactFeedback");
+    const data = new FormData(form);
+    const name = String(data.get("name") || "").trim();
+    const email = String(data.get("email") || "").trim();
+    const message = String(data.get("message") || "").trim();
+
+    if (!name || !email || !message) { fb && (fb.textContent = "Please fill in all fields."); toast("Please fill in all contact fields.", "error"); return; }
+    fb && (fb.textContent = "Sending…");
+    const ok = await submitToFormspree(form, fb, { type: "contact", name, email, message, sentAt: nowISO() });
+    if (ok) { fb && (fb.textContent = "Sent! We’ll reply soon."); toast("Message sent!", "success"); form.reset(); } else { fb && (fb.textContent = "Could not send. Please try again."); toast("Could not send message.", "error"); }
+  }
+
+  async function handleNewsletterSubmit(e) {
+    e.preventDefault();
+    const form = e.currentTarget;
+    const fb = $("#newsletterFeedback");
+    const email = String(new FormData(form).get("newsletterEmail") || "").trim();
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { fb && (fb.textContent = "Enter a valid email."); toast("Enter a valid newsletter email.", "error"); return; }
+    fb && (fb.textContent = "Subscribing…");
+    const ok = await submitToFormspree(form, fb, { type: "newsletter", email, sentAt: nowISO() });
+    if (ok) { fb && (fb.textContent = "Subscribed! 🎉"); toast("Subscribed!", "success"); form.reset(); } else { fb && (fb.textContent = "Could not subscribe. Try again."); toast("Could not subscribe.", "error"); }
+  }
+
+  /* =============
+     TOASTS & A11Y
+     ============= */
+  function setA11yLive(msg) {
+    const el = $("#a11yLive");
+    if (!el) return;
+    el.textContent = "";
+    setTimeout(() => { el.textContent = String(msg || ""); }, 50);
+  }
+
+  function toast(msg, type = "info", timeout = 3500) {
+    try {
+      const root = $("#toastRoot");
+      if (!root) { console.log("TOAST:", type, msg); return; }
+      const t = document.createElement("div");
+      t.className = "toast " + (type || "info");
+      t.innerHTML = `<div class="toast-icon">${type==="success" ? '<i class="fa-solid fa-circle-check"></i>' : type==="error" ? '<i class="fa-solid fa-triangle-exclamation"></i>' : '<i class="fa-solid fa-info"></i>'}</div><div class="toast-msg">${escapeHTML(msg)}</div><button class="toast-x" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>`;
+      root.appendChild(t);
+      const remove = () => { t.classList.add("out"); setTimeout(() => t.remove(), 300); };
+      t.querySelector(".toast-x")?.addEventListener("click", remove);
+      setTimeout(remove, timeout);
+    } catch (e) { console.log("toast fallback:", type, msg); }
+  }
+
+  /* =============
      BACK TO TOP
-  ------------- */
+     ============= */
   function initBackToTop() {
     const btn = $("#backToTop");
     if (!btn) return;
     const hero = $(".hero");
     const showAfter = hero ? hero.offsetHeight * 0.8 : 500;
-
     const onScroll = () => {
       const y = window.scrollY || document.documentElement.scrollTop;
       const show = y > showAfter;
       btn.classList.toggle("show", show);
       btn.setAttribute("aria-hidden", show ? "false" : "true");
     };
-
     window.addEventListener("scroll", onScroll, { passive: true });
     onScroll();
+    btn.addEventListener("click", () => { window.scrollTo({ top: 0, behavior: "smooth" }); setA11yLive("Returned to top of page."); });
+  }
 
-    btn.addEventListener("click", () => {
-      window.scrollTo({ top: 0, behavior: "smooth" });
+  /* =============
+     DEBUG HELPERS
+     ============= */
+  function logScriptState() {
+    console.group("April Blossoms state");
+    console.log("Products count:", PRODUCTS.length);
+    console.log("Cart items:", state.cart.length, state.cart);
+    console.log("Saved items:", state.saved.length, state.saved);
+    console.log("History items:", state.history.length);
+    console.groupEnd();
+  }
+
+  function exportHistoryJSON() {
+    const data = JSON.stringify(state.history || [], null, 2);
+    const blob = new Blob([data], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "aprilblossoms_history.json";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  function hydrateCheckoutDefaults() {
+    if (!state.customer) return;
+    const form = $("#checkoutForm");
+    if (!form) return;
+    try {
+      form.elements["fullName"] && (form.elements["fullName"].value = state.customer.fullName || "");
+      form.elements["email"] && (form.elements["email"].value = state.customer.email || "");
+      form.elements["phone"] && (form.elements["phone"].value = state.customer.phone || "");
+      form.elements["address"] && (form.elements["address"].value = state.customer.address || "");
+      form.elements["city"] && (form.elements["city"].value = state.customer.city || "");
+      form.elements["region"] && (form.elements["region"].value = state.customer.region || "");
+    } catch (e) {}
+    renderCartProgress();
+  }
+
+  /* =============
+     BOOT
+     ============= */
+  function boot() {
+    try { ensureHeroBackgrounds(); } catch (e) { /* ignore */ }
+    try { initHero(); } catch (e) { /* ignore */ }
+    try { renderProducts(); } catch (e) { console.error("renderProducts failed", e); }
+    try { renderBadges(); } catch (e) {}
+    try { renderSaved(); } catch (e) {}
+    try { renderHistory(); } catch (e) {}
+    try { initBackToTop(); } catch (e) {}
+    logScriptState();
+  }
+
+  /* Helper: ensure hero backgrounds load or fallback */
+  function ensureHeroBackgrounds() {
+    const slides = $$(".hero-slide");
+    slides.forEach(slide => {
+      const raw = (slide.style && slide.style.getPropertyValue("--bg")) || getComputedStyle(slide).getPropertyValue("--bg");
+      const urlMatch = raw && raw.match(/url\((['"]?)(.*?)\1\)/);
+      const url = urlMatch ? urlMatch[2] : null;
+      if (!url) {
+        const img = slide.querySelector("img");
+        const fallback = img ? (img.src || img.getAttribute("src")) : null;
+        if (fallback) slide.style.setProperty("--bg", `url("${fallback}")`);
+        else slide.style.setProperty("--bg", `url("${placeholderSVG}")`);
+        return;
+      }
+      const img = new Image();
+      img.onload = () => {};
+      img.onerror = () => { slide.style.setProperty("--bg", `url("${placeholderSVG}")`); };
+      img.src = safeImageUrl(url);
     });
   }
 
-  // INITIALIZE (run after DOM ready)
-  document.addEventListener("DOMContentLoaded", () => {
-    try {
-      ensureHeroBackgrounds();
-      initHero();
-      renderProducts();
-      renderBadges();
-      renderSaved();
-      renderHistory();
-      initBackToTop();
-      // tidy up loading state
-      $("#productsGrid")?.removeAttribute("aria-busy");
-    } catch (err) {
-      console.error("Initialization error:", err);
-      toast && typeof toast === "function" && toast("Initialization error — check console", "error");
+  /* Minimal hero slider (safe/fault-tolerant) */
+  function initHero() {
+    const slider = $("[data-hero-slider]");
+    if (!slider) return;
+    const slides = $$(".hero-slide", slider);
+    const dots = $$("[data-hero-dot]");
+    const prev = $("[data-hero-prev]");
+    const next = $("[data-hero-next]");
+    let i = 0;
+    let timer = null;
+
+    function show(idx) {
+      i = (idx + slides.length) % slides.length;
+      slides.forEach((s, k) => {
+        const active = k === i;
+        s.classList.toggle("is-active", active);
+        s.setAttribute("aria-hidden", active ? "false" : "true");
+      });
+      dots.forEach((d, k) => d.classList.toggle("is-active", k === i));
     }
+
+    function start() { stop(); timer = setInterval(() => show(i + 1), 5500); }
+    function stop() { if (timer) clearInterval(timer); timer = null; }
+
+    prev && prev.addEventListener("click", () => { show(i - 1); start(); });
+    next && next.addEventListener("click", () => { show(i + 1); start(); });
+    dots.forEach(d => d.addEventListener("click", () => { show(Number(d.dataset.heroDot)); start(); }));
+
+    slider.addEventListener("mouseenter", stop);
+    slider.addEventListener("mouseleave", start);
+
+    show(0);
+    start();
+  }
+
+  // boot when ready
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
+  else boot();
+
+  // expose debug helpers
+  window.__AB = { PRODUCTS, state, renderProducts, renderCart, renderBadges, boot };
+
+  // global error catch (useful when debugging Unexpected end of input)
+  window.addEventListener("error", function (e) {
+    console.error("Global script error:", e.message, e.filename, e.lineno, e.colno);
   });
 
+})();
 </script>
+
 
 </body>
 </html>
