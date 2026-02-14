@@ -3719,7 +3719,7 @@ main{
     { code: "FREESHIP", type: "ship", value: 0 },
   ];
 
-
+const IMAGE_PATH_PREFIX = (typeof window.IMAGE_PATH_PREFIX !== "undefined") ? window.IMAGE_PATH_PREFIX : "./";
   const PRODUCTS = [
     { id: "DRESS-001", title: "Floral Ruffles", price: 40.0, description: "One-of-a-kind floral ruffle dress", sizes: ["4","5"], ageCategory: "4-5", images: ["IMG_5700.JPG","IMG_5700.JPG"], available: true, createdAt: new Date(Date.now()-1*86400000).toISOString() },
     { id: "DRESS-002", title: "Sunshine Dress", price: 30.0, description: "Bright yellow play dress", sizes: ["6","7"], ageCategory: "4-5", images: ["IMG_5701.JPG"], available: true, createdAt: new Date(Date.now()-2*86400000).toISOString() },
@@ -3814,14 +3814,21 @@ main{
     return "data:image/svg+xml;base64," + btoa(svg);
   })();
 
-  function safeImageUrl(fn) {
+   function safeImageUrl(fn) {
+    // If nothing provided, use inline placeholder.
     if (!fn) return placeholderSVG;
-    // prefer prefix + filename
+    if (typeof fn !== "string") return placeholderSVG;
+
+    // Full URLs, data URIs, or absolute paths pass through unchanged.
     if (fn.startsWith("http://") || fn.startsWith("https://") || fn.startsWith("data:") || fn.startsWith("/")) {
       return fn;
     }
-    return IMAGE_PATH_PREFIX + fn;
+
+    // Use IMAGE_PATH_PREFIX (fallback to "./" if not set).
+    const prefix = (typeof IMAGE_PATH_PREFIX !== "undefined" && IMAGE_PATH_PREFIX !== null) ? IMAGE_PATH_PREFIX : "./";
+    return prefix + fn;
   }
+
 
   /* -------------
      LOCAL STORAGE KEYS + STATE
@@ -5155,9 +5162,9 @@ main{
   /* -------------
      BACK TO TOP
   ------------- */
- function initBackToTop() {
+  function initBackToTop() {
     const btn = $("#backToTop");
-   if (!btn) return;
+    if (!btn) return;
     const hero = $(".hero");
     const showAfter = hero ? hero.offsetHeight * 0.8 : 500;
 
@@ -5173,38 +5180,26 @@ main{
 
     btn.addEventListener("click", () => {
       window.scrollTo({ top: 0, behavior: "smooth" });
-      setA11yLive("Returned to top of page.");
     });
   }
 
-  /* -------------
-     BOOT / INITIALIZATION
-     - safe: DOMContentLoaded aware; idempotent boot
-  ------------- */
-  function boot() {
-    // fix hero backgrounds if any are missing
-    try { ensureHeroBackgrounds(); } catch (e) { /* ignore */ }
-    try { initHero(); } catch (e) { /* ignore */ }
-   try { renderProducts(); } catch (e) { console.error("renderProducts failed", e); }
-    try { renderBadges(); } catch {}
-    try { renderSaved(); } catch {}
-    try { renderHistory(); } catch {}
-    try { initBackToTop(); } catch {}
-  }
-
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", boot);
-  } else {
-    // script is at end of body — still safe to boot immediately
-    boot();
-  }
-
-  // expose a couple of helpers for debugging from console (optional)
-  window.__AB = {
-    PRODUCTS, state, renderProducts, renderCart, renderBadges, boot
-  };
-
-})();
+  // INITIALIZE (run after DOM ready)
+  document.addEventListener("DOMContentLoaded", () => {
+    try {
+      ensureHeroBackgrounds();
+      initHero();
+      renderProducts();
+      renderBadges();
+      renderSaved();
+      renderHistory();
+      initBackToTop();
+      // tidy up loading state
+      $("#productsGrid")?.removeAttribute("aria-busy");
+    } catch (err) {
+      console.error("Initialization error:", err);
+      toast && typeof toast === "function" && toast("Initialization error — check console", "error");
+    }
+  });
 
 </script>
 
