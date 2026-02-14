@@ -2401,6 +2401,7 @@ main{
 
 </style>
 </head>
+
 <body>
   <!-- Skip link -->
   <a class="skip-link" href="#main">Skip to content</a>
@@ -2473,14 +2474,10 @@ main{
     <div class="hero-slides" data-hero-slider>
       <!-- Slide 1 -->
       <article class="hero-slide is-active" style="--bg: url('hero-1.jpg');" aria-hidden="false">
-  <!-- fallback background image (helps when CSS var or paths fail) -->
-  <div class="hero-bg" aria-hidden="true">
-    <img src="hero-1.jpg" alt="" decoding="async" loading="eager">
-  </div>
-
-  <div class="hero-overlay"></div>
-
-  <div class="hero-content">
+        <!-- explicit image fallback so the hero always shows even if CSS var backgrounds fail -->
+        <img class="hero-img" src="hero-1.jpg" alt="Featured dress on a sunny day" loading="eager" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:0;">
+        <div class="hero-overlay" style="z-index:1;"></div>
+        <div class="hero-content" style="z-index:2;">
           <p class="hero-kicker">April Blossoms Kidswear</p>
           <h1 class="hero-title">One-of-a-kind dresses that feel like sunshine.</h1>
           <p class="hero-subtitle">Every piece is unique. No sizes to choose — just pick the dress you love.</p>
@@ -2497,15 +2494,10 @@ main{
       </article>
 
       <!-- Slide 2 -->
-     <article class="hero-slide is-active" style="--bg: url('hero-2.jpg');" aria-hidden="false">
-  <!-- fallback background image (helps when CSS var or paths fail) -->
-  <div class="hero-bg" aria-hidden="true">
-    <img src="hero-1.jpg" alt="" decoding="async" loading="eager">
-  </div>
-
-  <div class="hero-overlay"></div>
-
-  <div class="hero-content">
+      <article class="hero-slide" style="--bg: url('hero-2.jpg');" aria-hidden="true">
+        <img class="hero-img" src="hero-2.jpg" alt="Little girl twirling in a dress" loading="lazy" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:0;">
+        <div class="hero-overlay" style="z-index:1;"></div>
+        <div class="hero-content" style="z-index:2;">
           <p class="hero-kicker">Limited Pieces • Premium Finish</p>
           <h2 class="hero-title">Tiny details. Big twirls.</h2>
           <p class="hero-subtitle">Fresh styles added often — once a dress is sold, it’s gone.</p>
@@ -2517,15 +2509,10 @@ main{
       </article>
 
       <!-- Slide 3 -->
-     <article class="hero-slide is-active" style="--bg: url('hero-4.jpg');" aria-hidden="false">
-  <!-- fallback background image (helps when CSS var or paths fail) -->
-  <div class="hero-bg" aria-hidden="true">
-    <img src="hero-1.jpg" alt="" decoding="async" loading="eager">
-  </div>
-
-  <div class="hero-overlay"></div>
-
-  <div class="hero-content">
+      <article class="hero-slide" style="--bg: url('hero-4.jpg');" aria-hidden="true">
+        <img class="hero-img" src="hero-4.jpg" alt="Children laughing outdoors" loading="lazy" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:0;">
+        <div class="hero-overlay" style="z-index:1;"></div>
+        <div class="hero-content" style="z-index:2;">
           <p class="hero-kicker">Made for playdates & special days</p>
           <h2 class="hero-title">Shop fast. Smile forever.</h2>
           <p class="hero-subtitle">Get instant receipts + downloadable proof of purchase.</p>
@@ -3699,6 +3686,8 @@ main{
 
   <!-- Accessibility helpers -->
   <div class="sr-only" aria-live="polite" id="a11yLive"></div>
+
+
 <script>
 /* =========================
    April Blossoms — Complete Script (REPLACE entire previous <script> block)
