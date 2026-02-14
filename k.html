@@ -4996,6 +4996,143 @@ main{
 
 })();
 </script>
+<script>
+(function(){
+  "use strict";
+  console.group("%cSite Diagnostic & Quick Repair", "color:#fff;background:#6b5cff;padding:4px 8px;border-radius:4px");
+  const info = (...args) => console.info("%cAB:", "color:#6b5cff;font-weight:700", ...args);
+  const warn = (...args) => console.warn("%cAB:", "color:#ffb86b;font-weight:700", ...args);
+  const err = (...args) => console.error("%cAB:", "color:#ff6b6b;font-weight:700", ...args);
+
+  // 1) Remove bad integrity on Font-Awesome stylesheet links (prevents browser blocking)
+  const faLinks = Array.from(document.querySelectorAll('link[rel="stylesheet"]')).filter(l => /font-?awesome|fontawesome|cdnjs.*font-awesome/i.test(l.href));
+  if (faLinks.length) {
+    info("Found Font-Awesome stylesheet link(s):", faLinks.map(l => l.href));
+    faLinks.forEach(l => {
+      if (l.getAttribute("integrity")) {
+        warn("Removing integrity attribute from:", l.href);
+        l.removeAttribute("integrity");
+      }
+      // Also remove crossorigin if you prefer (optional)
+      if (l.getAttribute("crossorigin")) l.removeAttribute("crossorigin");
+    });
+  } else {
+    info("No obvious Font-Awesome link found.");
+  }
+
+  // 2) Print script resources and look for suspicious entries (transferSize === 0 or small)
+  try {
+    const resources = performance.getEntriesByType("resource");
+    const suspect = resources.filter(r => (r.initiatorType === "script" && (r.transferSize === 0 || (r.encodedBodySize || 0) < 200) ) );
+    info("Resource summary (scripts with 0 or very small size may be corrupted):", suspect.map(s => ({name:s.name, initiatorType:s.initiatorType, transferSize:s.transferSize, encodedBodySize:s.encodedBodySize})));
+    // Also list script tags on page
+    const scriptTags = Array.from(document.scripts).map(s => ({ src: s.src || "(inline)", len: (s.textContent||"").length }));
+    info("Script tags on page:", scriptTags);
+  } catch (e) {
+    warn("Could not read performance entries:", e);
+  }
+
+  // 3) Log any console SyntaxError info we can (the global error store isn't available, but we can point you how)
+  info("If you previously saw: 'Uncaught SyntaxError: Unexpected end of input' — click that error in the Console and open its 'Network > Response' to see if the script was truncated or returned HTML. If it's truncated, redeploy that script file.");
+
+  // 4) Force product images to load and show their status
+  const productsGrid = document.querySelector("#productsGrid") || document.querySelector(".products-grid") || document.body;
+  const imgs = Array.from(productsGrid.querySelectorAll("img"));
+  if (!imgs.length) {
+    warn("No <img> elements found inside #productsGrid (check your selector). Searching globally for .product-card images...");
+  }
+  const allImgs = imgs.length ? imgs : Array.from(document.querySelectorAll(".product-card img, .pc-media img, img"));
+  info("Found", allImgs.length, "images to check (will force reload and report status).");
+
+  // placeholder (safe inline SVG)
+  const placeholderSVG = "data:image/svg+xml;base64," + btoa('<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600"><rect width="100%" height="100%" fill="#111"/><text x="50%" y="50%" fill="#999" font-family="Arial" font-size="20" text-anchor="middle">Image unavailable</text></svg>');
+
+  function checkImg(img){
+    try {
+      img.loading = "eager";
+      img.decoding = "async";
+      img.setAttribute("data-ab-checked","1");
+      // Attach handlers
+      img.addEventListener("load", function onL(){
+        img.dataset.abStatus = "loaded";
+        img.style.opacity = "1";
+        img.removeEventListener("load", onL);
+      });
+      img.addEventListener("error", function onE(){
+        img.dataset.abStatus = "error";
+        // try to assign a safe placeholder
+        if (!img.dataset.abFallback) {
+          img.dataset.abFallback = "1";
+          img.src = placeholderSVG;
+          img.style.opacity = "1";
+        }
+        img.removeEventListener("error", onE);
+      });
+      // Force reload by reassigning src (helps when browser deferred)
+      const orig = img.getAttribute("src") || img.getAttribute("data-src") || img.getAttribute("data-lazy-src");
+      if (!orig) {
+        warn("Image element has no src/data-src:", img);
+        img.src = placeholderSVG;
+      } else {
+        // reassign, also try removing lazy data attributes browsers may be using
+        img.src = orig;
+        img.setAttribute("src", orig);
+        // remove lazy attributes used by some scripts
+        ["data-src","data-lazy-src","data-original","data-srcset","data-lazy"].forEach(a => { if (img.hasAttribute(a)) img.removeAttribute(a); });
+      }
+      // Make sure it's visible (sometimes CSS hide)
+      img.style.visibility = "visible";
+      img.style.display = "block";
+      img.style.opacity = "1";
+    } catch (e) {
+      err("checkImg error:", e, img);
+    }
+  }
+
+  allImgs.forEach(checkImg);
+
+  // 5) Try to load a sample of each product image name if you have a PRODUCTS array (the big script uses it)
+  try {
+    const globalProducts = window.PRODUCTS || window.__AB?.PRODUCTS || null;
+    if (globalProducts && Array.isArray(globalProducts)) {
+      info("Found PRODUCTS array with", globalProducts.length, "items — testing first 6 image URLs for existence.");
+      globalProducts.slice(0,6).forEach(p=>{
+        const f = (p.images && p.images[0]) || p.image || null;
+        if (!f) { warn("No image filename on product", p.id); return; }
+        const test = new Image();
+        test.onload = () => info("Image OK:", f);
+        test.onerror = () => warn("Image failed to load:", f, " (check path or file existence)");
+        const url = (/^(https?:|data:|\/)/i.test(f) ? f : ( (window.IMAGE_PATH_PREFIX||"") + f ));
+        test.src = url;
+      });
+    } else {
+      info("No global PRODUCTS array found to sample. If you keep the big inline script, ensure PRODUCTS is defined.");
+    }
+  } catch(e){ warn("Product image test failed:", e); }
+
+  // 6) Inject minimal CSS to make sure images are not hidden by overlay rules (diagnostic only)
+  try {
+    const css = `
+      /* Diagnostic: make product images visible */
+      .product-card img, .pc-media img, img[data-ab-checked="1"] { visibility: visible !important; opacity: 1 !important; display: block !important; transform: none !important; }
+      .product-card .pc-media::before, .pc-media::after { display: none !important; }
+      /* Make sure card backgrounds don't cover the image */
+      .product-card, .pc-media { background-image: none !important; background-color: transparent !important; }
+    `;
+    const s = document.createElement("style");
+    s.id = "ab-diagnostic-style";
+    s.appendChild(document.createTextNode(css));
+    document.head.appendChild(s);
+    info("Diagnostic CSS injected (will not persist across page reload).");
+  } catch (e) { warn("Could not inject diagnostic CSS", e); }
+
+  // 7) If the page has a truncated external script, provide a hint
+  const syntaxErrHint = "If you still see 'Unexpected end of input' in Console: open that error, click the filename, then the Network tab → Response. If the response looks like HTML (e.g. your 404 page) or is cut short, the JS file on the server is truncated or returning an error; re-upload the correct JS file.";
+  info(syntaxErrHint);
+
+  console.groupEnd();
+})();
+</script>
 
 
 </body>
