@@ -2363,6 +2363,41 @@ main{
 @media (prefers-reduced-motion: reduce){
   *{ animation: none !important; transition: none !important; scroll-behavior: auto !important; }
 }
+/* --- Hero fixes: container height + explicit stacking + fallback image --- */
+.hero-slides{
+  /* ensure the slider has height even though slides are absolutely positioned */
+  min-height: 62vh;          /* matches your .hero-slide min-height */
+  position: relative;       /* already set, but keep it explicit */
+}
+
+/* Ensure background sits behind overlay & content when using a fallback <img> */
+.hero-slide .hero-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.hero-slide .hero-bg img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  filter: none;
+}
+
+/* put overlay above background but below text */
+.hero-overlay { z-index: 1; }
+
+/* keep content on top */
+.hero-content { z-index: 2; }
+
+/* make sure background CSS variable usage doesn't repeat or tile unexpectedly */
+.hero-slide{
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+}
 
 </style>
 </head>
@@ -2438,8 +2473,14 @@ main{
     <div class="hero-slides" data-hero-slider>
       <!-- Slide 1 -->
       <article class="hero-slide is-active" style="--bg: url('hero-1.jpg');" aria-hidden="false">
-        <div class="hero-overlay"></div>
-        <div class="hero-content">
+  <!-- fallback background image (helps when CSS var or paths fail) -->
+  <div class="hero-bg" aria-hidden="true">
+    <img src="hero-1.jpg" alt="" decoding="async" loading="eager">
+  </div>
+
+  <div class="hero-overlay"></div>
+
+  <div class="hero-content">
           <p class="hero-kicker">April Blossoms Kidswear</p>
           <h1 class="hero-title">One-of-a-kind dresses that feel like sunshine.</h1>
           <p class="hero-subtitle">Every piece is unique. No sizes to choose — just pick the dress you love.</p>
@@ -2456,9 +2497,15 @@ main{
       </article>
 
       <!-- Slide 2 -->
-      <article class="hero-slide" style="--bg: url('hero-2.jpg');" aria-hidden="true">
-        <div class="hero-overlay"></div>
-        <div class="hero-content">
+     <article class="hero-slide is-active" style="--bg: url('hero-2.jpg');" aria-hidden="false">
+  <!-- fallback background image (helps when CSS var or paths fail) -->
+  <div class="hero-bg" aria-hidden="true">
+    <img src="hero-1.jpg" alt="" decoding="async" loading="eager">
+  </div>
+
+  <div class="hero-overlay"></div>
+
+  <div class="hero-content">
           <p class="hero-kicker">Limited Pieces • Premium Finish</p>
           <h2 class="hero-title">Tiny details. Big twirls.</h2>
           <p class="hero-subtitle">Fresh styles added often — once a dress is sold, it’s gone.</p>
@@ -2470,9 +2517,15 @@ main{
       </article>
 
       <!-- Slide 3 -->
-      <article class="hero-slide" style="--bg: url('hero-4.jpg');" aria-hidden="true">
-        <div class="hero-overlay"></div>
-        <div class="hero-content">
+     <article class="hero-slide is-active" style="--bg: url('hero-4.jpg');" aria-hidden="false">
+  <!-- fallback background image (helps when CSS var or paths fail) -->
+  <div class="hero-bg" aria-hidden="true">
+    <img src="hero-1.jpg" alt="" decoding="async" loading="eager">
+  </div>
+
+  <div class="hero-overlay"></div>
+
+  <div class="hero-content">
           <p class="hero-kicker">Made for playdates & special days</p>
           <h2 class="hero-title">Shop fast. Smile forever.</h2>
           <p class="hero-subtitle">Get instant receipts + downloadable proof of purchase.</p>
@@ -3777,6 +3830,26 @@ main{
       "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
     }[m]));
   }
+
+  // Try alternative image locations when an image fails to load, then a final fallback
+function handleImgError(img) {
+  if (!img) return;
+  // mark attempt count so we try only a couple of fallbacks
+  const attempts = Number(img.dataset.errAttempt || 0);
+
+  if (attempts === 0) {
+    // first attempt: try prefixing with images/ (common case)
+    img.dataset.errAttempt = '1';
+    const s = img.getAttribute('src') || '';
+    // avoid looping if src already starts with images/
+    img.src = s.startsWith('images/') ? 'hero-1.jpg' : `images/${s}`;
+    return;
+  }
+
+  // second attempt or later: final fallback
+  img.onerror = null;
+  img.src = 'hero-1.jpg';
+}
 
   function setA11yLive(msg) {
     const live = $("#a11yLive");
