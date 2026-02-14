@@ -3699,131 +3699,109 @@ main{
 
   <!-- Accessibility helpers -->
   <div class="sr-only" aria-live="polite" id="a11yLive"></div>
-  <script>
+<script>
 /* =========================
-   April Blossoms — Script
+   April Blossoms — Complete Script (REPLACE entire previous <script> block)
+   - Full feature parity with robust image fallback
+   - No external changes required; paste this in place of your old script block
    ========================= */
-
-(() => {
+(function () {
   "use strict";
 
-  /* -------------------------
-     CONFIG (EDIT THESE)
-  ------------------------- */
-  const PAYSTACK_PUBLIC_KEY = window.PAYSTACK_PUBLIC_KEY || "PASTE_YOUR_PAYSTACK_PUBLIC_KEY_HERE"; // <-- replace with your key (same one you used before)
+  /* -------------
+     CONFIG
+  ------------- */
+  const PAYSTACK_PUBLIC_KEY = window.PAYSTACK_PUBLIC_KEY || "PASTE_YOUR_PAYSTACK_PUBLIC_KEY_HERE";
+  const FORMSPREE_ENDPOINT = window.FORMSPREE_ENDPOINT || "PASTE_YOUR_FORMSPREE_ENDPOINT_HERE";
   const STORE_CURRENCY = "GHS";
   const STORE_CURRENCY_SYMBOL = "₵";
-  const FORMSPREE_ENDPOINT = window.FORMSPREE_ENDPOINT || "PASTE_YOUR_FORMSPREE_ENDPOINT_HERE"; // <-- replace with your formspree url
 
-  // Contact placeholders in HTML: update these to your real details
+  // contact defaults (update if you like)
   const CONTACT = {
     phone: "+233000000000",
     whatsapp: "233000000000",
     email: "hello@aprilblossoms.shop",
   };
 
-  // Delivery fee table (you can tune)
-  const DELIVERY_FEES = {
-    standard: 15,
-    express: 30,
-    pickup: 0,
-  };
-
-  // Basic promo rules (stack-safe)
+  const DELIVERY_FEES = { standard: 15, express: 30, pickup: 0 };
   const PROMOS = [
     { code: "APRIL10", type: "percent", value: 10 },
     { code: "BLOSSOM5", type: "flat", value: 5 },
     { code: "FREESHIP", type: "ship", value: 0 },
   ];
 
-  /* -------------------------
-     PRODUCTS (LOADED BY JS)
-  ------------------------- */
+  /* -------------
+     PRODUCTS (kept from your original list)
+     - If image filenames are relative and live in a subfolder (eg. "images/IMG_5700.JPG"),
+       you can add a prefix below (IMAGE_PATH_PREFIX).
+  ------------- */
+  const IMAGE_PATH_PREFIX = ""; // e.g. "assets/images/" if your images live there
   const PRODUCTS = [
-    { id: "DRESS-001", title: "Floral Ruffles", price: 40.00, description: "One-of-a-kind floral ruffle dress", sizes: ["4","5"], ageCategory: "4-5", images: ["IMG_5700.JPG","IMG_5700.JPG"], available: true, createdAt: new Date(Date.now()-1*86400000).toISOString() },
-    { id: "DRESS-002", title: "Sunshine Dress", price: 30.00, description: "Bright yellow play dress", sizes: ["6","7"], ageCategory: "4-5", images: ["IMG_5701.JPG"], available: true, createdAt: new Date(Date.now()-2*86400000).toISOString() },
-    { id: "DRESS-003", title: "Party Bow Dress", price: 35.00, description: "Elegant dress for special occasions", sizes: ["7","8"], ageCategory: "4-5", images: ["IMG_5702.JPG","IMG_5702.JPG"], available: true, createdAt: new Date(Date.now()-3*86400000).toISOString() },
-    { id: "DRESS-004", title: "Polka Play", price: 35.00, description: "Polka-dot twirl dress", sizes: ["0-3M","3-6M"], ageCategory: "4-5", images: ["IMG_5703.JPG"], available: true, createdAt: new Date(Date.now()-4*86400000).toISOString() },
-    { id: "DRESS-005", title: "Candy Stripes", price: 35.00, description: "Soft striped cotton dress", sizes: ["4","5"], ageCategory: "4-5", images: ["IMG_5704.JPG","IMG_5704.JPG"], available: true, createdAt: new Date(Date.now()-5*86400000).toISOString() },
-    { id: "DRESS-006", title: "Meadow Tiny", price: 35.00, description: "Hand-stitched meadow pattern", sizes: ["5","6"], ageCategory: "4-5", images: ["IMG_5705.JPG"], available: true, createdAt: new Date(Date.now()-6*86400000).toISOString() },
-    { id: "DRESS-007", title: "Lace Halo", price: 40.00, description: "Lace-trim party dress", sizes: ["6","7"], ageCategory: "4-5", images: ["IMG_5706.JPG","IMG_5706.JPG"], available: true, createdAt: new Date(Date.now()-7*86400000).toISOString() },
-    { id: "DRESS-008", title: "Seaside Sundress", price: 35.00, description: "Cool and breezy sun dress", sizes: ["7","8"], ageCategory: "4-5", images: ["IMG_5707.JPG"], available: true, createdAt: new Date(Date.now()-8*86400000).toISOString() },
-    { id: "DRESS-009", title: "Minty Bow", price: 100.00, description: "White Shirt with skirt", sizes: ["8","9"], ageCategory: "4-5", images: ["IMG_5708.JPG","IMG_5708.JPG"], available: true, createdAt: new Date(Date.now()-9*86400000).toISOString() },
-    { id: "DRESS-010", title: "Rosette Charm", price: 35.00, description: "Rosette detailing, comfy fit", sizes: ["9","10"], ageCategory: "4-5", images: ["IMG_5709.JPG"], available: true, createdAt: new Date(Date.now()-10*86400000).toISOString() },
+    { id: "DRESS-001", title: "Floral Ruffles", price: 40.0, description: "One-of-a-kind floral ruffle dress", sizes: ["4","5"], ageCategory: "4-5", images: ["IMG_5700.JPG","IMG_5700.JPG"], available: true, createdAt: new Date(Date.now()-1*86400000).toISOString() },
+    { id: "DRESS-002", title: "Sunshine Dress", price: 30.0, description: "Bright yellow play dress", sizes: ["6","7"], ageCategory: "4-5", images: ["IMG_5701.JPG"], available: true, createdAt: new Date(Date.now()-2*86400000).toISOString() },
+    { id: "DRESS-003", title: "Party Bow Dress", price: 35.0, description: "Elegant dress for special occasions", sizes: ["7","8"], ageCategory: "4-5", images: ["IMG_5702.JPG","IMG_5702.JPG"], available: true, createdAt: new Date(Date.now()-3*86400000).toISOString() },
+    { id: "DRESS-004", title: "Polka Play", price: 35.0, description: "Polka-dot twirl dress", sizes: ["0-3M","3-6M"], ageCategory: "4-5", images: ["IMG_5703.JPG"], available: true, createdAt: new Date(Date.now()-4*86400000).toISOString() },
+    { id: "DRESS-005", title: "Candy Stripes", price: 35.0, description: "Soft striped cotton dress", sizes: ["4","5"], ageCategory: "4-5", images: ["IMG_5704.JPG","IMG_5704.JPG"], available: true, createdAt: new Date(Date.now()-5*86400000).toISOString() },
+    { id: "DRESS-006", title: "Meadow Tiny", price: 35.0, description: "Hand-stitched meadow pattern", sizes: ["5","6"], ageCategory: "4-5", images: ["IMG_5705.JPG"], available: true, createdAt: new Date(Date.now()-6*86400000).toISOString() },
+    { id: "DRESS-007", title: "Lace Halo", price: 40.0, description: "Lace-trim party dress", sizes: ["6","7"], ageCategory: "4-5", images: ["IMG_5706.JPG","IMG_5706.JPG"], available: true, createdAt: new Date(Date.now()-7*86400000).toISOString() },
+    { id: "DRESS-008", title: "Seaside Sundress", price: 35.0, description: "Cool and breezy sun dress", sizes: ["7","8"], ageCategory: "4-5", images: ["IMG_5707.JPG"], available: true, createdAt: new Date(Date.now()-8*86400000).toISOString() },
+    { id: "DRESS-009", title: "Minty Bow", price: 100.0, description: "White Shirt with skirt", sizes: ["8","9"], ageCategory: "4-5", images: ["IMG_5708.JPG","IMG_5708.JPG"], available: true, createdAt: new Date(Date.now()-9*86400000).toISOString() },
+    { id: "DRESS-010", title: "Rosette Charm", price: 35.0, description: "Rosette detailing, comfy fit", sizes: ["9","10"], ageCategory: "4-5", images: ["IMG_5709.JPG"], available: true, createdAt: new Date(Date.now()-10*86400000).toISOString() },
 
-    { id: "DRESS-011", title: "Blossom Day", price: 30.00, description: "Lightweight blossom print dress", sizes: ["10","12"], ageCategory: "4-5", images: ["IMG_5710.JPG","IMG_5710.JPG"], available: true, createdAt: new Date(Date.now()-11*86400000).toISOString() },
-    { id: "DRESS-012", title: "Vintage Coral", price: 40.00, description: "Retro coral dress with pockets", sizes: ["S","M"], ageCategory: "4-5", images: ["IMG_5711.JPG"], available: true, createdAt: new Date(Date.now()-12*86400000).toISOString() },
-    { id: "DRESS-013", title: "Petal Puff", price: 30.00, description: "Petal-pattern puff sleeve dress", sizes: ["4","5"], ageCategory: "4-5", images: ["IMG_5712.JPG","IMG_5712.JPG"], available: true, createdAt: new Date(Date.now()-13*86400000).toISOString() },
-    { id: "DRESS-014", title: "Lemon Drop", price: 65.00, description: "Blue jeans trousers", sizes: ["5","6"], ageCategory: "4-5", images: ["IMG_5713.JPG"], available: true, createdAt: new Date(Date.now()-14*86400000).toISOString() },
-    { id: "DRESS-015", title: "Bluebell Classic", price: 65.00, description: "Black jeans trousers", sizes: ["6","7"], ageCategory: "4-5", images: ["IMG_5714.JPG","IMG_5714.JPG"], available: true, createdAt: new Date(Date.now()-15*86400000).toISOString() },
-    { id: "DRESS-016", title: "Gingham Girl", price: 35.00, description: "Cute gingham for playdates", sizes: ["7","8"], ageCategory: "4-5", images: ["IMG_5715.JPG"], available: true, createdAt: new Date(Date.now()-16*86400000).toISOString() },
-    { id: "DRESS-017", title: "Velvet Holiday", price: 50.00, description: "Velvet holiday edition", sizes: ["8","9"], ageCategory: "4-5", images: ["IMG_5716.JPG","IMG_5716.JPG"], available: true, createdAt: new Date(Date.now()-17*86400000).toISOString() },
-    { id: "DRESS-018", title: "Daisy Chain", price: 70.00, description: "Daisy print with soft lining", sizes: ["9","10"], ageCategory: "4-5", images: ["IMG_5717.JPG","IMG_5717.JPG"], available: true, createdAt: new Date(Date.now()-18*86400000).toISOString() },
-    { id: "DRESS-019", title: "Sunset Ombre", price: 50.00, description: "Ombre fade summer dress", sizes: ["10","12"], ageCategory: "4-5", images: ["IMG_5718.JPG","IMG_5718.JPG"], available: true, createdAt: new Date(Date.now()-19*86400000).toISOString() },
-    { id: "DRESS-020", title: "Coral Petals", price: 70.00, description: "Coral floral with ruffled hem", sizes: ["S","M"], ageCategory: "4-5", images: ["IMG_5719.JPG"], available: true, createdAt: new Date(Date.now()-20*86400000).toISOString() },
+    { id: "DRESS-011", title: "Blossom Day", price: 30.0, description: "Lightweight blossom print dress", sizes: ["10","12"], ageCategory: "4-5", images: ["IMG_5710.JPG","IMG_5710.JPG"], available: true, createdAt: new Date(Date.now()-11*86400000).toISOString() },
+    { id: "DRESS-012", title: "Vintage Coral", price: 40.0, description: "Retro coral dress with pockets", sizes: ["S","M"], ageCategory: "4-5", images: ["IMG_5711.JPG"], available: true, createdAt: new Date(Date.now()-12*86400000).toISOString() },
+    { id: "DRESS-013", title: "Petal Puff", price: 30.0, description: "Petal-pattern puff sleeve dress", sizes: ["4","5"], ageCategory: "4-5", images: ["IMG_5712.JPG","IMG_5712.JPG"], available: true, createdAt: new Date(Date.now()-13*86400000).toISOString() },
+    { id: "DRESS-014", title: "Lemon Drop", price: 65.0, description: "Blue jeans trousers", sizes: ["5","6"], ageCategory: "4-5", images: ["IMG_5713.JPG"], available: true, createdAt: new Date(Date.now()-14*86400000).toISOString() },
+    { id: "DRESS-015", title: "Bluebell Classic", price: 65.0, description: "Black jeans trousers", sizes: ["6","7"], ageCategory: "4-5", images: ["IMG_5714.JPG","IMG_5714.JPG"], available: true, createdAt: new Date(Date.now()-15*86400000).toISOString() },
+    { id: "DRESS-016", title: "Gingham Girl", price: 35.0, description: "Cute gingham for playdates", sizes: ["7","8"], ageCategory: "4-5", images: ["IMG_5715.JPG"], available: true, createdAt: new Date(Date.now()-16*86400000).toISOString() },
+    { id: "DRESS-017", title: "Velvet Holiday", price: 50.0, description: "Velvet holiday edition", sizes: ["8","9"], ageCategory: "4-5", images: ["IMG_5716.JPG","IMG_5716.JPG"], available: true, createdAt: new Date(Date.now()-17*86400000).toISOString() },
+    { id: "DRESS-018", title: "Daisy Chain", price: 70.0, description: "Daisy print with soft lining", sizes: ["9","10"], ageCategory: "4-5", images: ["IMG_5717.JPG","IMG_5717.JPG"], available: true, createdAt: new Date(Date.now()-18*86400000).toISOString() },
+    { id: "DRESS-019", title: "Sunset Ombre", price: 50.0, description: "Ombre fade summer dress", sizes: ["10","12"], ageCategory: "4-5", images: ["IMG_5718.JPG","IMG_5718.JPG"], available: true, createdAt: new Date(Date.now()-19*86400000).toISOString() },
+    { id: "DRESS-020", title: "Coral Petals", price: 70.0, description: "Coral floral with ruffled hem", sizes: ["S","M"], ageCategory: "4-5", images: ["IMG_5719.JPG"], available: true, createdAt: new Date(Date.now()-20*86400000).toISOString() },
 
-    { id: "DRESS-021", title: "Lavender Mist", price: 28.00, description: "Soft lavender cotton dress", sizes: ["4","5"], ageCategory: "4-5", images: ["IMG_5720.JPG","IMG_5720.JPG"], available: true, createdAt: new Date(Date.now()-21*86400000).toISOString() },
-    { id: "DRESS-022", title: "Plaid Picnic", price: 28.00, description: "Cute plaid button dress", sizes: ["5","6"], ageCategory: "4-5", images: ["IMG_5720.JPG"], available: true, createdAt: new Date(Date.now()-22*86400000).toISOString() },
-    { id: "DRESS-023", title: "Rosebud Twirl", price: 120.00, description: "Lightweight twirl skirt", sizes: ["6","7"], ageCategory: "4-5", images: ["IMG_5721.JPG","IMG_5721.JPG"], available: true, createdAt: new Date(Date.now()-23*86400000).toISOString() },
-    { id: "DRESS-024", title: "Mint Sprig", price: 80.00, description: "Refreshingly cool mint dress", sizes: ["7","8"], ageCategory: "4-5", images: ["IMG_5722.JPG"], available: true, createdAt: new Date(Date.now()-24*86400000).toISOString() },
-    { id: "DRESS-025", title: "Buttercup", price: 35.00, description: "Premium buttercup fabric", sizes: ["8","9"], ageCategory: "4-5", images: ["IMG_5723.JPG","IMG_5723.JPG"], available: true, createdAt: new Date(Date.now()-25*86400000).toISOString() },
-    { id: "DRESS-026", title: "Peach Dream", price: 60.00, description: "Soft peach party dress", sizes: ["9","10"], ageCategory: "4-5", images: ["IMG_5724.JPG"], available: true, createdAt: new Date(Date.now()-26*86400000).toISOString() },
-    { id: "DRESS-027", title: "Ivy Garden", price: 35.00, description: "Ivy print with tiny pleats", sizes: ["10","12"], ageCategory: "4-5", images: ["IMG_5725.JPG","IMG_5725.JPG"], available: true, createdAt: new Date(Date.now()-27*86400000).toISOString() },
-    { id: "DRESS-028", title: "Ocean Breeze", price: 45.00, description: "Nautical details and stripes", sizes: ["S","M"], ageCategory: "4-5", images: ["IMG_5726.JPG"], available: true, createdAt: new Date(Date.now()-28*86400000).toISOString() },
-    { id: "DRESS-029", title: "Lilac Lace", price: 35.00, description: "Delicate lilac lace overlay", sizes: ["4","5"], ageCategory: "4-5", images: ["IMG_5727.JPG","IMG_5727.JPG"], available: true, createdAt: new Date(Date.now()-29*86400000).toISOString() },
-    { id: "DRESS-030", title: "Maple Sweet", price: 40.00, description: "Warm tones for autumn play", sizes: ["5","6"], ageCategory: "4-5", images: ["IMG_5728.JPG"], available: true, createdAt: new Date(Date.now()-30*86400000).toISOString() },
+    { id: "DRESS-021", title: "Lavender Mist", price: 28.0, description: "Soft lavender cotton dress", sizes: ["4","5"], ageCategory: "4-5", images: ["IMG_5720.JPG","IMG_5720.JPG"], available: true, createdAt: new Date(Date.now()-21*86400000).toISOString() },
+    { id: "DRESS-022", title: "Plaid Picnic", price: 28.0, description: "Cute plaid button dress", sizes: ["5","6"], ageCategory: "4-5", images: ["IMG_5720.JPG"], available: true, createdAt: new Date(Date.now()-22*86400000).toISOString() },
+    { id: "DRESS-023", title: "Rosebud Twirl", price: 120.0, description: "Lightweight twirl skirt", sizes: ["6","7"], ageCategory: "4-5", images: ["IMG_5721.JPG","IMG_5721.JPG"], available: true, createdAt: new Date(Date.now()-23*86400000).toISOString() },
+    { id: "DRESS-024", title: "Mint Sprig", price: 80.0, description: "Refreshingly cool mint dress", sizes: ["7","8"], ageCategory: "4-5", images: ["IMG_5722.JPG"], available: true, createdAt: new Date(Date.now()-24*86400000).toISOString() },
+    { id: "DRESS-025", title: "Buttercup", price: 35.0, description: "Premium buttercup fabric", sizes: ["8","9"], ageCategory: "4-5", images: ["IMG_5723.JPG","IMG_5723.JPG"], available: true, createdAt: new Date(Date.now()-25*86400000).toISOString() },
+    { id: "DRESS-026", title: "Peach Dream", price: 60.0, description: "Soft peach party dress", sizes: ["9","10"], ageCategory: "4-5", images: ["IMG_5724.JPG"], available: true, createdAt: new Date(Date.now()-26*86400000).toISOString() },
+    { id: "DRESS-027", title: "Ivy Garden", price: 35.0, description: "Ivy print with tiny pleats", sizes: ["10","12"], ageCategory: "4-5", images: ["IMG_5725.JPG","IMG_5725.JPG"], available: true, createdAt: new Date(Date.now()-27*86400000).toISOString() },
+    { id: "DRESS-028", title: "Ocean Breeze", price: 45.0, description: "Nautical details and stripes", sizes: ["S","M"], ageCategory: "4-5", images: ["IMG_5726.JPG"], available: true, createdAt: new Date(Date.now()-28*86400000).toISOString() },
+    { id: "DRESS-029", title: "Lilac Lace", price: 35.0, description: "Delicate lilac lace overlay", sizes: ["4","5"], ageCategory: "4-5", images: ["IMG_5727.JPG","IMG_5727.JPG"], available: true, createdAt: new Date(Date.now()-29*86400000).toISOString() },
+    { id: "DRESS-030", title: "Maple Sweet", price: 40.0, description: "Warm tones for autumn play", sizes: ["5","6"], ageCategory: "4-5", images: ["IMG_5728.JPG"], available: true, createdAt: new Date(Date.now()-30*86400000).toISOString() },
 
-    { id: "DRESS-031", title: "Cherry Puff", price: 40.00, description: "Cherry prints and puff sleeves", sizes: ["6","7"], ageCategory: "4-5", images: ["IMG_5729.JPG","IMG_5729.JPG"], available: true, createdAt: new Date(Date.now()-31*86400000).toISOString() },
-    { id: "DRESS-032", title: "Starry Night", price: 35.00, description: "Dark blue with star pattern", sizes: ["7","8"], ageCategory: "4-5", images: ["IMG_5730.JPG"], available: true, createdAt: new Date(Date.now()-32*86400000).toISOString() },
-    { id: "DRESS-033", title: "Palm Picnic", price: 35.00, description: "Tropical print for sunny days", sizes: ["8","9"], ageCategory: "4-5", images: ["IMG_5731.JPG","IMG_5731.JPG"], available: true, createdAt: new Date(Date.now()-33*86400000).toISOString() },
-    { id: "DRESS-034", title: "Velvet Ribbon", price: 40.00, description: "Lux velvet with ribbon tie", sizes: ["9","10"], ageCategory: "4-5", images: ["IMG_5732.JPG"], available: true, createdAt: new Date(Date.now()-34*86400000).toISOString() },
-    { id: "DRESS-035", title: "Rose Quartz", price: 35.00, description: "Soft pink, comfy cotton", sizes: ["10","12"], ageCategory: "4-5", images: ["IMG_5733.JPG","IMG_5733.JPG"], available: true, createdAt: new Date(Date.now()-35*86400000).toISOString() },
-    { id: "DRESS-036", title: "Star Bloom", price: 30.00, description: "Star bloom pattern, breezy", sizes: ["S","M"], ageCategory: "4-5", images: ["IMG_5734.JPG"], available: true, createdAt: new Date(Date.now()-36*86400000).toISOString() },
-    { id: "DRESS-037", title: "Meadow Stitch", price: 40.00, description: "Detailed stitching, floral", sizes: ["4","5"], ageCategory: "4-5", images: ["IMG_5735.JPG","IMG_5735.JPG"], available: true, createdAt: new Date(Date.now()-37*86400000).toISOString() },
-    { id: "DRESS-038", title: "Denim Dolly", price: 50.00, description: "Soft denim dress with buttons", sizes: ["5","6"], ageCategory: "4-5", images: ["IMG_5736.JPG"], available: true, createdAt: new Date(Date.now()-38*86400000).toISOString() },
-    { id: "DRESS-039", title: "Citrine Bloom", price: 65.00, description: "Sunny citrine color", sizes: ["6","7"], ageCategory: "4-5", images: ["IMG_5737.JPG","IMG_5737.JPG"], available: true, createdAt: new Date(Date.now()-39*86400000).toISOString() },
-    { id: "DRESS-040", title: "Cloud Puff", price: 25.00, description: "Puffy clouds print", sizes: ["7","8"], ageCategory: "4-5", images: ["IMG_5738.JPG"], available: true, createdAt: new Date(Date.now()-40*86400000).toISOString() },
+    { id: "DRESS-031", title: "Cherry Puff", price: 40.0, description: "Cherry prints and puff sleeves", sizes: ["6","7"], ageCategory: "4-5", images: ["IMG_5729.JPG","IMG_5729.JPG"], available: true, createdAt: new Date(Date.now()-31*86400000).toISOString() },
+    { id: "DRESS-032", title: "Starry Night", price: 35.0, description: "Dark blue with star pattern", sizes: ["7","8"], ageCategory: "4-5", images: ["IMG_5730.JPG"], available: true, createdAt: new Date(Date.now()-32*86400000).toISOString() },
+    { id: "DRESS-033", title: "Palm Picnic", price: 35.0, description: "Tropical print for sunny days", sizes: ["8","9"], ageCategory: "4-5", images: ["IMG_5731.JPG","IMG_5731.JPG"], available: true, createdAt: new Date(Date.now()-33*86400000).toISOString() },
+    { id: "DRESS-034", title: "Velvet Ribbon", price: 40.0, description: "Lux velvet with ribbon tie", sizes: ["9","10"], ageCategory: "4-5", images: ["IMG_5732.JPG"], available: true, createdAt: new Date(Date.now()-34*86400000).toISOString() },
+    { id: "DRESS-035", title: "Rose Quartz", price: 35.0, description: "Soft pink, comfy cotton", sizes: ["10","12"], ageCategory: "4-5", images: ["IMG_5733.JPG","IMG_5733.JPG"], available: true, createdAt: new Date(Date.now()-35*86400000).toISOString() },
+    { id: "DRESS-036", title: "Star Bloom", price: 30.0, description: "Star bloom pattern, breezy", sizes: ["S","M"], ageCategory: "4-5", images: ["IMG_5734.JPG"], available: true, createdAt: new Date(Date.now()-36*86400000).toISOString() },
+    { id: "DRESS-037", title: "Meadow Stitch", price: 40.0, description: "Detailed stitching, floral", sizes: ["4","5"], ageCategory: "4-5", images: ["IMG_5735.JPG","IMG_5735.JPG"], available: true, createdAt: new Date(Date.now()-37*86400000).toISOString() },
+    { id: "DRESS-038", title: "Denim Dolly", price: 50.0, description: "Soft denim dress with buttons", sizes: ["5","6"], ageCategory: "4-5", images: ["IMG_5736.JPG"], available: true, createdAt: new Date(Date.now()-38*86400000).toISOString() },
+    { id: "DRESS-039", title: "Citrine Bloom", price: 65.0, description: "Sunny citrine color", sizes: ["6","7"], ageCategory: "4-5", images: ["IMG_5737.JPG","IMG_5737.JPG"], available: true, createdAt: new Date(Date.now()-39*86400000).toISOString() },
+    { id: "DRESS-040", title: "Cloud Puff", price: 25.0, description: "Puffy clouds print", sizes: ["7","8"], ageCategory: "4-5", images: ["IMG_5738.JPG"], available: true, createdAt: new Date(Date.now()-40*86400000).toISOString() },
 
-    { id: "DRESS-041", title: "Mint Melody", price: 28.00, description: "Light mint with trims", sizes: ["8","9"], ageCategory: "4-5", images: ["IMG_5739.JPG","IMG_5739.JPG"], available: true, createdAt: new Date(Date.now()-41*86400000).toISOString() },
-    { id: "DRESS-042", title: "Petite Pearl", price: 25.00, description: "Pearl button detail", sizes: ["9","10"], ageCategory: "4-5", images: ["IMG_5740.JPG"], available: true, createdAt: new Date(Date.now()-42*86400000).toISOString() },
-    { id: "DRESS-043", title: "Coral Breeze", price: 35.00, description: "Soft coral shade", sizes: ["10","12"], ageCategory: "4-5", images: ["IMG_5741.JPG","IMG_5741.JPG"], available: true, createdAt: new Date(Date.now()-43*86400000).toISOString() },
-    { id: "DRESS-044", title: "Pineapple Pop", price: 30.00, description: "Fun pineapple print", sizes: ["4","5"], ageCategory: "4-5", images: ["IMG_5742.JPG"], available: true, createdAt: new Date(Date.now()-44*86400000).toISOString() },
-    { id: "DRESS-045", title: "Willow Whisper", price: 40.00, description: "Earthy willow tones", sizes: ["5","6"], ageCategory: "4-5", images: ["IMG_5743.JPG","IMG_5743.JPG"], available: true, createdAt: new Date(Date.now()-45*86400000).toISOString() },
-    { id: "DRESS-046", title: "Sunbeam Tuck", price: 35.00, description: "Tucked waist, sunny print", sizes: ["6","7"], ageCategory: "4-5", images: ["IMG_5744.JPG"], available: true, createdAt: new Date(Date.now()-46*86400000).toISOString() },
-    { id: "DRESS-047", title: "Peppermint Twist", price: 30.00, description: "Mint stripes and soft collar", sizes: ["7","8"], ageCategory: "4-5", images: ["IMG_5745.JPG","IMG_5745.JPG"], available: true, createdAt: new Date(Date.now()-47*86400000).toISOString() },
-    { id: "DRESS-048", title: "Dotted Dreams", price: 60.00, description: "Subtle dotted pattern", sizes: ["8","9"], ageCategory: "4-5", images: ["IMG_5746.JPG"], available: true, createdAt: new Date(Date.now()-48*86400000).toISOString() },
-    { id: "DRESS-049", title: "Little Luxe", price: 80.00, description: "Tiny luxe finish", sizes: ["9","10"], ageCategory: "7-8", images: ["IMG_5747.JPG","IMG_5747.JPG"], available: true, createdAt: new Date(Date.now()-49*86400000).toISOString() },
-    { id: "DRESS-050", title: "Pocket Garden", price: 40.00, description: "Playful pockets and cotton", sizes: ["10","12"], ageCategory: "4-5", images: ["IMG_5748.JPG"], available: true, createdAt: new Date(Date.now()-50*86400000).toISOString() }
+    { id: "DRESS-041", title: "Mint Melody", price: 28.0, description: "Light mint with trims", sizes: ["8","9"], ageCategory: "4-5", images: ["IMG_5739.JPG","IMG_5739.JPG"], available: true, createdAt: new Date(Date.now()-41*86400000).toISOString() },
+    { id: "DRESS-042", title: "Petite Pearl", price: 25.0, description: "Pearl button detail", sizes: ["9","10"], ageCategory: "4-5", images: ["IMG_5740.JPG"], available: true, createdAt: new Date(Date.now()-42*86400000).toISOString() },
+    { id: "DRESS-043", title: "Coral Breeze", price: 35.0, description: "Soft coral shade", sizes: ["10","12"], ageCategory: "4-5", images: ["IMG_5741.JPG","IMG_5741.JPG"], available: true, createdAt: new Date(Date.now()-43*86400000).toISOString() },
+    { id: "DRESS-044", title: "Pineapple Pop", price: 30.0, description: "Fun pineapple print", sizes: ["4","5"], ageCategory: "4-5", images: ["IMG_5742.JPG"], available: true, createdAt: new Date(Date.now()-44*86400000).toISOString() },
+    { id: "DRESS-045", title: "Willow Whisper", price: 40.0, description: "Earthy willow tones", sizes: ["5","6"], ageCategory: "4-5", images: ["IMG_5743.JPG","IMG_5743.JPG"], available: true, createdAt: new Date(Date.now()-45*86400000).toISOString() },
+    { id: "DRESS-046", title: "Sunbeam Tuck", price: 35.0, description: "Tucked waist, sunny print", sizes: ["6","7"], ageCategory: "4-5", images: ["IMG_5744.JPG"], available: true, createdAt: new Date(Date.now()-46*86400000).toISOString() },
+    { id: "DRESS-047", title: "Peppermint Twist", price: 30.0, description: "Mint stripes and soft collar", sizes: ["7","8"], ageCategory: "4-5", images: ["IMG_5745.JPG","IMG_5745.JPG"], available: true, createdAt: new Date(Date.now()-47*86400000).toISOString() },
+    { id: "DRESS-048", title: "Dotted Dreams", price: 60.0, description: "Subtle dotted pattern", sizes: ["8","9"], ageCategory: "4-5", images: ["IMG_5746.JPG"], available: true, createdAt: new Date(Date.now()-48*86400000).toISOString() },
+    { id: "DRESS-049", title: "Little Luxe", price: 80.0, description: "Tiny luxe finish", sizes: ["9","10"], ageCategory: "7-8", images: ["IMG_5747.JPG","IMG_5747.JPG"], available: true, createdAt: new Date(Date.now()-49*86400000).toISOString() },
+    { id: "DRESS-050", title: "Pocket Garden", price: 40.0, description: "Playful pockets and cotton", sizes: ["10","12"], ageCategory: "4-5", images: ["IMG_5748.JPG"], available: true, createdAt: new Date(Date.now()-50*86400000).toISOString() }
   ];
 
-  /* -------------------------
+  /* -------------
      UTILITIES
-  ------------------------- */
+  ------------- */
   const $ = (sel, root = document) => root.querySelector(sel);
   const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
-  const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
-  const safeJSON = (s, fallback) => { try { return JSON.parse(s); } catch { return fallback; } };
-  const uid = () => "AB-" + Math.random().toString(16).slice(2).toUpperCase() + "-" + Date.now().toString(36).toUpperCase();
   const money = (n) => `${STORE_CURRENCY_SYMBOL}${Number(n || 0).toFixed(2)}`;
   const nowISO = () => new Date().toISOString();
-
-  const toastRoot = $("#toastRoot");
-  function toast(message, type = "info", ms = 2600) {
-    if (!toastRoot) return;
-    const el = document.createElement("div");
-    el.className = `toast ${type}`;
-    el.innerHTML = `
-      <div class="toast-icon">
-        <i class="fa-solid ${type === "success" ? "fa-circle-check" : type === "error" ? "fa-triangle-exclamation" : "fa-circle-info"}" aria-hidden="true"></i>
-      </div>
-      <div class="toast-msg">${escapeHTML(message)}</div>
-      <button class="toast-x" aria-label="Dismiss"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
-    `;
-    toastRoot.appendChild(el);
-    const kill = () => { el.classList.add("out"); setTimeout(() => el.remove(), 250); };
-    el.querySelector(".toast-x").addEventListener("click", kill);
-    setTimeout(kill, ms);
-  }
+  const uid = () => "AB-" + Math.random().toString(16).slice(2).toUpperCase() + "-" + Date.now().toString(36).toUpperCase();
+  const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
 
   function escapeHTML(str) {
     return String(str ?? "").replace(/[&<>"']/g, (m) => ({
@@ -3831,99 +3809,119 @@ main{
     }[m]));
   }
 
-  // Try alternative image locations when an image fails to load, then a final fallback
-function handleImgError(img) {
-  if (!img) return;
-  // mark attempt count so we try only a couple of fallbacks
-  const attempts = Number(img.dataset.errAttempt || 0);
+  const placeholderSVG = (() => {
+    // base64 inline SVG placeholder returned as data URI
+    const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='800' height='1000' viewBox='0 0 800 1000'>
+      <rect width='100%' height='100%' fill='#f8f6ff'/>
+      <g fill='#efe8ff' transform='translate(80 60)'>
+        <circle cx='120' cy='120' r='120'/>
+        <rect x='0' y='300' width='640' height='480' rx='18' />
+      </g>
+      <text x='50%' y='95%' font-family='Arial' font-size='24' fill='#bdb7ef' text-anchor='middle'>Image not available</text>
+    </svg>`;
+    return "data:image/svg+xml;base64," + btoa(svg);
+  })();
 
-  if (attempts === 0) {
-    // first attempt: try prefixing with images/ (common case)
-    img.dataset.errAttempt = '1';
-    const s = img.getAttribute('src') || '';
-    // avoid looping if src already starts with images/
-    img.src = s.startsWith('images/') ? 'hero-1.jpg' : `images/${s}`;
-    return;
+  function safeImageUrl(fn) {
+    if (!fn) return placeholderSVG;
+    // prefer prefix + filename
+    if (fn.startsWith("http://") || fn.startsWith("https://") || fn.startsWith("data:") || fn.startsWith("/")) {
+      return fn;
+    }
+    return IMAGE_PATH_PREFIX + fn;
   }
 
-  // second attempt or later: final fallback
-  img.onerror = null;
-  img.src = 'hero-1.jpg';
-}
-
-  function setA11yLive(msg) {
-    const live = $("#a11yLive");
-    if (live) live.textContent = msg;
-  }
-
-  /* -------------------------
-     STORAGE
-  ------------------------- */
+  /* -------------
+     LOCAL STORAGE KEYS + STATE
+  ------------- */
   const LS = {
     cart: "ab_cart_v1",
     saved: "ab_saved_v1",
     history: "ab_history_v1",
     promo: "ab_promo_v1",
     customer: "ab_customer_v1",
-    sold: "ab_sold_v1" // sold item IDs
+    sold: "ab_sold_v1"
   };
 
   const state = {
     viewLimit: 12,
     sort: "newest",
-    filter: {
-      quick: "all",
-      availableOnly: false,
-      priceMin: null,
-      priceMax: null,
-      ageCat: "all",
-      query: ""
-    },
-    cart: safeJSON(localStorage.getItem(LS.cart), []),
-    saved: safeJSON(localStorage.getItem(LS.saved), []),
-    history: safeJSON(localStorage.getItem(LS.history), []),
-    appliedPromo: safeJSON(localStorage.getItem(LS.promo), null),
-    customer: safeJSON(localStorage.getItem(LS.customer), null),
-    soldIds: new Set(safeJSON(localStorage.getItem(LS.sold), [])),
+    filter: { quick: "all", availableOnly: false, priceMin: null, priceMax: null, ageCat: "all", query: "" },
+    cart: JSON.parse(localStorage.getItem(LS.cart) || "[]"),
+    saved: JSON.parse(localStorage.getItem(LS.saved) || "[]"),
+    history: JSON.parse(localStorage.getItem(LS.history) || "[]"),
+    appliedPromo: JSON.parse(localStorage.getItem(LS.promo) || "null"),
+    customer: JSON.parse(localStorage.getItem(LS.customer) || "null"),
+    soldIds: new Set(JSON.parse(localStorage.getItem(LS.sold) || "[]"))
   };
 
   function persist() {
-    localStorage.setItem(LS.cart, JSON.stringify(state.cart));
-    localStorage.setItem(LS.saved, JSON.stringify(state.saved));
-    localStorage.setItem(LS.history, JSON.stringify(state.history));
-    localStorage.setItem(LS.promo, JSON.stringify(state.appliedPromo));
-    localStorage.setItem(LS.customer, JSON.stringify(state.customer));
-    localStorage.setItem(LS.sold, JSON.stringify(Array.from(state.soldIds)));
+    try {
+      localStorage.setItem(LS.cart, JSON.stringify(state.cart));
+      localStorage.setItem(LS.saved, JSON.stringify(state.saved));
+      localStorage.setItem(LS.history, JSON.stringify(state.history));
+      localStorage.setItem(LS.promo, JSON.stringify(state.appliedPromo));
+      localStorage.setItem(LS.customer, JSON.stringify(state.customer));
+      localStorage.setItem(LS.sold, JSON.stringify(Array.from(state.soldIds)));
+    } catch (e) {
+      // ignore storage errors
+      console.warn("Could not persist state", e);
+    }
   }
 
-  /* -------------------------
-     INVENTORY (one-off)
-  ------------------------- */
-  function isSold(id) {
-    return state.soldIds.has(id);
+  /* -------------
+     IMAGE FAILURE HANDLING
+     - Global handler for <img> errors
+     - Also preloads background images used in hero slides and fixes them if missing
+  ------------- */
+  document.addEventListener("error", (ev) => {
+    const t = ev.target;
+    if (t && t.tagName === "IMG") {
+      // prevent infinite loop if placeholder also errors
+      if (!t.dataset.fallbackSet) {
+        t.dataset.fallbackSet = "1";
+        t.src = placeholderSVG;
+      }
+    }
+  }, true);
+
+  function ensureHeroBackgrounds() {
+    const slides = $$(".hero-slide");
+    slides.forEach(slide => {
+      // read style --bg (expected like: url('hero-1.jpg'))
+      const raw = (slide.style && slide.style.getPropertyValue("--bg")) || getComputedStyle(slide).getPropertyValue("--bg");
+      const urlMatch = raw && raw.match(/url\((['"]?)(.*?)\1\)/);
+      const url = urlMatch ? urlMatch[2] : null;
+      if (!url) {
+        // fallback: try data-attr or first img inside slide
+        const img = slide.querySelector("img");
+        const fallback = img ? (img.src || img.getAttribute("src")) : null;
+        if (fallback) slide.style.setProperty("--bg", `url("${fallback}")`);
+        else slide.style.setProperty("--bg", `url("${placeholderSVG}")`);
+        return;
+      }
+      // preload to check existence
+      const img = new Image();
+      img.onload = () => { /* OK */ };
+      img.onerror = () => {
+        slide.style.setProperty("--bg", `url("${placeholderSVG}")`);
+      };
+      img.src = safeImageUrl(url);
+    });
   }
 
-  function canAddToCart(id) {
-    if (isSold(id)) return false;
-    const inCart = state.cart.find(x => x.id === id);
-    // one-off rule: max qty 1
-    return !inCart;
-  }
-
-  /* -------------------------
+  /* -------------
      MODALS & DRAWERS
-  ------------------------- */
+  ------------- */
   function openModal(id) {
     const m = document.getElementById(id);
     if (!m) return;
     m.classList.add("open");
     m.setAttribute("aria-hidden", "false");
     document.body.classList.add("modal-open");
-    // focus
     const focusable = m.querySelector("button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])");
     focusable && focusable.focus({ preventScroll: true });
   }
-
   function closeModal(id) {
     const m = document.getElementById(id);
     if (!m) return;
@@ -3931,7 +3929,6 @@ function handleImgError(img) {
     m.setAttribute("aria-hidden", "true");
     document.body.classList.remove("modal-open");
   }
-
   function openDrawer(id) {
     const d = document.getElementById(id);
     if (!d) return;
@@ -3939,7 +3936,6 @@ function handleImgError(img) {
     d.setAttribute("aria-hidden", "false");
     document.body.classList.add("drawer-open");
   }
-
   function closeDrawer(id) {
     const d = document.getElementById(id);
     if (!d) return;
@@ -3947,7 +3943,6 @@ function handleImgError(img) {
     d.setAttribute("aria-hidden", "true");
     document.body.classList.remove("drawer-open");
   }
-
   function closeAllOverlays() {
     $$(".modal.open").forEach(m => closeModal(m.id));
     $$(".cart-drawer.open").forEach(d => closeDrawer(d.id));
@@ -3959,32 +3954,17 @@ function handleImgError(img) {
     const openD = e.target.closest("[data-open-drawer]");
     const closeD = e.target.closest("[data-close-drawer]");
 
-    if (openM) {
-      e.preventDefault();
-      openModal(openM.getAttribute("data-open-modal"));
-    }
-    if (closeM) {
-      e.preventDefault();
-      closeModal(closeM.getAttribute("data-close-modal"));
-    }
-    if (openD) {
-      e.preventDefault();
-      openDrawer(openD.getAttribute("data-open-drawer"));
-      if (openD.getAttribute("data-open-drawer") === "cartDrawer") renderCart();
-    }
-    if (closeD) {
-      e.preventDefault();
-      closeDrawer(closeD.getAttribute("data-close-drawer"));
-    }
+    if (openM) { e.preventDefault(); openModal(openM.getAttribute("data-open-modal")); }
+    if (closeM) { e.preventDefault(); closeModal(closeM.getAttribute("data-close-modal")); }
+    if (openD) { e.preventDefault(); openDrawer(openD.getAttribute("data-open-drawer")); if (openD.getAttribute("data-open-drawer")==="cartDrawer") renderCart(); }
+    if (closeD) { e.preventDefault(); closeDrawer(closeD.getAttribute("data-close-drawer")); }
   });
 
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") closeAllOverlays();
-  });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeAllOverlays(); });
 
-  /* -------------------------
+  /* -------------
      HERO SLIDER
-  ------------------------- */
+  ------------- */
   function initHero() {
     const slider = $("[data-hero-slider]");
     if (!slider) return;
@@ -4005,14 +3985,8 @@ function handleImgError(img) {
       dots.forEach((d, k) => d.classList.toggle("is-active", k === i));
     }
 
-    function start() {
-      stop();
-      timer = setInterval(() => show(i + 1), 5500);
-    }
-    function stop() {
-      if (timer) clearInterval(timer);
-      timer = null;
-    }
+    function start() { stop(); timer = setInterval(() => show(i + 1), 5500); }
+    function stop() { if (timer) clearInterval(timer); timer = null; }
 
     prev && prev.addEventListener("click", () => { show(i - 1); start(); });
     next && next.addEventListener("click", () => { show(i + 1); start(); });
@@ -4025,22 +3999,25 @@ function handleImgError(img) {
     start();
   }
 
-  /* -------------------------
+  /* -------------
      PRODUCT RENDERING
-  ------------------------- */
+  ------------- */
   const productsGrid = $("#productsGrid");
   const showMoreBtn = $("#showMoreBtn");
   const showLessBtn = $("#showLessBtn");
 
-  function getFilteredProducts() {
-    let list = PRODUCTS.map(p => ({
-      ...p,
-      available: p.available && !isSold(p.id)
-    }));
+  function isSold(id) {
+    return state.soldIds.has(id);
+  }
+  function canAddToCart(id) {
+    if (isSold(id)) return false;
+    return !state.cart.find(x => x.id === id);
+  }
 
+  function getFilteredProducts() {
+    let list = PRODUCTS.map(p => ({ ...p, available: p.available && !isSold(p.id) }));
     const f = state.filter;
 
-    // quick filters
     if (f.quick === "available") list = list.filter(p => p.available);
     if (f.quick === "under50") list = list.filter(p => p.price < 50);
     if (f.quick === "premium") list = list.filter(p => p.price >= 60);
@@ -4064,7 +4041,6 @@ function handleImgError(img) {
       );
     }
 
-    // sort
     if (state.sort === "newest") {
       list.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     } else if (state.sort === "priceLow") {
@@ -4084,7 +4060,6 @@ function handleImgError(img) {
     const list = getFilteredProducts();
     const limited = list.slice(0, state.viewLimit);
 
-    // Show/hide pagination buttons
     if (showMoreBtn && showLessBtn) {
       if (list.length > 12 && state.viewLimit <= 12) {
         showMoreBtn.classList.remove("is-hidden");
@@ -4121,7 +4096,7 @@ function handleImgError(img) {
       const sold = !p.available;
       const saved = state.saved.includes(p.id);
       const inCart = state.cart.some(x => x.id === p.id);
-      const img = (p.images && p.images[0]) ? p.images[0] : "hero-1.jpg";
+      const img = (p.images && p.images[0]) ? safeImageUrl(p.images[0]) : safeImageUrl("hero-1.jpg");
 
       const card = document.createElement("article");
       card.className = `product-card ${sold ? "is-sold" : ""}`;
@@ -4168,6 +4143,12 @@ function handleImgError(img) {
         </div>
       `;
 
+      // attach image error fallback
+      const imgEl = card.querySelector("img");
+      if (imgEl) {
+        imgEl.addEventListener("error", () => { imgEl.src = placeholderSVG; });
+      }
+
       productsGrid.appendChild(card);
     });
 
@@ -4177,21 +4158,16 @@ function handleImgError(img) {
     $("#statAvailable") && ($("#statAvailable").textContent = String(availableNow));
   }
 
-  function productById(id) {
-    return PRODUCTS.find(p => p.id === id);
-  }
+  function productById(id) { return PRODUCTS.find(p => p.id === id); }
 
-  /* -------------------------
-     CART
-  ------------------------- */
+  /* -------------
+     CART LOGIC
+  ------------- */
   const cartCountEl = $("#cartCount");
   const savedCountEl = $("#savedCount");
   const historyCountEl = $("#historyCount");
 
-  function cartItemCount() {
-    // all items are qty 1, but keep generic
-    return state.cart.reduce((sum, it) => sum + (it.qty || 1), 0);
-  }
+  function cartItemCount() { return state.cart.reduce((sum, it) => sum + (it.qty || 1), 0); }
 
   function renderBadges() {
     if (cartCountEl) cartCountEl.textContent = String(cartItemCount());
@@ -4202,15 +4178,8 @@ function handleImgError(img) {
   function addToCart(id) {
     const p = productById(id);
     if (!p) return;
-    if (isSold(id)) {
-      toast("Sorry—this item has already been purchased.", "error");
-      renderProducts();
-      return;
-    }
-    if (!canAddToCart(id)) {
-      toast("This item is already in your cart (one-off item).", "info");
-      return;
-    }
+    if (isSold(id)) { toast("Sorry—this item has already been purchased.", "error"); renderProducts(); return; }
+    if (!canAddToCart(id)) { toast("This item is already in your cart (one-off item).", "info"); return; }
     state.cart.push({ id: p.id, qty: 1, addedAt: nowISO() });
     persist();
     renderBadges();
@@ -4219,7 +4188,6 @@ function handleImgError(img) {
     toast(`Added “${p.title}” to cart.`, "success");
     setA11yLive(`Added ${p.title} to cart.`);
   }
-
   function removeFromCart(id) {
     state.cart = state.cart.filter(x => x.id !== id);
     persist();
@@ -4227,7 +4195,6 @@ function handleImgError(img) {
     renderCart();
     renderProducts();
   }
-
   function clearCart() {
     state.cart = [];
     state.appliedPromo = null;
@@ -4236,11 +4203,9 @@ function handleImgError(img) {
     renderCart();
     toast("Cart cleared.", "info");
   }
-
   function toggleSave(id) {
     const i = state.saved.indexOf(id);
-    if (i >= 0) state.saved.splice(i, 1);
-    else state.saved.push(id);
+    if (i >= 0) state.saved.splice(i, 1); else state.saved.push(id);
     persist();
     renderBadges();
     renderProducts();
@@ -4250,7 +4215,6 @@ function handleImgError(img) {
   function calcDiscount(subtotal, deliveryFee) {
     const promo = state.appliedPromo;
     if (!promo) return { discount: 0, deliveryOverride: null, label: "" };
-
     if (promo.type === "percent") {
       const d = subtotal * (promo.value / 100);
       return { discount: d, deliveryOverride: null, label: `${promo.code} (-${promo.value}%)` };
@@ -4272,22 +4236,17 @@ function handleImgError(img) {
     }, 0);
   }
 
-  function getSelectedDeliveryKey() {
-    return ($("#deliverySelect")?.value || "standard");
-  }
+  function getSelectedDeliveryKey() { return ($("#deliverySelect")?.value || "standard"); }
 
   function computeTotals() {
     const subtotal = cartSubtotal();
     const deliveryKey = getSelectedDeliveryKey();
     let deliveryFee = DELIVERY_FEES[deliveryKey] ?? 0;
-
     const promoEffect = calcDiscount(subtotal, deliveryFee);
     if (promoEffect.deliveryOverride != null) deliveryFee = promoEffect.deliveryOverride;
-
     let discount = promoEffect.discount || 0;
-    discount = clamp(discount, 0, subtotal); // never exceed subtotal
+    discount = clamp(discount, 0, subtotal);
     const total = Math.max(0, subtotal + deliveryFee - discount);
-
     return { subtotal, deliveryKey, deliveryFee, discount, total, promoLabel: promoEffect.label };
   }
 
@@ -4295,17 +4254,12 @@ function handleImgError(img) {
     const { subtotal } = computeTotals();
     const hasItems = state.cart.length > 0;
     const agree = $("#agreePolicies")?.checked ?? false;
-
-    // show progress in drawer based on readiness:
-    // 0% no items, 50% has items, 75% has items + email, 100% if form valid (checked) - but drawer doesn't have form
     let pct = 0;
     if (hasItems) pct = 50;
     if (subtotal >= 1) pct = 70;
     if (state.cart.length >= 2) pct = 80;
-    // not too “fake”: cap at 90 unless checkout has consent
     pct = Math.min(pct, 90);
     if (agree) pct = 100;
-
     const fill = $("#cartProgressFill");
     const label = $("#cartProgressLabel");
     if (fill) fill.style.width = `${pct}%`;
@@ -4317,27 +4271,22 @@ function handleImgError(img) {
     const empty = $("#cartEmptyState");
     if (!listEl) return;
 
-    // update totals
     const totals = computeTotals();
-
     $("#cartSubtotal") && ($("#cartSubtotal").textContent = money(totals.subtotal));
     $("#cartDelivery") && ($("#cartDelivery").textContent = money(totals.deliveryFee));
     $("#cartDiscount") && ($("#cartDiscount").textContent = `-${money(totals.discount)}`);
     $("#cartTotal") && ($("#cartTotal").textContent = money(totals.total));
-
-    // update checkout mirror if open
     $("#checkoutSubtotal") && ($("#checkoutSubtotal").textContent = money(totals.subtotal));
     $("#checkoutDeliveryFee") && ($("#checkoutDeliveryFee").textContent = money(totals.deliveryFee));
     $("#checkoutDiscount") && ($("#checkoutDiscount").textContent = `-${money(totals.discount)}`);
     $("#checkoutTotal") && ($("#checkoutTotal").textContent = money(totals.total));
 
-    // render items
     const items = state.cart
       .map(it => {
         const p = productById(it.id);
         if (!p) return null;
         const sold = isSold(p.id);
-        const img = (p.images && p.images[0]) ? p.images[0] : "hero-1.jpg";
+        const img = (p.images && p.images[0]) ? safeImageUrl(p.images[0]) : placeholderSVG;
         return { ...it, p, img, sold };
       })
       .filter(Boolean);
@@ -4380,17 +4329,15 @@ function handleImgError(img) {
             </div>
           </div>
         `;
+        const imgEl = row.querySelector("img");
+        if (imgEl) imgEl.addEventListener("error", () => imgEl.src = placeholderSVG);
         listEl.appendChild(row);
       });
     }
 
-    // render checkout summary list
     renderCheckoutSummary();
-
-    // enable/disable checkout button
     const checkoutBtn = $("#checkoutBtn");
     if (checkoutBtn) checkoutBtn.disabled = items.length === 0;
-
     renderCartProgress();
   }
 
@@ -4405,7 +4352,7 @@ function handleImgError(img) {
     state.cart.forEach(it => {
       const p = productById(it.id);
       if (!p) return;
-      const img = (p.images && p.images[0]) ? p.images[0] : "hero-1.jpg";
+      const img = (p.images && p.images[0]) ? safeImageUrl(p.images[0]) : placeholderSVG;
       const el = document.createElement("div");
       el.className = "summary-item";
       el.innerHTML = `
@@ -4416,13 +4363,15 @@ function handleImgError(img) {
         </div>
         <strong class="si-price">${money(p.price)}</strong>
       `;
+      const imgEl = el.querySelector("img");
+      if (imgEl) imgEl.addEventListener("error", () => imgEl.src = placeholderSVG);
       box.appendChild(el);
     });
   }
 
-  /* -------------------------
+  /* -------------
      QUICK VIEW
-  ------------------------- */
+  ------------- */
   function openQuickView(id) {
     const p = productById(id);
     if (!p) return;
@@ -4442,7 +4391,7 @@ function handleImgError(img) {
 
     const gallery = $("#quickViewGallery");
     if (gallery) {
-      const imgs = (p.images && p.images.length) ? p.images : ["hero-1.jpg"];
+      const imgs = (p.images && p.images.length) ? p.images.map(safeImageUrl) : [placeholderSVG];
       gallery.innerHTML = `
         <div class="qv-main">
           <img id="qvMainImg" src="${escapeHTML(imgs[0])}" alt="${escapeHTML(p.title)}">
@@ -4463,6 +4412,9 @@ function handleImgError(img) {
           main.src = imgs[idx];
         });
       });
+      // fallback for thumb images
+      $$(".thumb img", gallery).forEach(imgEl => imgEl.addEventListener("error", () => imgEl.src = placeholderSVG));
+      if (main) main.addEventListener("error", () => { main.src = placeholderSVG; });
     }
 
     const addBtn = $("#quickViewAddBtn");
@@ -4489,18 +4441,14 @@ function handleImgError(img) {
     openModal("quickViewModal");
   }
 
-  /* -------------------------
+  /* -------------
      SEARCH
-  ------------------------- */
+  ------------- */
   function renderSearchResults(query) {
     const out = $("#searchResults");
     if (!out) return;
-
     const q = (query || "").trim().toLowerCase();
-    if (!q) {
-      out.innerHTML = `<p class="mini-muted">Try: “Floral”, “DRESS-010”, “Premium”…</p>`;
-      return;
-    }
+    if (!q) { out.innerHTML = `<p class="mini-muted">Try: “Floral”, “DRESS-010”, “Premium”…</p>`; return; }
 
     const matches = PRODUCTS
       .map(p => ({ ...p, available: p.available && !isSold(p.id) }))
@@ -4512,10 +4460,7 @@ function handleImgError(img) {
       )
       .slice(0, 10);
 
-    if (!matches.length) {
-      out.innerHTML = `<p class="mini-muted">No results for “${escapeHTML(query)}”.</p>`;
-      return;
-    }
+    if (!matches.length) { out.innerHTML = `<p class="mini-muted">No results for “${escapeHTML(query)}”.</p>`; return; }
 
     out.innerHTML = matches.map(p => `
       <button class="search-item" type="button" data-search-pick="${escapeHTML(p.id)}">
@@ -4536,9 +4481,9 @@ function handleImgError(img) {
     });
   }
 
-  /* -------------------------
+  /* -------------
      SAVED
-  ------------------------- */
+  ------------- */
   function renderSaved() {
     const list = $("#savedList");
     const empty = $("#savedEmpty");
@@ -4557,7 +4502,7 @@ function handleImgError(img) {
       const p = productById(id);
       if (!p) return;
       const sold = isSold(id) || !p.available;
-      const img = (p.images && p.images[0]) ? p.images[0] : "hero-1.jpg";
+      const img = (p.images && p.images[0]) ? safeImageUrl(p.images[0]) : placeholderSVG;
 
       const row = document.createElement("div");
       row.className = `saved-item ${sold ? "is-sold" : ""}`;
@@ -4575,13 +4520,15 @@ function handleImgError(img) {
           </div>
         </div>
       `;
+      const imgEl = row.querySelector("img");
+      if (imgEl) imgEl.addEventListener("error", () => imgEl.src = placeholderSVG);
       list.appendChild(row);
     });
   }
 
-  /* -------------------------
+  /* -------------
      HISTORY
-  ------------------------- */
+  ------------- */
   function renderHistory(query = "") {
     const list = $("#historyList");
     const empty = $("#historyEmpty");
@@ -4589,14 +4536,10 @@ function handleImgError(img) {
 
     const q = (query || "").trim().toLowerCase();
     const history = state.history.slice().sort((a, b) => new Date(b.paidAt) - new Date(a.paidAt));
-
     const filtered = !q ? history : history.filter(h => {
       const inOrder = (h.orderId || "").toLowerCase().includes(q);
       const inRef = (h.paystackRef || "").toLowerCase().includes(q);
-      const inItems = (h.items || []).some(it =>
-        (it.id || "").toLowerCase().includes(q) ||
-        (it.title || "").toLowerCase().includes(q)
-      );
+      const inItems = (h.items || []).some(it => (it.id || "").toLowerCase().includes(q) || (it.title || "").toLowerCase().includes(q));
       return inOrder || inRef || inItems;
     });
 
@@ -4654,21 +4597,18 @@ function handleImgError(img) {
     return state.history.find(h => h.orderId === orderId);
   }
 
-  /* -------------------------
-     RECEIPT UI
-  ------------------------- */
+  /* -------------
+     RECEIPTS (UI + download/copy)
+  ------------- */
   function fillReceipt(order) {
     if (!order) return;
-
     $("#receiptDate") && ($("#receiptDate").textContent = new Date(order.paidAt).toLocaleString());
     $("#receiptOrderId") && ($("#receiptOrderId").textContent = `Order ${order.orderId}`);
-
     $("#receiptCustomerName") && ($("#receiptCustomerName").textContent = order.customer.fullName || "—");
     $("#receiptCustomerEmail") && ($("#receiptCustomerEmail").textContent = order.customer.email || "—");
     $("#receiptCustomerPhone") && ($("#receiptCustomerPhone").textContent = order.customer.phone || "—");
     $("#receiptDelivery") && ($("#receiptDelivery").textContent = order.customer.delivery || "—");
     $("#receiptAddress") && ($("#receiptAddress").textContent = `${order.customer.address || "—"}, ${order.customer.city || ""} ${order.customer.region || ""}`.trim());
-
     $("#receiptSubtotal") && ($("#receiptSubtotal").textContent = money(order.subtotal));
     $("#receiptDeliveryFee") && ($("#receiptDeliveryFee").textContent = money(order.deliveryFee));
     $("#receiptDiscount") && ($("#receiptDiscount").textContent = `-${money(order.discount)}`);
@@ -4684,7 +4624,6 @@ function handleImgError(img) {
       `).join("");
     }
 
-    // Wire buttons for this order
     $("#copyReceiptBtn") && ($("#copyReceiptBtn").onclick = async () => {
       const text = [
         `April Blossoms Receipt`,
@@ -4711,10 +4650,6 @@ function handleImgError(img) {
     $("#downloadReceiptBtn") && ($("#downloadReceiptBtn").onclick = () => downloadReceiptPDF(order));
   }
 
-  /* -------------------------
-     PDF GENERATION (NO LIBS)
-     - Uses print window trick with styled HTML
-  ------------------------- */
   function receiptHTML(order) {
     const items = order.items.map(it => `
       <tr>
@@ -4753,10 +4688,7 @@ function handleImgError(img) {
     .totals .row{display:flex; justify-content:space-between; padding:6px 0}
     .totals .row.total{border-top:1px solid #eee; padding-top:10px; font-size:16px; font-weight:800}
     .foot{margin-top:16px; color:#666; font-size:12px}
-    @media print {
-      body{margin:0; padding:18px}
-      .no-print{display:none}
-    }
+    @media print { body{margin:0; padding:18px} .no-print{display:none} }
   </style>
 </head>
 <body>
@@ -4820,21 +4752,17 @@ function handleImgError(img) {
   }
 
   function downloadReceiptPDF(order) {
-    // Print window: user chooses "Save as PDF"
     const w = window.open("", "_blank");
-    if (!w) {
-      toast("Pop-up blocked. Allow pop-ups to download PDF.", "error");
-      return;
-    }
+    if (!w) { toast("Pop-up blocked. Allow pop-ups to download PDF.", "error"); return; }
     w.document.open();
     w.document.write(receiptHTML(order));
     w.document.close();
     w.focus();
   }
 
-  /* -------------------------
-     PAYSTACK
-  ------------------------- */
+  /* -------------
+     PAYSTACK (inline)
+  ------------- */
   function ensurePaystackLoaded() {
     return new Promise((resolve, reject) => {
       if (window.PaystackPop) return resolve(true);
@@ -4861,7 +4789,6 @@ function handleImgError(img) {
     const city = String(data.get("city") || "").trim();
     const region = String(data.get("region") || "").trim();
     const notes = String(data.get("notes") || "").trim();
-
     const agree = $("#agreePolicies")?.checked;
 
     if (!state.cart.length) return { ok: false, msg: "Your cart is empty." };
@@ -4875,13 +4802,11 @@ function handleImgError(img) {
     if (!agree) return { ok: false, msg: "Please agree to the policies." };
 
     if (feedback) feedback.textContent = "";
-
     const customer = { fullName, email, phone, delivery, address, city, region, notes };
     return { ok: true, customer };
   }
 
   function lockCartItemsOrFail() {
-    // one-off guarantee: if any cart item already sold => fail
     for (const it of state.cart) {
       if (isSold(it.id)) {
         const p = productById(it.id);
@@ -4896,27 +4821,12 @@ function handleImgError(img) {
     const btn = $("#payNowBtn");
 
     const val = validateCheckoutForm();
-    if (!val.ok) {
-      feedback && (feedback.textContent = val.msg);
-      toast(val.msg, "error");
-      return;
-    }
-
+    if (!val.ok) { feedback && (feedback.textContent = val.msg); toast(val.msg, "error"); return; }
     const lock = lockCartItemsOrFail();
-    if (!lock.ok) {
-      feedback && (feedback.textContent = lock.msg);
-      toast(lock.msg, "error");
-      renderCart();
-      renderProducts();
-      return;
-    }
+    if (!lock.ok) { feedback && (feedback.textContent = lock.msg); toast(lock.msg, "error"); renderCart(); renderProducts(); return; }
 
     const totals = computeTotals();
-    if (totals.total <= 0) {
-      feedback && (feedback.textContent = "Total must be greater than zero.");
-      toast("Total must be greater than zero.", "error");
-      return;
-    }
+    if (totals.total <= 0) { feedback && (feedback.textContent = "Total must be greater than zero."); toast("Total must be greater than zero.", "error"); return; }
 
     if (!PAYSTACK_PUBLIC_KEY || PAYSTACK_PUBLIC_KEY.includes("PASTE_YOUR")) {
       feedback && (feedback.textContent = "Paystack public key is missing. Add your key in the script config.");
@@ -4924,13 +4834,9 @@ function handleImgError(img) {
       return;
     }
 
-    // Save customer if requested
-    if ($("#saveDetails")?.checked) {
-      state.customer = val.customer;
-    }
+    if ($("#saveDetails")?.checked) { state.customer = val.customer; }
     persist();
 
-    // Ensure Paystack is available
     try {
       btn && (btn.disabled = true);
       await ensurePaystackLoaded();
@@ -4946,12 +4852,7 @@ function handleImgError(img) {
 
     const items = state.cart.map(it => {
       const p = productById(it.id);
-      return {
-        id: p.id,
-        title: p.title,
-        price: p.price,
-        ageCategory: p.ageCategory,
-      };
+      return { id: p.id, title: p.title, price: p.price, ageCategory: p.ageCategory };
     });
 
     const orderPayload = {
@@ -4972,8 +4873,8 @@ function handleImgError(img) {
     const handler = window.PaystackPop.setup({
       key: PAYSTACK_PUBLIC_KEY,
       email: val.customer.email,
-      amount: Math.round(totals.total * 100), // kobo/pesewas
-      currency: STORE_CURRENCY, // IMPORTANT: GHS for cedis
+      amount: Math.round(totals.total * 100),
+      currency: STORE_CURRENCY,
       ref: paystackRef,
       metadata: {
         custom_fields: [
@@ -4984,8 +4885,6 @@ function handleImgError(img) {
         order: orderPayload
       },
       callback: function (response) {
-        // NOTE: Inline callback confirms Paystack says "success"
-        // For real production you'd verify server-side, but for static shop we proceed.
         onPaymentSuccess(orderPayload, response.reference || paystackRef);
       },
       onClose: function () {
@@ -4995,9 +4894,7 @@ function handleImgError(img) {
       }
     });
 
-    try {
-      handler.openIframe();
-    } catch {
+    try { handler.openIframe(); } catch {
       btn && (btn.disabled = false);
       feedback && (feedback.textContent = "Could not open Paystack checkout.");
       toast("Could not open Paystack checkout.", "error");
@@ -5008,28 +4905,15 @@ function handleImgError(img) {
     const feedback = $("#checkoutFeedback");
     const btn = $("#payNowBtn");
 
-    // One last lock check
     const lock = lockCartItemsOrFail();
-    if (!lock.ok) {
-      btn && (btn.disabled = false);
-      feedback && (feedback.textContent = lock.msg);
-      toast(lock.msg, "error");
-      return;
-    }
+    if (!lock.ok) { btn && (btn.disabled = false); feedback && (feedback.textContent = lock.msg); toast(lock.msg, "error"); return; }
 
-    // Mark sold
     state.cart.forEach(it => state.soldIds.add(it.id));
 
-    // Finalize order record
     const paidAt = nowISO();
-    const order = {
-      ...orderPayload,
-      paystackRef: reference,
-      paidAt
-    };
+    const order = { ...orderPayload, paystackRef: reference, paidAt };
     state.history.push(order);
 
-    // Clear cart + promo
     state.cart = [];
     state.appliedPromo = null;
 
@@ -5040,7 +4924,6 @@ function handleImgError(img) {
     renderSaved();
     renderHistory();
 
-    // Fill & show receipt
     fillReceipt(order);
     closeModal("checkoutModal");
     openModal("receiptModal");
@@ -5049,7 +4932,6 @@ function handleImgError(img) {
     setA11yLive("Payment successful. Receipt opened.");
     btn && (btn.disabled = false);
 
-    // Optional: send a copy to Formspree (order email)
     sendOrderToFormspree(order).catch(() => {});
   }
 
@@ -5073,9 +4955,9 @@ function handleImgError(img) {
     } catch {}
   }
 
-  /* -------------------------
+  /* -------------
      CONTACT + NEWSLETTER (Formspree)
-  ------------------------- */
+  ------------- */
   async function submitToFormspree(form, feedbackEl, payload) {
     if (!FORMSPREE_ENDPOINT || FORMSPREE_ENDPOINT.includes("PASTE_YOUR")) {
       feedbackEl && (feedbackEl.textContent = "Form endpoint missing. Add your Formspree URL in the script config.");
@@ -5088,8 +4970,7 @@ function handleImgError(img) {
         headers: { "Accept": "application/json", "Content-Type": "application/json" },
         body: JSON.stringify(payload)
       });
-      if (res.ok) return true;
-      return false;
+      return res.ok;
     } catch {
       return false;
     }
@@ -5100,29 +4981,14 @@ function handleImgError(img) {
     const form = e.currentTarget;
     const fb = $("#contactFeedback");
     const data = new FormData(form);
-
     const name = String(data.get("name") || "").trim();
     const email = String(data.get("email") || "").trim();
     const message = String(data.get("message") || "").trim();
 
-    if (!name || !email || !message) {
-      fb && (fb.textContent = "Please fill in all fields.");
-      toast("Please fill in all contact fields.", "error");
-      return;
-    }
-
+    if (!name || !email || !message) { fb && (fb.textContent = "Please fill in all fields."); toast("Please fill in all contact fields.", "error"); return; }
     fb && (fb.textContent = "Sending…");
-
     const ok = await submitToFormspree(form, fb, { type: "contact", name, email, message, sentAt: nowISO() });
-
-    if (ok) {
-      fb && (fb.textContent = "Sent! We’ll reply soon.");
-      toast("Message sent!", "success");
-      form.reset();
-    } else {
-      fb && (fb.textContent = "Could not send. Please try again.");
-      toast("Could not send message.", "error");
-    }
+    if (ok) { fb && (fb.textContent = "Sent! We’ll reply soon."); toast("Message sent!", "success"); form.reset(); } else { fb && (fb.textContent = "Could not send. Please try again."); toast("Could not send message.", "error"); }
   }
 
   async function handleNewsletterSubmit(e) {
@@ -5130,29 +4996,15 @@ function handleImgError(img) {
     const form = e.currentTarget;
     const fb = $("#newsletterFeedback");
     const email = String(new FormData(form).get("newsletterEmail") || "").trim();
-
-    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      fb && (fb.textContent = "Enter a valid email.");
-      toast("Enter a valid newsletter email.", "error");
-      return;
-    }
-
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { fb && (fb.textContent = "Enter a valid email."); toast("Enter a valid newsletter email.", "error"); return; }
     fb && (fb.textContent = "Subscribing…");
     const ok = await submitToFormspree(form, fb, { type: "newsletter", email, sentAt: nowISO() });
-
-    if (ok) {
-      fb && (fb.textContent = "Subscribed! 🎉");
-      toast("Subscribed!", "success");
-      form.reset();
-    } else {
-      fb && (fb.textContent = "Could not subscribe. Try again.");
-      toast("Could not subscribe.", "error");
-    }
+    if (ok) { fb && (fb.textContent = "Subscribed! 🎉"); toast("Subscribed!", "success"); form.reset(); } else { fb && (fb.textContent = "Could not subscribe. Try again."); toast("Could not subscribe.", "error"); }
   }
 
-  /* -------------------------
+  /* -------------
      EVENTS (delegation)
-  ------------------------- */
+  ------------- */
   document.addEventListener("click", (e) => {
     const card = e.target.closest(".product-card");
     const actionBtn = e.target.closest("[data-action]");
@@ -5170,82 +5022,34 @@ function handleImgError(img) {
 
     // sort pills
     const sortBtn = e.target.closest("[data-sort]");
-    if (sortBtn) {
-      state.sort = sortBtn.dataset.sort;
-      renderProducts();
-      return;
-    }
+    if (sortBtn) { state.sort = sortBtn.dataset.sort; renderProducts(); return; }
 
     // show more/less
-    if (e.target.closest("#showMoreBtn")) {
-      state.viewLimit = 999;
-      renderProducts();
-      return;
-    }
-    if (e.target.closest("#showLessBtn")) {
-      state.viewLimit = 12;
-      renderProducts();
-      // scroll back near top of products
-      $("#shop")?.scrollIntoView({ behavior: "smooth", block: "start" });
-      return;
-    }
+    if (e.target.closest("#showMoreBtn")) { state.viewLimit = 999; renderProducts(); return; }
+    if (e.target.closest("#showLessBtn")) { state.viewLimit = 12; renderProducts(); $("#shop")?.scrollIntoView({ behavior: "smooth", block: "start" }); return; }
 
     // cart toolbar
-    if (e.target.closest("#clearCartBtn")) {
-      clearCart();
-      return;
-    }
-
-    if (e.target.closest("#applyPromoBtn")) {
-      applyPromoFromInput();
-      return;
-    }
-
-    if (e.target.closest("#applyAutoPromoBtn")) {
-      autoPromo();
-      return;
-    }
+    if (e.target.closest("#clearCartBtn")) { if (confirm("Clear cart?")) clearCart(); return; }
+    if (e.target.closest("#applyPromoBtn")) { applyPromoFromInput(); return; }
+    if (e.target.closest("#applyAutoPromoBtn")) { autoPromo(); return; }
 
     // cart list actions
     const cartAct = e.target.closest("[data-action][data-id]");
     if (cartAct) {
       const id = cartAct.getAttribute("data-id");
       const act = cartAct.getAttribute("data-action");
-      if (act === "remove-from-cart") {
-        removeFromCart(id);
-        toast("Removed from cart.", "info");
-        return;
-      }
-      if (act === "move-to-saved") {
-        toggleSave(id);
-        removeFromCart(id);
-        toast("Moved to saved.", "success");
-        return;
-      }
-      if (act === "open-qv") {
-        openQuickView(id);
-        return;
-      }
-      if (act === "unsave") {
-        toggleSave(id);
-        toast("Removed from saved.", "info");
-        return;
-      }
+      if (act === "remove-from-cart") { removeFromCart(id); toast("Removed from cart.", "info"); return; }
+      if (act === "move-to-saved") { toggleSave(id); removeFromCart(id); toast("Moved to saved.", "success"); return; }
+      if (act === "open-qv") { openQuickView(id); return; }
+      if (act === "unsave") { toggleSave(id); toast("Removed from saved.", "info"); return; }
     }
 
     // Product card actions
     if (card && actionBtn) {
       const id = card.getAttribute("data-product-id");
       const act = actionBtn.getAttribute("data-action");
-
       if (act === "add-to-cart") addToCart(id);
-      if (act === "buy-now") {
-        addToCart(id);
-        openDrawer("cartDrawer");
-        openModal("checkoutModal");
-        hydrateCheckoutDefaults();
-        renderCart();
-      }
+      if (act === "buy-now") { addToCart(id); openDrawer("cartDrawer"); openModal("checkoutModal"); hydrateCheckoutDefaults(); renderCart(); }
       if (act === "toggle-save") toggleSave(id);
       if (act === "quick-view") openQuickView(id);
     }
@@ -5257,31 +5061,18 @@ function handleImgError(img) {
       const act = histBtn.getAttribute("data-action");
       const order = findHistory(orderId);
       if (!order) return;
-
-      if (act === "open-receipt") {
-        fillReceipt(order);
-        openModal("receiptModal");
-      }
-      if (act === "download-receipt") {
-        downloadReceiptPDF(order);
-      }
+      if (act === "open-receipt") { fillReceipt(order); openModal("receiptModal"); }
+      if (act === "download-receipt") { downloadReceiptPDF(order); }
     }
 
     // checkout open
-    if (e.target.closest("#checkoutBtn")) {
-      hydrateCheckoutDefaults();
-      renderCart();
-    }
+    if (e.target.closest("#checkoutBtn")) { hydrateCheckoutDefaults(); renderCart(); }
 
     // pay now
-    if (e.target.closest("#payNowBtn")) {
-      startPaystackPayment();
-    }
+    if (e.target.closest("#payNowBtn")) { startPaystackPayment(); }
 
     // export history
-    if (e.target.closest("#exportHistoryBtn")) {
-      exportHistoryJSON();
-    }
+    if (e.target.closest("#exportHistoryBtn")) { exportHistoryJSON(); }
 
     // clear history
     if (e.target.closest("#clearHistoryBtn")) {
@@ -5295,7 +5086,7 @@ function handleImgError(img) {
     }
   });
 
-  // delivery select affects totals
+  // delivery selects
   $("#deliverySelect")?.addEventListener("change", () => renderCart());
   $("#checkoutDelivery")?.addEventListener("change", (e) => {
     const k = e.target.value;
@@ -5304,20 +5095,15 @@ function handleImgError(img) {
     renderCart();
   });
 
-  // checkout form changes -> live totals readiness
   $("#checkoutForm")?.addEventListener("input", () => renderCartProgress());
   $("#agreePolicies")?.addEventListener("change", () => renderCartProgress());
 
-  // search input
   $("#searchInput")?.addEventListener("input", (e) => {
     state.filter.query = e.target.value;
     renderSearchResults(e.target.value);
   });
-
-  // history search
   $("#historySearch")?.addEventListener("input", (e) => renderHistory(e.target.value));
 
-  // filters modal apply/reset
   $("#applyFiltersBtn")?.addEventListener("click", () => {
     state.filter.availableOnly = $("#filterAvailable")?.checked || false;
     const min = $("#priceMin")?.value;
@@ -5345,74 +5131,43 @@ function handleImgError(img) {
     toast("Filters reset.", "info");
   });
 
-  // contact + newsletter
   $("#contactForm")?.addEventListener("submit", handleContactSubmit);
   $("#newsletterForm")?.addEventListener("submit", handleNewsletterSubmit);
 
-  /* -------------------------
+  /* -------------
      PROMO
-  ------------------------- */
+  ------------- */
   function applyPromoFromInput() {
     const inp = $("#promoInput");
     const code = String(inp?.value || "").trim().toUpperCase();
-    if (!code) {
-      toast("Enter a promo code.", "info");
-      return;
-    }
+    if (!code) { toast("Enter a promo code.", "info"); return; }
     const match = PROMOS.find(p => p.code === code);
-    if (!match) {
-      toast("Invalid promo code.", "error");
-      state.appliedPromo = null;
-      persist();
-      renderCart();
-      return;
-    }
-    state.appliedPromo = match;
-    persist();
-    renderCart();
-    toast(`Promo applied: ${match.code}`, "success");
+    if (!match) { toast("Invalid promo code.", "error"); state.appliedPromo = null; persist(); renderCart(); return; }
+    state.appliedPromo = match; persist(); renderCart(); toast(`Promo applied: ${match.code}`, "success");
   }
-
   function autoPromo() {
-    // choose best for the user automatically
     const { subtotal, deliveryFee } = computeTotals();
     if (subtotal <= 0) return;
-
-    // Evaluate each promo
-    let best = null;
-    let bestSave = 0;
-
+    let best = null; let bestSave = 0;
     for (const p of PROMOS) {
       let save = 0;
       if (p.type === "percent") save = subtotal * (p.value / 100);
       if (p.type === "flat") save = p.value;
       if (p.type === "ship") save = deliveryFee;
-
-      if (save > bestSave) {
-        bestSave = save;
-        best = p;
-      }
+      if (save > bestSave) { bestSave = save; best = p; }
     }
-
-    if (!best) {
-      toast("No promo available.", "info");
-      return;
-    }
-    state.appliedPromo = best;
-    persist();
-    renderCart();
-    toast(`Best promo applied: ${best.code}`, "success");
+    if (!best) { toast("No promo available.", "info"); return; }
+    state.appliedPromo = best; persist(); renderCart(); toast(`Best promo applied: ${best.code}`, "success");
   }
 
-  /* -------------------------
+  /* -------------
      BACK TO TOP
-  ------------------------- */
+  ------------- */
   function initBackToTop() {
     const btn = $("#backToTop");
     if (!btn) return;
     const hero = $(".hero");
     const showAfter = hero ? hero.offsetHeight * 0.8 : 500;
-
     const onScroll = () => {
       const y = window.scrollY || document.documentElement.scrollTop;
       const show = y > showAfter;
@@ -5421,35 +5176,30 @@ function handleImgError(img) {
     };
     window.addEventListener("scroll", onScroll, { passive: true });
     onScroll();
-
-    btn.addEventListener("click", () => {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-      setA11yLive("Back to top.");
-    });
+    btn.addEventListener("click", () => { window.scrollTo({ top: 0, behavior: "smooth" }); setA11yLive("Back to top."); });
   }
 
-  /* -------------------------
+  /* -------------
      YEAR
-  ------------------------- */
+  ------------- */
   $("#yearNow") && ($("#yearNow").textContent = String(new Date().getFullYear()));
 
-  /* -------------------------
-     CONTACT LINKS (optional)
-  ------------------------- */
+  /* -------------
+     CONTACT LINKS
+  ------------- */
   function hydrateContactLinks() {
     $$("a[href^='tel:']").forEach(a => a.href = `tel:${CONTACT.phone}`);
     $$("a[href^='https://wa.me/']").forEach(a => a.href = `https://wa.me/${CONTACT.whatsapp}`);
     $$("a[href^='mailto:']").forEach(a => a.href = `mailto:${CONTACT.email}`);
   }
 
-  /* -------------------------
+  /* -------------
      CHECKOUT DEFAULTS
-  ------------------------- */
+  ------------- */
   function hydrateCheckoutDefaults() {
     if (!state.customer) return;
     const form = $("#checkoutForm");
     if (!form) return;
-
     const c = state.customer;
     const set = (name, value) => {
       const el = form.querySelector(`[name="${name}"]`);
@@ -5463,15 +5213,14 @@ function handleImgError(img) {
     set("city", c.city);
     set("region", c.region);
     set("notes", c.notes);
-    // mirror delivery select
     const ds = $("#deliverySelect");
     if (ds && c.delivery) ds.value = c.delivery;
     renderCart();
   }
 
-  /* -------------------------
+  /* -------------
      HISTORY EXPORT
-  ------------------------- */
+  ------------- */
   function exportHistoryJSON() {
     const blob = new Blob([JSON.stringify(state.history, null, 2)], { type: "application/json" });
     const a = document.createElement("a");
@@ -5484,63 +5233,106 @@ function handleImgError(img) {
     toast("History exported.", "success");
   }
 
-  /* -------------------------
-     CHECK SOLD IN CART (safety)
-  ------------------------- */
+  /* -------------
+     PURGE SOLD FROM CART (safety)
+  ------------- */
   function purgeSoldFromCart() {
     const before = state.cart.length;
     state.cart = state.cart.filter(it => !isSold(it.id));
     if (state.cart.length !== before) {
       persist();
-      toast("Some items were removed from cart because they were already purchased.", "info");
+      renderBadges();
+      renderCart();
+      renderProducts();
+      toast("Some items in your cart were sold and removed.", "info");
     }
   }
 
-  /* -------------------------
-     INIT
-  ------------------------- */
+  /* -------------
+     TOASTS + ACCESSIBILITY
+  ------------- */
+  const toastRoot = $("#toastRoot");
+  function toast(message, type = "info", ms = 2600) {
+    if (!toastRoot) return;
+    const el = document.createElement("div");
+    el.className = `toast ${type}`;
+    el.innerHTML = `
+      <div class="toast-icon">
+        <i class="fa-solid ${type === "success" ? "fa-circle-check" : type === "error" ? "fa-triangle-exclamation" : "fa-circle-info"}" aria-hidden="true"></i>
+      </div>
+      <div class="toast-msg">${escapeHTML(message)}</div>
+      <button class="toast-x" aria-label="Dismiss"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+    `;
+    toastRoot.appendChild(el);
+    const kill = () => { el.classList.add("out"); setTimeout(() => el.remove(), 250); };
+    el.querySelector(".toast-x").addEventListener("click", kill);
+    setTimeout(kill, ms);
+  }
+  function setA11yLive(msg) {
+    const live = $("#a11yLive");
+    if (live) live.textContent = msg;
+  }
+
+  /* -------------
+     BOOTSTRAP: initialize everything on DOMContentLoaded
+  ------------- */
   function init() {
-    hydrateContactLinks();
-    initHero();
-    initBackToTop();
+    try {
+      hydrateContactLinks();
+      ensureHeroBackgrounds();
+      initHero();
+      renderProducts();
+      renderBadges();
+      renderSaved();
+      renderHistory();
+      renderCart();
+      initBackToTop();
+      // purge sold items if any on load
+      purgeSoldFromCart();
 
-    // Wire showMore/less
-    showMoreBtn && showMoreBtn.addEventListener("click", () => {});
-    showLessBtn && showLessBtn.addEventListener("click", () => {});
+      // Wire delegated listeners for product thumbnails inside modals (they are delegated elsewhere)
+      // Set up small UI interactions not covered above
+      document.querySelectorAll("img").forEach(img => {
+        img.addEventListener("error", () => { if (!img.dataset.fallbackSet) { img.dataset.fallbackSet = "1"; img.src = placeholderSVG; } });
+      });
 
-    // Search modal: keep product filtering separate from search modal
-    $("#searchInput")?.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") e.preventDefault();
-    });
+      // keep hero backgrounds checked after images load
+      window.setTimeout(() => ensureHeroBackgrounds(), 600);
+      window.addEventListener("resize", () => ensureHeroBackgrounds());
 
-    // Set default delivery selection from checkout select if exists
-    const checkoutDelivery = $("#checkoutDelivery");
-    const deliverySelect = $("#deliverySelect");
-    if (deliverySelect && checkoutDelivery) {
-      deliverySelect.value = checkoutDelivery.value || "standard";
-    }
-
-    purgeSoldFromCart();
-    renderBadges();
-    renderProducts();
-    renderCart();
-    renderSaved();
-    renderHistory();
-    renderSearchResults("");
-
-    // Some nice defaults
-    const promoInput = $("#promoInput");
-    promoInput && promoInput.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        applyPromoFromInput();
+      // Wire some UI helpers (search debounce)
+      let searchDeb;
+      const si = $("#searchInput");
+      if (si) {
+        si.addEventListener("input", (e) => {
+          clearTimeout(searchDeb);
+          searchDeb = setTimeout(() => renderSearchResults(e.target.value), 120);
+        });
       }
-    });
-
-    toast("Welcome to April Blossoms ✨", "info", 1800);
+    } catch (err) {
+      console.error("Initialization failed", err);
+    }
   }
 
-  document.addEventListener("DOMContentLoaded", init);
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
+
+  /* -------------
+     DELEGATED CLICK: some actions that require listeners (open quickview from saved list etc.)
+     - This is intentionally separate to group modal actions
+  ------------- */
+  document.addEventListener("click", (e) => {
+    const el = e.target.closest("[data-action]");
+    if (!el) return;
+    const act = el.getAttribute("data-action");
+    const id = el.getAttribute("data-id");
+    if (!act) return;
+    if (act === "open-qv" && id) openQuickView(id);
+  });
+
 })();
 </script>
 
