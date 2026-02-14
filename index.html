@@ -2853,9 +2853,7 @@ main{
             <i class="fa-regular fa-bookmark" aria-hidden="true"></i> Saved
           </button>
 
-          <button class="mini-btn" type="button" id="applyAutoPromoBtn">
-            <i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i> Auto Promo
-          </button>
+        
         </div>
 
         <div class="cart-list" id="cartList" aria-live="polite">
@@ -2881,12 +2879,8 @@ main{
         <div class="summary-row">
           <span>Delivery</span>
           <div class="summary-inline">
-            <select class="select" id="deliverySelect" aria-label="Delivery option">
-              <option value="standard">Standard</option>
-              <option value="express">Express</option>
-              <option value="pickup">Pickup</option>
-            </select>
-            <strong id="cartDelivery">₵0.00</strong>
+            <!-- Delivery fee will be arranged with the buyer after payment -->
+            <strong id="cartDelivery">To be confirmed after payment</strong>
           </div>
         </div>
 
@@ -2899,15 +2893,6 @@ main{
           <span>Total</span>
           <strong id="cartTotal">₵0.00</strong>
         </div>
-
-        <div class="promo-row">
-          <label class="field promo-field">
-            <span class="sr-only">Promo code</span>
-            <input type="text" id="promoInput" placeholder="Promo code (optional)" />
-          </label>
-          <button class="btn btn-ghost" type="button" id="applyPromoBtn">Apply</button>
-        </div>
-
         <div class="summary-actions">
           <button class="btn btn-primary btn-wide" type="button" id="checkoutBtn" data-open-modal="checkoutModal">
             <i class="fa-solid fa-lock" aria-hidden="true"></i> Checkout
@@ -3711,12 +3696,8 @@ main{
   // Images in repo root; change to "./images/" if you later move them to a folder.
   const IMAGE_PATH_PREFIX = "";
 
-  const DELIVERY_FEES = { standard: 15, express: 30, pickup: 0 };
-  const PROMOS = [
-    { code: "APRIL10", type: "percent", value: 10 },
-    { code: "BLOSSOM5", type: "flat", value: 5 },
-    { code: "FREESHIP", type: "ship", value: 0 },
-  ];
+  const DELIVERY_FEES = { standard: 0, express: 0, pickup: 0 };
+  const PROMOS = [];
 
   // CONTACT defaults for receipts
   const CONTACT = {
@@ -3725,10 +3706,7 @@ main{
     email: "hello@aprilblossoms.shop",
   };
 
-  /* =============
-     PRODUCTS (50 items)
-     - Uses repository-root filenames (no folder). Keep filenames exact.
-     ============= */
+  
   const PRODUCTS = [
     { id: "DRESS-001", title: "Floral Ruffles", price: 40.0, description: "One-of-a-kind floral ruffle dress", sizes: ["4","5"], ageCategory: "4-5", images: ["IMG_5700.JPG","IMG_5700.JPG"], available: true, createdAt: new Date(Date.now()-1*86400000).toISOString() },
     { id: "DRESS-002", title: "Sunshine Dress", price: 30.0, description: "Bright yellow play dress", sizes: ["6","7"], ageCategory: "4-5", images: ["IMG_5701.JPG"], available: true, createdAt: new Date(Date.now()-2*86400000).toISOString() },
@@ -4064,25 +4042,16 @@ main{
 
   function getSelectedDeliveryKey() { return ($("#deliverySelect")?.value || "standard"); }
 
-  function calcDiscount(subtotal, deliveryFee) {
-    const promo = state.appliedPromo;
-    if (!promo) return { discount: 0, deliveryOverride: null, label: "" };
-    if (promo.type === "percent") { const d = subtotal * (promo.value / 100); return { discount: d, deliveryOverride: null, label: `${promo.code} (-${promo.value}%)` }; }
-    if (promo.type === "flat") return { discount: promo.value, deliveryOverride: null, label: `${promo.code} (-${money(promo.value)})` };
-    if (promo.type === "ship") return { discount: 0, deliveryOverride: 0, label: `${promo.code} (Free delivery)` };
+   function calcDiscount(subtotal, deliveryFee) {
     return { discount: 0, deliveryOverride: null, label: "" };
   }
 
   function computeTotals() {
     const subtotal = cartSubtotal();
-    const deliveryKey = getSelectedDeliveryKey();
-    let deliveryFee = DELIVERY_FEES[deliveryKey] ?? 0;
-    const promoEffect = calcDiscount(subtotal, deliveryFee);
-    if (promoEffect.deliveryOverride != null) deliveryFee = promoEffect.deliveryOverride;
-    let discount = promoEffect.discount || 0;
-    discount = clamp(discount, 0, subtotal);
+    const deliveryFee = 0;
+    const discount = 0;
     const total = Math.max(0, subtotal + deliveryFee - discount);
-    return { subtotal, deliveryKey, deliveryFee, discount, total, promoLabel: promoEffect.label };
+    return { subtotal, deliveryKey: "to-be-confirmed", deliveryFee, discount, total, promoLabel: "" };
   }
 
   function renderCheckoutSummary() {
@@ -4109,15 +4078,15 @@ main{
     if (!listEl) return;
 
     const totals = computeTotals();
-    $("#cartSubtotal") && ($("#cartSubtotal").textContent = money(totals.subtotal));
-    $("#cartDelivery") && ($("#cartDelivery").textContent = money(totals.deliveryFee));
+   $("#cartSubtotal") && ($("#cartSubtotal").textContent = money(totals.subtotal));
+    $("#cartDelivery") && ($("#cartDelivery").textContent = "To be confirmed after payment");
     $("#cartDiscount") && ($("#cartDiscount").textContent = `-${money(totals.discount)}`);
     $("#cartTotal") && ($("#cartTotal").textContent = money(totals.total));
     $("#checkoutSubtotal") && ($("#checkoutSubtotal").textContent = money(totals.subtotal));
-    $("#checkoutDeliveryFee") && ($("#checkoutDeliveryFee").textContent = money(totals.deliveryFee));
+    $("#checkoutDeliveryFee") && ($("#checkoutDeliveryFee").textContent = "To be confirmed after payment");
     $("#checkoutDiscount") && ($("#checkoutDiscount").textContent = `-${money(totals.discount)}`);
     $("#checkoutTotal") && ($("#checkoutTotal").textContent = money(totals.total));
-
+    
     const items = state.cart
       .map(it => { const p = productById(it.id); if (!p) return null; const sold = isSold(p.id); const img = (p.images && p.images[0]) ? safeImageUrl(p.images[0]) : placeholderSVG; return { ...it, p, img, sold }; })
       .filter(Boolean);
@@ -4337,7 +4306,7 @@ main{
     $("#receiptDelivery") && ($("#receiptDelivery").textContent = order.customer.delivery || "—");
     $("#receiptAddress") && ($("#receiptAddress").textContent = `${order.customer.address || "—"}, ${order.customer.city || ""} ${order.customer.region || ""}`.trim());
     $("#receiptSubtotal") && ($("#receiptSubtotal").textContent = money(order.subtotal));
-    $("#receiptDeliveryFee") && ($("#receiptDeliveryFee").textContent = money(order.deliveryFee));
+    $("#receiptDeliveryFee") && ($("#receiptDeliveryFee").textContent = "To be confirmed after payment");
     $("#receiptDiscount") && ($("#receiptDiscount").textContent = `-${money(order.discount)}`);
     $("#receiptTotal") && ($("#receiptTotal").textContent = money(order.total));
 
@@ -4658,15 +4627,20 @@ main{
 
     // cart toolbar
     if (e.target.closest("#clearCartBtn")) { if (confirm("Clear cart?")) clearCart(); return; }
-    if (e.target.closest("#applyPromoBtn")) { applyPromoFromInput(); return; }
-    if (e.target.closest("#applyAutoPromoBtn")) { autoPromo(); return; }
+   
 
     // cart list actions
     const cartAct = e.target.closest("[data-action][data-id]");
     if (cartAct) {
       const id = cartAct.getAttribute("data-id");
       const act = cartAct.getAttribute("data-action");
-      if (act === "remove-from-cart") { removeFromCart(id); toast("Removed from cart.", "info"); return; }
+ if (act === "remove-from-cart") {
+        if (confirm("Remove this item from your cart?")) {
+          removeFromCart(id);
+          toast("Removed from cart.", "info");
+        }
+        return;
+      }
       if (act === "move-to-saved") { toggleSave(id); removeFromCart(id); toast("Moved to saved.", "success"); return; }
       if (act === "open-qv") { openQuickView(id); return; }
       if (act === "unsave") { toggleSave(id); toast("Removed from saved.", "info"); return; }
@@ -4762,31 +4736,7 @@ main{
   $("#contactForm")?.addEventListener("submit", handleContactSubmit);
   $("#newsletterForm")?.addEventListener("submit", handleNewsletterSubmit);
 
-  /* =============
-     PROMOS
-     ============= */
-  function applyPromoFromInput() {
-    const inp = $("#promoInput");
-    const code = String(inp?.value || "").trim().toUpperCase();
-    if (!code) { toast("Enter a promo code.", "info"); return; }
-    const match = PROMOS.find(p => p.code === code);
-    if (!match) { toast("Invalid promo code.", "error"); state.appliedPromo = null; persist(); renderCart(); return; }
-    state.appliedPromo = match; persist(); renderCart(); toast(`Promo applied: ${match.code}`, "success");
-  }
-  function autoPromo() {
-    const { subtotal, deliveryFee } = computeTotals();
-    if (subtotal <= 0) return;
-    let best = null; let bestSave = 0;
-    for (const p of PROMOS) {
-      let save = 0;
-      if (p.type === "percent") save = subtotal * (p.value / 100);
-      if (p.type === "flat") save = p.value;
-      if (p.type === "ship") save = deliveryFee;
-      if (save > bestSave) { bestSave = save; best = p; }
-    }
-    if (!best) { toast("No promo available.", "info"); return; }
-    state.appliedPromo = best; persist(); renderCart(); toast(`Best promo applied: ${best.code}`, "success");
-  }
+  
 
   /* =============
      CONTACT & NEWSLETTER (Formspree)
