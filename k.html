@@ -21,1570 +21,1285 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <!-- Animate.css for animations -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
-<style>
-  /* =========================
-   April Blossoms — Main stylesheet
-   Mobile-first, very responsive + polished
-   ========================= */
-
-/* ---------- Font import ---------- */
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Inter:wght@300;400;600;700&display=swap');
-
-/* ---------- Theme variables ---------- */
-:root{
-  --bg: #fffaf9;
-  --muted-bg: #fff7f5;
-  --surface: #ffffff;
-  --card: #ffffff;
-  --text: #0f1724;
-  --muted: #6b6b73;
-  --accent: #ff6b85;   /* coral/pink */
-  --accent-2: #ff9ab8; /* softer */
-  --accent-3: #6ee7b7; /* mint accent */
-  --success: #0bb27a;
-  --glass: rgba(255,255,255,0.85);
-  --outline: rgba(15,20,28,0.06);
-  --shadow-sm: 0 8px 28px rgba(15,20,28,0.06);
-  --shadow-lg: 0 28px 80px rgba(15,20,28,0.12);
-  --radius-lg: 16px;
-  --radius-md: 10px;
-  --radius-sm: 8px;
-  --max-width: 1200px;
-  --container-pad: 16px;
-  --nav-height: 72px;
-  --glass-border: rgba(255,154,184,0.12);
-  --focus: 3px solid rgba(255,154,184,0.18);
-}
-
-/* ---------- Base ---------- */
-*{box-sizing:border-box}
-html,body{height:100%;margin:0;background:linear-gradient(180deg,var(--muted-bg),var(--bg));font-family:'Poppins',Inter,system-ui,Arial,sans-serif;color:var(--text);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
-img{max-width:100%;display:block}
-a{color:inherit}
-button{font-family:inherit}
-.container{max-width:var(--max-width);margin:0 auto;padding:0 var(--container-pad)}
-
-/* ---------- Header ---------- */
-.site-header{
-  position:sticky;top:0;z-index:1200;background:linear-gradient(180deg,rgba(255,255,255,0.8),rgba(255,255,255,0.7));
-  backdrop-filter: blur(6px);
-  border-bottom:1px solid var(--outline);
-  box-shadow: 0 4px 18px rgba(12,16,22,0.03);
-  padding:10px 0;
-}
-.header-inner{display:flex;align-items:center;justify-content:space-between;gap:12px}
-.brand .site-title{font-weight:700;font-size:16px;color:var(--text)}
-.brand .tagline{font-size:12px;color:var(--muted);margin-top:2px}
-
-/* header actions */
-.header-actions{display:flex;align-items:center;gap:8px}
-.header-actions .outline, .header-actions .btn{
-  border-radius:999px;padding:8px 12px;font-weight:700;background:transparent;border:1px solid var(--outline);cursor:pointer;display:inline-flex;align-items:center;gap:8px;
-}
-.header-actions .btn{background:linear-gradient(90deg,var(--accent),var(--accent-2));color:#fff;border:none;box-shadow:0 10px 28px rgba(255,122,162,0.08)}
-.header-actions .header-icon{position:relative;padding:8px}
-.icon-badge{
-  display:inline-block;min-width:20px;padding:2px 6px;border-radius:999px;background:var(--accent-3);color:#053d2a;font-weight:800;font-size:12px;text-align:center;margin-left:6px;box-shadow:0 6px 18px rgba(7,94,84,0.06);
-}
-
-/* search */
-.search-wrap{display:flex;align-items:center;gap:8px}
-.search-wrap input[type="search"]{padding:8px 10px;border-radius:999px;border:1px solid var(--outline);width:160px;font-size:14px}
-.search-wrap button{padding:8px 10px;border-radius:999px}
-
-/* ---------- HERO / SLIDES ---------- */
-.hero{position:relative;overflow:hidden;border-radius:14px;margin:16px var(--container-pad)}
-.hero-slides{position:relative}
-.hero-slide{position:relative;display:block;overflow:hidden;border-radius:12px;margin-bottom:6px;transition:opacity .45s ease;opacity:0}
-.hero-slide[aria-hidden="false"]{opacity:1}
-.hero-slide img{width:100%;height:48vw;max-height:520px;object-fit:cover;border-radius:12px;display:block}
-
-/* caption */
-.hero-caption{position:absolute;left:14px;bottom:26px;background:linear-gradient(180deg,rgba(255,255,255,0.88),rgba(255,255,255,0.82));padding:12px 14px;border-radius:12px;box-shadow:var(--shadow-sm);max-width:86%}
-.hero-caption h2{margin:0;font-size:18px;color:var(--text);font-weight:800}
-.hero-caption p{margin:6px 0 0 0;color:var(--muted);font-size:13px}
-
-/* controls */
-.hero-controls{position:absolute;left:12px;right:12px;bottom:12px;display:flex;justify-content:space-between;align-items:center;gap:12px}
-.hero-indicators{display:flex;gap:8px}
-.hero-dot{width:10px;height:10px;border-radius:999px;border:0;background:rgba(255,255,255,0.6);box-shadow:0 6px 18px rgba(0,0,0,0.06);cursor:pointer}
-.hero-dot[aria-pressed="true"]{background:linear-gradient(90deg,var(--accent),var(--accent-2));width:14px;height:14px}
-
-/* hero nav */
-.hero-nav button{background:rgba(255,255,255,0.9);border:1px solid var(--outline);padding:8px;border-radius:999px;cursor:pointer}
-
-/* ---------- MAIN: controls ---------- */
-.controls{margin-top:6px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;gap:12px}
-
-/* view toggle + sort */
-.view-toggle button{border-radius:8px;padding:8px}
-.sort select{padding:8px;border-radius:8px;border:1px solid var(--outline)}
-
-/* ---------- PRODUCT GRID ---------- */
-.product-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
-.product-card{background:var(--card);border-radius:12px;padding:8px;border:1px solid var(--outline);box-shadow:var(--shadow-sm);display:flex;flex-direction:column;gap:8px;transition:transform .18s ease,box-shadow .18s ease}
-.product-card:hover{transform:translateY(-6px);box-shadow:var(--shadow-lg)}
-.card-media{position:relative}
-.badge-available{font-size:12px;font-weight:800;background:linear-gradient(90deg,var(--accent-3),#baf6d9);padding:6px 8px;border-radius:8px;color:#053d2a}
-.card-image{border-radius:10px}
-.product-title{font-size:15px;margin:0}
-.product-price{font-weight:800;color:var(--accent)}
-.product-desc{font-size:13px;color:var(--muted);margin:0}
-
-/* product actions */
-.add-to-cart{background:linear-gradient(90deg,var(--accent),var(--accent-2));color:#fff;border:none;padding:8px 12px;border-radius:10px;cursor:pointer}
-.view-detail{background:transparent;border:1px solid var(--outline);padding:8px 10px;border-radius:10px}
-
-/* show more buttons */
-#showMoreBtn, #showLessBtn{padding:10px 16px;border-radius:10px}
-
-/* ---------- CART PANEL (slide-out) ---------- */
-.cart-panel{
-  width:420px;max-width:96%;right:0;top:0;height:100vh;background:var(--surface);position:fixed;z-index:1400;box-shadow:var(--shadow-lg);transform:translateX(100%);transition:transform .32s cubic-bezier(.2,.9,.2,1);display:flex;flex-direction:column;padding:18px;overflow:auto;border-left:1px solid var(--outline);
-}
-.cart-panel[aria-hidden="false"], .cart-panel.open{transform:translateX(0)}
-#cartItems{margin-top:12px;display:flex;flex-direction:column;gap:12px}
-
-/* cart item row */
-.cart-item{display:flex;gap:10px;align-items:center;padding:10px;border-radius:10px;border:1px solid rgba(0,0,0,0.03)}
-.cart-item img{width:64px;height:64px;object-fit:cover;border-radius:8px}
-.cart-item .meta{flex:1}
-.cart-item .meta .title{font-weight:700}
-.cart-item .meta .price{color:var(--muted);font-weight:700}
-
-/* totals */
-.cart-totals{margin-top:auto;padding-top:12px;background:linear-gradient(180deg,rgba(255,255,255,0.98),#fff);border-top:1px solid var(--outline)}
-
-/* coupon */
-#couponInput{padding:8px;border-radius:8px;border:1px solid var(--outline)}
-
-/* ---------- MODALS (checkout, receipt, history, quick view) ---------- */
-.modal-backdrop{position:fixed;inset:0;background:rgba(11,15,20,0.45);display:flex;align-items:center;justify-content:center;padding:18px;z-index:1500}
-.modal{width:100%;max-width:920px;background:var(--surface);border-radius:12px;padding:16px;border:1px solid var(--outline);box-shadow:var(--shadow-lg);overflow:auto;max-height:calc(100vh - 64px)}
-.modal h2,h3{margin:0}
-
-/* small modal variants */
-.modal.small{max-width:480px}
-
-/* modal actions */
-.modal .btn{border-radius:10px;padding:10px 12px}
-.modal .outline{border-radius:10px;padding:10px 12px}
-
-/* receipt content */
-#receiptContent{font-size:14px;color:var(--text)}
-
-/* history content scroll */
-#historyContent{max-height:60vh;overflow:auto}
-
-/* quick view image */
-.modal .product-large{width:100%;height:320px;object-fit:cover;border-radius:8px}
-
-/* ---------- TOASTS ---------- */
-#ab_toast_container{position:fixed;right:18px;bottom:18px;display:flex;flex-direction:column;gap:10px;z-index:1600}
-#ab_toast_container > div{background:#fff;padding:10px 12px;border-radius:10px;border:1px solid var(--outline);box-shadow:var(--shadow-sm);font-weight:700}
-
-/* ---------- FOOTER ---------- */
-#siteFooter{padding:28px 16px;border-top:1px solid rgba(0,0,0,0.04)}
-#siteFooter h4{margin:0 0 8px 0}
-#siteFooter a{color:rgba(255,255,255,0.9);text-decoration:none}
-#siteFooter small{color:rgba(255,255,255,0.7)}
-
-/* social icons */
-.social{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:8px;background:rgba(255,255,255,0.06);color:#fff}
-
-/* ---------- BACK TO TOP ---------- */
-#backToTop{background:linear-gradient(90deg,var(--accent),var(--accent-2));color:#fff;border:none;border-radius:999px;padding:10px;box-shadow:var(--shadow-lg);cursor:pointer;display:none;z-index:1400}
-
-/* ---------- SMALL SCREEN ADJUSTMENTS (mobile-first) ---------- */
-@media (max-width:599px){
-  .product-grid{grid-template-columns:repeat(1,1fr);gap:12px}
-  .search-wrap input[type="search"]{width:120px}
-  .hero-slide img{height:64vw}
-  .hero-caption{left:12px;right:12px;bottom:18px;padding:10px}
-  .header-inner{padding:0 6px}
-  .cart-panel{width:100%;right:0;left:0;bottom:0;top:auto;height:auto;border-radius:12px 12px 0 0;transform:translateY(100%);transition:transform .32s ease-in-out;max-height:92vh}
-  .cart-panel.open{transform:translateY(0)}
-  .cart-panel[aria-hidden="false"]{transform:translateY(0)}
-  .cart-totals{position:sticky;bottom:0;background:linear-gradient(180deg,rgba(255,255,255,0.98),#fff);padding:12px;border-top:1px solid var(--outline)}
-  .hero-controls{bottom:8px;left:12px;right:12px}
-  .modal{max-width:96%;max-height:92vh}
-  .product-card{flex-direction:row;align-items:center}
-  .card-image{width:120px;height:120px;border-radius:10px}
-  .product-desc{display:none} /* keep mobile cards compact; view shows details */
-  .hero-caption h2{font-size:16px}
-}
-
-/* ---------- LARGER SCREEN LAYOUT ---------- */
-@media (min-width:600px){
-  .product-grid{grid-template-columns:repeat(2,1fr)}
-  .hero-slide img{height:40vw}
-  .product-card{flex-direction:column}
-  .product-desc{display:block}
-}
-
-@media (min-width:900px){
-  .product-grid{grid-template-columns:repeat(3,1fr);gap:18px}
-  .header-inner{padding:0 12px}
-  .search-wrap input[type="search"]{width:220px}
-  .hero-caption h2{font-size:20px}
-  .cart-panel{width:420px;right:18px;top:72px;height:calc(100vh - 92px);border-radius:12px}
-}
-
-/* ---------- ACCESSIBILITY (focus states) ---------- */
-:focus{outline:none}
-button:focus, input:focus, select:focus, textarea:focus{
-  box-shadow: 0 6px 22px rgba(255,154,184,0.12);
-  border-color: rgba(255,154,184,0.32);
-  outline: var(--focus);
-  outline-offset: 4px;
-}
-
-/* ---------- UTILITIES ---------- */
-.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
-
-/* ---------- SMALL POLISH ---------- */
-/* subtle hover states */
-.btn:hover{transform:translateY(-3px);transition:transform .16s ease}
-.outline:hover{background:rgba(0,0,0,0.02)}
-.product-card .add-to-cart:active,.btn:active{transform:translateY(-1px)}
-
-/* set consistent input styles */
-input, textarea, select{
-  font-family:inherit;padding:10px;border-radius:8px;border:1px solid var(--outline);font-size:14px;background:transparent;
-}
-
-/* history & receipt layout small tweaks */
-#historyContent > div{padding:8px}
-#receiptContent code{background:rgba(0,0,0,0.03);padding:4px 6px;border-radius:6px}
-
-/* ensure product images have placeholder look if missing */
-.product-grid img[alt=""], .product-grid img[src="placeholder.jpg"]{background:linear-gradient(90deg,#f6f6f8,#fff);display:block}
-
-/* make outline class readable when used as button in dark footer */
-#siteFooter .outline{background:transparent;border:1px solid rgba(255,255,255,0.08);color:rgba(255,255,255,0.9)}
-
-/* subtle decorative accent for hero */
-.hero:before{content:"";position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;background:linear-gradient(180deg,rgba(255,255,255,0),rgba(255,245,247,0.25));mix-blend-mode:overlay;border-radius:12px;}
-
-/* ensure modal actions always visible on small screens */
-.modal .modal-actions{position:sticky;bottom:0;padding-top:12px;background:linear-gradient(180deg,rgba(255,255,255,0),rgba(255,255,255,0.98));}
-
-/* small links inside containers */
-.muted{color:var(--muted);font-size:13px}
-
-</style>
 </head>
-  <body>
-  <!-- SITE WRAPPER -->
-  <div id="siteRoot" class="site-root">
+<body>
+  <!-- Skip link -->
+  <a class="skip-link" href="#main">Skip to content</a>
 
-    <!-- HEADER -->
-    <header id="siteHeader" class="site-header" role="banner" aria-label="April Blossoms header">
-      <div class="container header-inner" style="display:flex;align-items:center;justify-content:space-between;gap:12px">
-        <div class="brand" style="display:flex;align-items:center;gap:12px">
-          <a href="#" class="logo-link" aria-label="April Blossoms home">
-            <img src="logo.jpg" alt="April Blossoms logo" id="brandLogo" style="height:56px;width:56px;object-fit:cover;border-radius:8px"/>
-          </a>
-          <div>
-            <h1 class="site-title" style="margin:0;font-size:18px">April Blossoms</h1>
-            <p class="tagline" style="margin:0;font-size:13px;color:#666">Unique kidswear — one piece each</p>
-          </div>
+  <!-- Header -->
+  <header class="site-header" id="top">
+    <div class="header-inner">
+      <a class="brand" href="#top" aria-label="April Blossoms Home">
+        <img src="logo.jpg" alt="April Blossoms logo" class="brand-logo" />
+        <div class="brand-text">
+          <span class="brand-name">April Blossoms</span>
+          <span class="brand-tagline">One-off Kidswear • Limited Pieces • Premium Finish</span>
         </div>
+      </a>
 
-        <div class="header-actions" style="display:flex;align-items:center;gap:10px">
-          <!-- search -->
-          <div class="search-wrap" role="search" aria-label="Search dresses">
-            <input id="searchInput" type="search" placeholder="Search dresses (e.g. Floral Ruffles)" aria-label="Search dresses" />
-            <button id="searchBtn" class="outline" aria-label="Search">Search</button>
-          </div>
+      <nav class="nav" aria-label="Primary navigation">
+        <a class="nav-link" href="#shop">Shop</a>
+        <a class="nav-link" href="#about">About</a>
+        <a class="nav-link" href="#contact">Contact</a>
+        <button class="nav-link nav-btn" type="button" data-open-modal="policiesModal" aria-haspopup="dialog">
+          Policies
+        </button>
+      </nav>
 
-          <!-- history (badge shows number of past purchases -- JS will update #historyCount) -->
-          <button id="historyBtn" class="outline header-icon" aria-haspopup="dialog" aria-controls="historyModal" title="Purchase history">
-            <i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i>
-            <span class="sr-only">Purchase history</span>
-            <span id="historyCount" class="icon-badge" aria-hidden="true" style="display:inline-block;margin-left:6px;">0</span>
-          </button>
+      <div class="header-actions">
+        <!-- Search -->
+        <button class="icon-btn" type="button" data-open-modal="searchModal" aria-label="Open search">
+          <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+        </button>
 
-          <!-- cart (badge shows items in cart JS updates #cartCount) -->
-          <button id="cartBtn" class="outline header-icon" aria-haspopup="dialog" aria-controls="cartPanel" title="Open cart">
-            <i class="fa-solid fa-shopping-cart" aria-hidden="true"></i>
-            <span class="sr-only">Cart</span>
-            <span id="cartCount" class="icon-badge" aria-hidden="true" style="display:inline-block;margin-left:6px;">0</span>
-          </button>
+        <!-- Wishlist / Saved -->
+        <button class="icon-btn" type="button" data-open-modal="savedModal" aria-label="Open saved items">
+          <i class="fa-regular fa-bookmark" aria-hidden="true"></i>
+          <span class="badge" id="savedCount" aria-label="Saved items count">0</span>
+        </button>
 
-          <!-- lightweight account/checkout anchor (optional) -->
-          <a href="#contact" class="outline" id="contactHeaderBtn"><i class="fa-solid fa-phone" aria-hidden="true"></i> Contact</a>
-        </div>
+        <!-- History -->
+        <button class="icon-btn" type="button" data-open-modal="historyModal" aria-label="Open purchase history">
+          <i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i>
+          <span class="badge" id="historyCount" aria-label="Purchased items count">0</span>
+        </button>
+
+        <!-- Cart -->
+        <button class="icon-btn cart-btn" type="button" data-open-drawer="cartDrawer" aria-label="Open cart">
+          <i class="fa-solid fa-bag-shopping" aria-hidden="true"></i>
+          <span class="badge" id="cartCount" aria-label="Cart items count">0</span>
+        </button>
+
+        <!-- Mobile menu -->
+        <button class="icon-btn menu-btn" type="button" data-open-modal="menuModal" aria-label="Open menu">
+          <i class="fa-solid fa-bars" aria-hidden="true"></i>
+        </button>
       </div>
-    </header>
+    </div>
 
-    <!-- HERO (slideshow) -->
-    <section id="hero" class="hero" aria-label="Featured dresses" style="position:relative;overflow:hidden;">
-      <div class="hero-slides" id="heroSlides" role="region" aria-roledescription="carousel" aria-label="April Blossoms hero slideshow">
-        <!-- slides: JS can wire transitions; using dataset-index for accessibility -->
-        <div class="hero-slide" data-index="0" aria-hidden="false" role="group" aria-roledescription="slide" aria-label="Slide 1 of 3">
-          <img src="hero-1.jpg" alt="Model wearing Floral Ruffles dress" style="width:100%;height:520px;object-fit:cover" />
-          <div class="hero-caption" aria-hidden="false">
-            <h2>Handpicked one-off kidswear</h2>
-            <p>Each dress is unique — only one available.</p>
-            <button id="shopNowBtn" class="btn" aria-controls="productGrid">Shop the collection</button>
+    <!-- Announcement bar -->
+    <div class="announce">
+      <p>
+        <strong>50 one-off pieces.</strong> First come, first served.
+        <span class="dot">•</span>
+        Secure checkout with Paystack.
+        <span class="dot">•</span>
+        Fast support on WhatsApp.
+      </p>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero" aria-label="Featured collection">
+    <div class="hero-slides" data-hero-slider>
+      <!-- Slide 1 -->
+      <article class="hero-slide is-active" style="--bg: url('hero-1.jpg');" aria-hidden="false">
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+          <p class="hero-kicker">April Blossoms Kidswear</p>
+          <h1 class="hero-title">One-of-a-kind dresses that feel like sunshine.</h1>
+          <p class="hero-subtitle">Every piece is unique. No sizes to choose — just pick the dress you love.</p>
+          <div class="hero-cta">
+            <a class="btn btn-primary" href="#shop">Shop the Drop</a>
+            <button class="btn btn-ghost" type="button" data-open-modal="howItWorksModal">How it works</button>
           </div>
+          <ul class="hero-badges" aria-label="Highlights">
+            <li><i class="fa-solid fa-check" aria-hidden="true"></i> 1 piece per design</li>
+            <li><i class="fa-solid fa-truck-fast" aria-hidden="true"></i> Delivery options</li>
+            <li><i class="fa-solid fa-lock" aria-hidden="true"></i> Secure payments</li>
+          </ul>
         </div>
+      </article>
 
-        <div class="hero-slide" data-index="1" aria-hidden="true" role="group" aria-roledescription="slide" aria-label="Slide 2 of 3">
-          <img src="hero-2.jpg" alt="Blue sundress on display" style="width:100%;height:520px;object-fit:cover" />
-          <div class="hero-caption" aria-hidden="true">
-            <h2>Timeless pieces for little ones</h2>
-            <p>Lightweight, breathable and lovingly made.</p>
-            <button class="btn" aria-controls="productGrid">Browse dresses</button>
-          </div>
-        </div>
-
-        <div class="hero-slide" data-index="2" aria-hidden="true" role="group" aria-roledescription="slide" aria-label="Slide 3 of 3">
-          <img src="hero-4.jpg" alt="Cute embroidered detail close-up" style="width:100%;height:520px;object-fit:cover" />
-          <div class="hero-caption" aria-hidden="true">
-            <h2>Special occasion favorites</h2>
-            <p>Perfect for birthdays, parties and family photos.</p>
-            <button class="btn" aria-controls="productGrid">Explore</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- controls -->
-      <div class="hero-controls" aria-hidden="false" style="position:absolute;left:16px;right:16px;bottom:18px;display:flex;justify-content:space-between;align-items:center">
-        <div class="hero-indicators" id="heroIndicators" role="tablist" aria-label="Slide indicators">
-          <button class="hero-dot" data-slide="0" aria-label="Go to slide 1" aria-pressed="true"></button>
-          <button class="hero-dot" data-slide="1" aria-label="Go to slide 2" aria-pressed="false"></button>
-          <button class="hero-dot" data-slide="2" aria-label="Go to slide 3" aria-pressed="false"></button>
-        </div>
-        <div class="hero-nav">
-          <button id="heroPrev" class="outline" aria-label="Previous slide"><i class="fa-solid fa-chevron-left"></i></button>
-          <button id="heroNext" class="outline" aria-label="Next slide"><i class="fa-solid fa-chevron-right"></i></button>
-        </div>
-      </div>
-    </section>
-
-    <!-- MAIN CONTENT -->
-    <main id="main" role="main" class="main-content" style="padding:28px 16px">
-      <div class="container" style="max-width:1200px;margin:0 auto">
-        <!-- Filters & top controls -->
-        <div class="controls" style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px">
-          <div style="display:flex;gap:8px;align-items:center">
-            <div class="view-toggle" role="toolbar" aria-label="View controls">
-              <button id="gridViewBtn" class="outline" aria-pressed="true" title="Grid view"><i class="fa-solid fa-grip"></i></button>
-              <button id="listViewBtn" class="outline" aria-pressed="false" title="List view"><i class="fa-solid fa-list"></i></button>
-            </div>
-            <div class="sort" aria-label="Sort options">
-              <label for="sortSelect" class="sr-only">Sort by</label>
-              <select id="sortSelect" aria-label="Sort products">
-                <option value="newest">Newest</option>
-                <option value="price-low">Price: Low to high</option>
-                <option value="price-high">Price: High to low</option>
-                <option value="alpha">A → Z</option>
-              </select>
-            </div>
-          </div>
-
-          <div style="display:flex;align-items:center;gap:8px">
-            <div id="filtersSummary" class="muted" aria-live="polite">Showing <strong id="visibleCount">12</strong> of 50 items</div>
-            <button id="clearFiltersBtn" class="outline">Clear</button>
-          </div>
-        </div>
-
-        <!-- PRODUCTS GRID (JS loads items into #productGrid) -->
-        <section id="catalog" aria-label="Available dresses">
-          <div id="productGrid" class="product-grid" role="list" aria-live="polite" aria-atomic="true" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:18px">
-            <!-- JS will populate cards here (12 initially) -->
-          </div>
-
-          <div style="display:flex;justify-content:center;gap:12px;margin-top:16px">
-            <button id="showMoreBtn" class="btn">Show more</button>
-            <button id="showLessBtn" class="outline" style="display:none">Show less</button>
-          </div>
-        </section>
-
-        <!-- quick tips / one-liners -->
-        <aside aria-hidden="false" class="shop-notes" style="margin-top:18px;padding:12px;border-radius:10px;background:#fff;border:1px solid rgba(0,0,0,0.04)">
-          <p style="margin:0"><strong>Note:</strong> Each product is unique and only one piece is available. Quantities are fixed to 1. Checkout includes Paystack payments and receipts (PDF).</p>
-        </aside>
-      </div>
-    </main>
-
-    <!-- PRODUCT CARD TEMPLATE (hidden) -->
-    <template id="productTemplate">
-      <article class="product-card" role="listitem" aria-label="Product card" data-id="">
-        <div class="card-media" style="position:relative">
-          <img class="card-image" src="" alt="" style="width:100%;height:260px;object-fit:cover;border-radius:8px" />
-          <div class="badge-available" aria-hidden="true" style="position:absolute;left:12px;top:12px;padding:6px 8px;border-radius:8px;background:rgba(255,255,255,0.9);font-weight:700">Only 1</div>
-        </div>
-        <div class="card-body" style="padding:10px;display:flex;flex-direction:column;gap:8px">
-          <div style="display:flex;justify-content:space-between;align-items:start">
-            <h3 class="product-title" style="margin:0;font-size:15px"></h3>
-            <div class="product-price" style="font-weight:800"></div>
-          </div>
-          <p class="product-desc" style="margin:0;color:#666;font-size:13px"></p>
-          <div style="display:flex;gap:8px;align-items:center;margin-top:auto">
-            <button class="btn add-to-cart" aria-label="Add to cart">Add to cart</button>
-            <button class="outline view-detail" aria-label="View details">View</button>
+      <!-- Slide 2 -->
+      <article class="hero-slide" style="--bg: url('hero-2.jpg');" aria-hidden="true">
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+          <p class="hero-kicker">Limited Pieces • Premium Finish</p>
+          <h2 class="hero-title">Tiny details. Big twirls.</h2>
+          <p class="hero-subtitle">Fresh styles added often — once a dress is sold, it’s gone.</p>
+          <div class="hero-cta">
+            <a class="btn btn-primary" href="#shop">Browse Dresses</a>
+            <button class="btn btn-ghost" type="button" data-open-modal="shippingModal">Shipping & Delivery</button>
           </div>
         </div>
       </article>
-    </template>
 
-    <!-- CART PANEL (slide-out) -->
-    <aside id="cartPanel" class="cart-panel" role="dialog" aria-modal="true" aria-labelledby="cartTitle" style="display:none;position:fixed;right:0;top:0;height:100vh;width:420px;box-shadow:-10px 0 40px rgba(0,0,0,0.12);background:#fff;z-index:1200;padding:18px;overflow:auto">
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <h2 id="cartTitle" style="margin:0">Your cart</h2>
-        <button id="closeCartBtn" class="outline" aria-label="Close cart"><i class="fa-solid fa-xmark"></i></button>
-      </div>
-
-      <div id="cartItems" role="list" aria-live="polite" style="margin-top:12px;display:flex;flex-direction:column;gap:12px">
-        <!-- JS inserts cart item rows here -->
-        <div class="cart-empty" id="cartEmptyNote" style="padding:18px;border-radius:8px;border:1px dashed rgba(0,0,0,0.04);text-align:center">Your cart is empty</div>
-      </div>
-
-      <div class="cart-totals" style="margin-top:18px;border-top:1px solid rgba(0,0,0,0.04);padding-top:12px">
-        <div style="display:flex;justify-content:space-between"><div>Subtotal</div><div id="cartSubtotal">GH₵ 0.00</div></div>
-        <div style="display:flex;justify-content:space-between;margin-top:6px"><div>Processing fee</div><div id="cartProcessing">GH₵ 0.00</div></div>
-        <div style="display:flex;justify-content:space-between;margin-top:6px;font-weight:800"><div>Total</div><div id="cartTotal">GH₵ 0.00</div></div>
-
-        <div style="margin-top:14px;display:flex;gap:8px">
-          <button id="checkoutBtn" class="btn" aria-controls="checkoutModal">Checkout</button>
-          <button id="clearCartBtn" class="outline">Clear</button>
+      <!-- Slide 3 -->
+      <article class="hero-slide" style="--bg: url('hero-4.jpg');" aria-hidden="true">
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+          <p class="hero-kicker">Made for playdates & special days</p>
+          <h2 class="hero-title">Shop fast. Smile forever.</h2>
+          <p class="hero-subtitle">Get instant receipts + downloadable proof of purchase.</p>
+          <div class="hero-cta">
+            <button class="btn btn-primary" type="button" data-open-modal="newArrivalsModal">See New Arrivals</button>
+            <a class="btn btn-ghost" href="#contact">Talk to Us</a>
+          </div>
         </div>
-
-        <div style="margin-top:10px;font-size:12px;color:#666">Secure checkout powered by Paystack</div>
-      </div>
-
-      <!-- small extras: discount code, notes -->
-      <div style="margin-top:14px">
-        <label for="couponInput" style="font-size:13px;color:#666">Discount code</label>
-        <div style="display:flex;gap:8px;margin-top:6px">
-          <input id="couponInput" type="text" placeholder="Enter code (optional)" />
-          <button id="applyCouponBtn" class="outline">Apply</button>
-        </div>
-      </div>
-
-    </aside>
-
-    <!-- CHECKOUT MODAL (aria-modal) -->
-    <div id="checkoutModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="checkoutTitle" style="display:none">
-      <div class="modal" role="document" style="max-width:820px;margin:36px auto;padding:18px;background:#fff;border-radius:12px">
-        <div style="display:flex;justify-content:space-between;align-items:center">
-          <h2 id="checkoutTitle">Checkout</h2>
-          <button id="closeCheckoutBtn" class="outline" aria-label="Close checkout"><i class="fa-solid fa-xmark"></i></button>
-        </div>
-
-        <div style="display:grid;grid-template-columns:1fr 360px;gap:18px;margin-top:12px">
-          <form id="checkoutForm" style="display:flex;flex-direction:column;gap:10px" autocomplete="on">
-            <label>Full name <input id="buyerName" name="buyerName" type="text" required /></label>
-            <label>Phone <input id="buyerPhone" name="buyerPhone" type="tel" required inputmode="tel" /></label>
-            <label>Email <input id="buyerEmail" name="buyerEmail" type="email" required autocomplete="email" /></label>
-            <label>Delivery address <textarea id="buyerAddress" name="buyerAddress" rows="2" placeholder="Enter delivery address or 'pickup'"></textarea></label>
-            <label>Order note (optional) <textarea id="orderNote" rows="2" placeholder="E.g. leave at gate"></textarea></label>
-
-            <div style="display:flex;gap:8px;margin-top:6px">
-              <button id="payWithPaystack" type="button" class="btn">Pay with Paystack</button>
-              <button id="checkoutCancel" type="button" class="outline">Cancel</button>
-            </div>
-          </form>
-
-          <aside style="border-left:1px solid rgba(0,0,0,0.04);padding-left:12px">
-            <h4 style="margin-top:0">Order summary</h4>
-            <div id="checkoutSummary" style="display:flex;flex-direction:column;gap:6px">
-              <!-- JS will inject summary rows -->
-              <div style="display:flex;justify-content:space-between"><div>Items</div><div id="summaryItemsCount">0</div></div>
-              <div style="display:flex;justify-content:space-between"><div>Subtotal</div><div id="summarySubtotal">GH₵ 0.00</div></div>
-              <div style="display:flex;justify-content:space-between"><div>Processing</div><div id="summaryProcessing">GH₵ 0.00</div></div>
-              <hr />
-              <div style="display:flex;justify-content:space-between;font-weight:800"><div>Total</div><div id="summaryTotal">GH₵ 0.00</div></div>
-            </div>
-          </aside>
-        </div>
-
-      </div>
+      </article>
     </div>
 
-    <!-- RECEIPT / CONFIRMATION MODAL -->
-    <div id="receiptModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="receiptTitle" style="display:none">
-      <div class="modal" role="document" style="max-width:720px;margin:36px auto;padding:18px;background:#fff;border-radius:12px">
-        <div style="display:flex;justify-content:space-between;align-items:center">
-          <h2 id="receiptTitle">Receipt</h2>
-          <button id="closeReceiptBtn" class="outline" aria-label="Close receipt"><i class="fa-solid fa-xmark"></i></button>
-        </div>
+    <!-- Hero controls -->
+    <div class="hero-controls" aria-label="Hero controls">
+      <button class="hero-arrow" type="button" data-hero-prev aria-label="Previous slide">
+        <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
+      </button>
 
-        <div id="receiptContent" style="margin-top:12px">
-          <!-- JS will fill this with order information -->
-          <p class="muted">Receipt will appear here after successful payment. You can print or download a PDF.</p>
-        </div>
-
-        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
-          <button id="downloadPdfBtn" class="btn"><i class="fa-solid fa-file-pdf"></i> Download PDF</button>
-          <button id="printReceiptBtn" class="outline"><i class="fa-solid fa-print"></i> Print</button>
-        </div>
+      <div class="hero-dots" role="tablist" aria-label="Select hero slide">
+        <button class="dot-btn is-active" type="button" data-hero-dot="0" aria-label="Slide 1"></button>
+        <button class="dot-btn" type="button" data-hero-dot="1" aria-label="Slide 2"></button>
+        <button class="dot-btn" type="button" data-hero-dot="2" aria-label="Slide 3"></button>
       </div>
+
+      <button class="hero-arrow" type="button" data-hero-next aria-label="Next slide">
+        <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+      </button>
     </div>
 
-    <!-- HISTORY MODAL (previous purchases + PDFs) -->
-    <div id="historyModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="historyTitleModal" style="display:none">
-      <div class="modal" role="document" style="max-width:900px;margin:36px auto;padding:18px;background:#fff;border-radius:12px">
-        <div style="display:flex;justify-content:space-between;align-items:center">
-          <h2 id="historyTitleModal">Purchase history</h2>
-          <button id="closeHistoryModalBtn" class="outline" aria-label="Close history"><i class="fa-solid fa-xmark"></i></button>
-        </div>
-
-        <div id="historyContent" style="margin-top:12px;max-height:60vh;overflow:auto">
-          <p class="muted">No purchases yet. Completed orders will appear here.</p>
-        </div>
-
-        <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px">
-          <button id="clearHistoryBtn" class="outline">Clear history</button>
-          <button id="closeHistoryFooterBtn" class="btn">Close</button>
-        </div>
+    <!-- Quick stats -->
+    <div class="hero-stats" aria-label="Store stats">
+      <div class="stat">
+        <span class="stat-number" id="statTotal">50</span>
+        <span class="stat-label">Total pieces</span>
+      </div>
+      <div class="stat">
+        <span class="stat-number" id="statAvailable">50</span>
+        <span class="stat-label">Available now</span>
+      </div>
+      <div class="stat">
+        <span class="stat-number">1</span>
+        <span class="stat-label">Per design</span>
       </div>
     </div>
+  </section>
 
-    <!-- CONTACT SECTION (phone, whatsapp, email only) -->
-    <section id="contact" aria-label="Contact April Blossoms" style="padding:28px 16px;background:linear-gradient(180deg,#fff,#fafafa);margin-top:24px">
-      <div class="container" style="max-width:1100px;margin:0 auto;display:flex;gap:18px;align-items:center;justify-content:space-between">
+  <!-- Main -->
+  <main id="main">
+    <!-- Trust/Features strip -->
+    <section class="trust-strip" aria-label="Why shop with us">
+      <div class="trust-grid">
+        <article class="trust-card">
+          <i class="fa-solid fa-certificate" aria-hidden="true"></i>
+          <div>
+            <h3>One-off Pieces</h3>
+            <p>Each dress exists once. When it sells, it’s marked as sold out.</p>
+          </div>
+        </article>
+        <article class="trust-card">
+          <i class="fa-solid fa-bag-shopping" aria-hidden="true"></i>
+          <div>
+            <h3>Smart Cart</h3>
+            <p>Save items, adjust quantities, apply promo codes, and estimate delivery.</p>
+          </div>
+        </article>
+        <article class="trust-card">
+          <i class="fa-solid fa-shield-heart" aria-hidden="true"></i>
+          <div>
+            <h3>Secure Checkout</h3>
+            <p>Paystack payments with instant receipts and history tracking.</p>
+          </div>
+        </article>
+        <article class="trust-card">
+          <i class="fa-brands fa-whatsapp" aria-hidden="true"></i>
+          <div>
+            <h3>Fast Support</h3>
+            <p>Quick responses via WhatsApp, phone, and email.</p>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- Shop -->
+    <section class="shop" id="shop" aria-label="Shop kidswear">
+      <div class="section-head">
         <div>
-          <h3 style="margin:0 0 6px 0">Contact us</h3>
-          <p style="margin:0 0 10px 0;color:#666">We’re here to help with orders, shipping and sizing questions.</p>
-
-          <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:8px">
-            <li><a href="tel:0205237411" aria-label="Call April Blossoms"><i class="fa-solid fa-phone"></i> 0205237411</a></li>
-            <li><a href="https://wa.me/233205237411" target="_blank" rel="noopener" aria-label="WhatsApp April Blossoms"><i class="fa-brands fa-whatsapp"></i> WhatsApp</a></li>
-            <li><a href="mailto:aprilblossoms@example.com" aria-label="Email April Blossoms"><i class="fa-solid fa-envelope"></i> aprilblossoms@example.com</a></li>
-          </ul>
+          <h2>Shop the Collection</h2>
+          <p>First 12 items shown. Tap “Show More” to reveal the full 50-piece drop.</p>
         </div>
 
-        <div style="max-width:420px">
-          <h4 style="margin:0 0 6px 0">Newsletter</h4>
-          <p style="margin:0 0 8px 0;color:#666">Get first access to new one-off pieces</p>
-          <form id="newsletterForm" style="display:flex;gap:8px">
-            <input id="newsletterEmail" type="email" placeholder="Your email" aria-label="Enter email to subscribe" />
-            <button id="subscribeBtn" class="btn" type="button">Subscribe</button>
-          </form>
+        <div class="shop-actions">
+          <button class="pill" type="button" data-open-modal="filtersModal">
+            <i class="fa-solid fa-sliders" aria-hidden="true"></i> Filters
+          </button>
+          <button class="pill" type="button" data-sort="newest">
+            <i class="fa-solid fa-arrow-up-wide-short" aria-hidden="true"></i> Newest
+          </button>
+          <button class="pill" type="button" data-sort="priceLow">
+            <i class="fa-solid fa-tags" aria-hidden="true"></i> Price: Low
+          </button>
+        </div>
+      </div>
+
+      <!-- Mini filter chips (visual; JS will wire them) -->
+      <div class="chips" aria-label="Quick filters">
+        <button class="chip is-active" type="button" data-filter="all">All</button>
+        <button class="chip" type="button" data-filter="available">Available</button>
+        <button class="chip" type="button" data-filter="under50">Under ₵50</button>
+        <button class="chip" type="button" data-filter="premium">Premium</button>
+        <button class="chip" type="button" data-filter="age-4-5">Age 4–5</button>
+        <button class="chip" type="button" data-filter="age-7-8">Age 7–8</button>
+      </div>
+
+      <!-- Products grid (JS will inject product cards here) -->
+      <div class="products-grid" id="productsGrid" aria-live="polite" aria-busy="true">
+        <!-- Loading skeletons (optional placeholders) -->
+        <div class="product-skeleton"></div>
+        <div class="product-skeleton"></div>
+        <div class="product-skeleton"></div>
+        <div class="product-skeleton"></div>
+        <div class="product-skeleton"></div>
+        <div class="product-skeleton"></div>
+        <div class="product-skeleton"></div>
+        <div class="product-skeleton"></div>
+        <div class="product-skeleton"></div>
+        <div class="product-skeleton"></div>
+        <div class="product-skeleton"></div>
+        <div class="product-skeleton"></div>
+      </div>
+
+      <!-- Pagination toggles -->
+      <div class="shop-pagination">
+        <button class="btn btn-primary" type="button" id="showMoreBtn">
+          <i class="fa-solid fa-plus" aria-hidden="true"></i> Show More
+        </button>
+
+        <button class="btn btn-ghost is-hidden" type="button" id="showLessBtn">
+          <i class="fa-solid fa-minus" aria-hidden="true"></i> Show Less
+        </button>
+      </div>
+    </section>
+
+    <!-- About / Story -->
+    <section class="about" id="about" aria-label="About April Blossoms">
+      <div class="about-inner">
+        <div class="about-copy">
+          <h2>Made for little moments that become big memories.</h2>
+          <p>
+            April Blossoms is a curated kidswear drop: 50 unique pieces, each with its own charm.
+            No size selection, no duplicates — just limited, ready-to-own designs.
+          </p>
+
+          <div class="about-highlights">
+            <div class="highlight">
+              <h3>One-off Guarantee</h3>
+              <p>Every product is sold once. After payment, it’s automatically locked as sold.</p>
+            </div>
+            <div class="highlight">
+              <h3>Instant Proof</h3>
+              <p>Checkout generates a receipt and stores your PDF in purchase history.</p>
+            </div>
+            <div class="highlight">
+              <h3>Care & Quality</h3>
+              <p>Thoughtful stitching and comfortable fabrics suited for play and events.</p>
+            </div>
+          </div>
+
+          <div class="about-cta">
+            <button class="btn btn-primary" type="button" data-open-modal="newArrivalsModal">
+              <i class="fa-solid fa-sparkles" aria-hidden="true"></i> What’s New
+            </button>
+            <button class="btn btn-ghost" type="button" data-open-modal="careGuideModal">
+              <i class="fa-solid fa-shirt" aria-hidden="true"></i> Care Guide
+            </button>
+          </div>
+        </div>
+
+        <div class="about-panels">
+          <article class="panel">
+            <h3>Store Promise</h3>
+            <ul class="tick-list">
+              <li><i class="fa-solid fa-check" aria-hidden="true"></i> Fair pricing, clear receipts</li>
+              <li><i class="fa-solid fa-check" aria-hidden="true"></i> Secure Paystack checkout</li>
+              <li><i class="fa-solid fa-check" aria-hidden="true"></i> Helpful support on WhatsApp</li>
+              <li><i class="fa-solid fa-check" aria-hidden="true"></i> Clean, premium experience</li>
+            </ul>
+          </article>
+
+          <article class="panel">
+            <h3>Quick Actions</h3>
+            <div class="quick-actions">
+              <button type="button" class="quick-btn" data-open-drawer="cartDrawer">
+                <i class="fa-solid fa-bag-shopping" aria-hidden="true"></i> Open Cart
+              </button>
+              <button type="button" class="quick-btn" data-open-modal="historyModal">
+                <i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i> View History
+              </button>
+              <button type="button" class="quick-btn" data-open-modal="contactModal">
+                <i class="fa-solid fa-headset" aria-hidden="true"></i> Contact Support
+              </button>
+            </div>
+          </article>
         </div>
       </div>
     </section>
 
-    <!-- FOOTER (very stacked) -->
-    <footer id="siteFooter" role="contentinfo" style="background:#0f1724;color:#fff;padding:36px 16px;margin-top:18px">
-      <div class="container" style="max-width:1200px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:18px">
+    <!-- Contact -->
+    <section class="contact" id="contact" aria-label="Contact April Blossoms">
+      <div class="section-head">
         <div>
-          <img src="logo.jpg" alt="April Blossoms logo" style="height:56px;width:56px;border-radius:8px" />
-          <h3 style="margin:8px 0 6px 0">April Blossoms</h3>
-          <p style="color:rgba(255,255,255,0.8)">Unique kidswear — one piece per style. Designed with care.</p>
-          <div style="margin-top:10px">
-            <strong>Phone</strong><div><a href="tel:0205237411" style="color:inherit">0205237411</a></div>
-            <strong>WhatsApp</strong><div><a href="https://wa.me/233205237411" style="color:inherit">Chat on WhatsApp</a></div>
-            <strong>Email</strong><div><a href="mailto:aprilblossoms@example.com" style="color:inherit">aprilblossoms@example.com</a></div>
-          </div>
+          <h2>Contact</h2>
+          <p>We reply fast — choose your favorite channel.</p>
         </div>
-
-        <div>
-          <h4 style="margin-top:0">Shop</h4>
-          <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:6px">
-            <li><a href="#catalog" style="color:inherit">All dresses</a></li>
-            <li><a href="#catalog" style="color:inherit">New arrivals</a></li>
-            <li><a href="#contact" style="color:inherit">Contact</a></li>
-            <li><a href="#" style="color:inherit" id="returnsLink">Returns & exchange</a></li>
-          </ul>
-        </div>
-
-        <div>
-          <h4 style="margin-top:0">Company</h4>
-          <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:6px">
-            <li><a href="#" style="color:inherit">About us</a></li>
-            <li><a href="#" style="color:inherit">Careers</a></li>
-            <li><a href="#" style="color:inherit">Privacy policy</a></li>
-            <li><a href="#" style="color:inherit">Terms of service</a></li>
-          </ul>
-        </div>
-
-        <div>
-          <h4 style="margin-top:0">Payments & trust</h4>
-          <p style="margin:0 0 8px 0;color:rgba(255,255,255,0.9)">Secure payments via Paystack</p>
-          <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
-           <img src="paystack.svg" alt="Paystack" style="height:36px" onerror="this.style.display='none'" />
-           <img src="visa.svg" alt="Visa" style="height:24px" onerror="this.style.display='none'" />
-            <img src="mastercard.svg" alt="Mastercard" style="height:24px" onerror="this.style.display='none'" />          </div>
-
-          <h4 style="margin:8px 0 6px 0">Follow</h4>
-          <div style="display:flex;gap:8px">
-            <a href="#" aria-label="Instagram" class="social"><i class="fa-brands fa-instagram" aria-hidden="true"></i></a>
-            <a href="#" aria-label="Facebook" class="social"><i class="fa-brands fa-facebook" aria-hidden="true"></i></a>
-            <a href="#" aria-label="TikTok" class="social"><i class="fa-brands fa-tiktok" aria-hidden="true"></i></a>
-          </div>
-        </div>
+        <button class="pill" type="button" data-open-modal="contactModal">
+          <i class="fa-solid fa-message" aria-hidden="true"></i> Quick Message
+        </button>
       </div>
 
-      <div style="border-top:1px solid rgba(255,255,255,0.06);margin-top:18px;padding-top:18px" class="container">
-        <div style="display:flex;justify-content:space-between;align-items:center">
-          <small>© <span id="yearNow"></span> April Blossoms — All rights reserved</small>
-          <div style="display:flex;gap:12px;align-items:center">
-            <a href="#" style="color:rgba(255,255,255,0.7)">Security</a>
-            <a href="#" style="color:rgba(255,255,255,0.7)">Sitemap</a>
+      <div class="contact-grid">
+        <a class="contact-card" href="tel:+233000000000" aria-label="Call April Blossoms">
+          <i class="fa-solid fa-phone" aria-hidden="true"></i>
+          <div>
+            <h3>Phone</h3>
+            <p>Tap to call</p>
+          </div>
+          <span class="contact-action">Call</span>
+        </a>
+
+        <a class="contact-card" href="https://wa.me/233000000000" target="_blank" rel="noopener" aria-label="WhatsApp April Blossoms">
+          <i class="fa-brands fa-whatsapp" aria-hidden="true"></i>
+          <div>
+            <h3>WhatsApp</h3>
+            <p>Fastest response</p>
+          </div>
+          <span class="contact-action">Chat</span>
+        </a>
+
+        <a class="contact-card" href="mailto:hello@aprilblossoms.shop" aria-label="Email April Blossoms">
+          <i class="fa-solid fa-envelope" aria-hidden="true"></i>
+          <div>
+            <h3>Email</h3>
+            <p>hello@aprilblossoms.shop</p>
+          </div>
+          <span class="contact-action">Email</span>
+        </a>
+      </div>
+
+      <!-- Lightweight Formspree-powered message form (JS later) -->
+      <form class="contact-form" id="contactForm" action="#" method="POST" novalidate>
+        <div class="form-head">
+          <h3>Send a quick message</h3>
+          <p>We’ll respond as soon as possible.</p>
+        </div>
+
+        <div class="form-grid">
+          <label class="field">
+            <span>Name</span>
+            <input type="text" name="name" placeholder="Your name" autocomplete="name" required />
+          </label>
+
+          <label class="field">
+            <span>Email</span>
+            <input type="email" name="email" placeholder="you@example.com" autocomplete="email" required />
+          </label>
+
+          <label class="field field-full">
+            <span>Message</span>
+            <textarea name="message" rows="5" placeholder="Tell us what you need…" required></textarea>
+          </label>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn btn-primary" type="submit">
+            <i class="fa-solid fa-paper-plane" aria-hidden="true"></i> Send Message
+          </button>
+          <p class="form-note">
+            By sending, you agree to our <button type="button" class="linkish" data-open-modal="policiesModal">policies</button>.
+          </p>
+        </div>
+
+        <div class="form-feedback" id="contactFeedback" aria-live="polite"></div>
+      </form>
+    </section>
+  </main>
+
+  <!-- CART DRAWER (Very stacked) -->
+  <aside class="cart-drawer" id="cartDrawer" aria-label="Shopping cart" aria-hidden="true">
+    <div class="drawer-overlay" data-close-drawer="cartDrawer"></div>
+
+    <div class="drawer-panel" role="dialog" aria-modal="true" aria-labelledby="cartTitle">
+      <header class="drawer-header">
+        <div class="drawer-title">
+          <h2 id="cartTitle">Your Cart</h2>
+          <p class="drawer-subtitle">Items reserved for a short time during checkout.</p>
+        </div>
+
+        <button class="icon-btn" type="button" data-close-drawer="cartDrawer" aria-label="Close cart">
+          <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+        </button>
+      </header>
+
+      <!-- Cart: free perks + progress -->
+      <section class="cart-perks" aria-label="Cart perks">
+        <div class="perk">
+          <i class="fa-solid fa-gift" aria-hidden="true"></i>
+          <div>
+            <p class="perk-title">Gift-ready receipt</p>
+            <p class="perk-sub">Downloadable PDF after purchase.</p>
           </div>
         </div>
+
+        <div class="perk">
+          <i class="fa-solid fa-shield" aria-hidden="true"></i>
+          <div>
+            <p class="perk-title">Secure checkout</p>
+            <p class="perk-sub">Paystack protected payment flow.</p>
+          </div>
+        </div>
+
+        <div class="cart-progress" aria-label="Cart progress">
+          <div class="progress-top">
+            <span>Checkout readiness</span>
+            <span id="cartProgressLabel">0%</span>
+          </div>
+          <div class="progress-bar">
+            <span class="progress-fill" id="cartProgressFill" style="width:0%"></span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Cart items -->
+      <section class="cart-items" aria-label="Cart items">
+        <div class="cart-toolbar">
+          <button class="mini-btn" type="button" id="clearCartBtn">
+            <i class="fa-solid fa-trash" aria-hidden="true"></i> Clear
+          </button>
+
+          <button class="mini-btn" type="button" data-open-modal="savedModal">
+            <i class="fa-regular fa-bookmark" aria-hidden="true"></i> Saved
+          </button>
+
+          <button class="mini-btn" type="button" id="applyAutoPromoBtn">
+            <i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i> Auto Promo
+          </button>
+        </div>
+
+        <div class="cart-list" id="cartList" aria-live="polite">
+          <!-- JS renders items here -->
+          <div class="cart-empty" id="cartEmptyState">
+            <div class="empty-illustration">
+              <i class="fa-solid fa-bag-shopping" aria-hidden="true"></i>
+            </div>
+            <h3>Your cart is empty</h3>
+            <p>Add any one-off dress to reserve it for checkout.</p>
+            <a class="btn btn-primary" href="#shop" data-close-drawer="cartDrawer">Browse Dresses</a>
+          </div>
+        </div>
+      </section>
+
+      <!-- Cart summary -->
+      <section class="cart-summary" aria-label="Cart summary">
+        <div class="summary-row">
+          <span>Subtotal</span>
+          <strong id="cartSubtotal">₵0.00</strong>
+        </div>
+
+        <div class="summary-row">
+          <span>Delivery</span>
+          <div class="summary-inline">
+            <select class="select" id="deliverySelect" aria-label="Delivery option">
+              <option value="standard">Standard</option>
+              <option value="express">Express</option>
+              <option value="pickup">Pickup</option>
+            </select>
+            <strong id="cartDelivery">₵0.00</strong>
+          </div>
+        </div>
+
+        <div class="summary-row">
+          <span>Discount</span>
+          <strong id="cartDiscount">-₵0.00</strong>
+        </div>
+
+        <div class="summary-row summary-total">
+          <span>Total</span>
+          <strong id="cartTotal">₵0.00</strong>
+        </div>
+
+        <div class="promo-row">
+          <label class="field promo-field">
+            <span class="sr-only">Promo code</span>
+            <input type="text" id="promoInput" placeholder="Promo code (optional)" />
+          </label>
+          <button class="btn btn-ghost" type="button" id="applyPromoBtn">Apply</button>
+        </div>
+
+        <div class="summary-actions">
+          <button class="btn btn-primary btn-wide" type="button" id="checkoutBtn" data-open-modal="checkoutModal">
+            <i class="fa-solid fa-lock" aria-hidden="true"></i> Checkout
+          </button>
+          <button class="btn btn-ghost btn-wide" type="button" data-close-drawer="cartDrawer">
+            Continue Shopping
+          </button>
+        </div>
+
+        <div class="summary-notes">
+          <p><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Items are one-off. Don’t wait too long.</p>
+        </div>
+      </section>
+    </div>
+  </aside>
+
+  <!-- CHECKOUT MODAL -->
+  <div class="modal" id="checkoutModal" aria-hidden="true">
+    <div class="modal-overlay" data-close-modal="checkoutModal"></div>
+
+    <div class="modal-card modal-wide" role="dialog" aria-modal="true" aria-labelledby="checkoutTitle">
+      <header class="modal-header">
+        <div>
+          <h2 id="checkoutTitle">Checkout</h2>
+          <p class="muted">Complete your order and pay securely with Paystack.</p>
+        </div>
+        <button class="icon-btn" type="button" data-close-modal="checkoutModal" aria-label="Close checkout">
+          <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+        </button>
+      </header>
+
+      <div class="modal-body checkout-body">
+        <section class="checkout-left" aria-label="Customer information">
+          <h3>Customer Details</h3>
+
+          <form id="checkoutForm" autocomplete="on" novalidate>
+            <div class="form-grid">
+              <label class="field">
+                <span>Full Name</span>
+                <input type="text" name="fullName" placeholder="e.g. Ama Mensah" autocomplete="name" required />
+              </label>
+
+              <label class="field">
+                <span>Email</span>
+                <input type="email" name="email" placeholder="e.g. ama@email.com" autocomplete="email" required />
+              </label>
+
+              <label class="field">
+                <span>Phone</span>
+                <input type="tel" name="phone" placeholder="e.g. 0500000000" autocomplete="tel" required />
+              </label>
+
+              <label class="field">
+                <span>Delivery Option</span>
+                <select name="delivery" id="checkoutDelivery" required>
+                  <option value="standard">Standard Delivery</option>
+                  <option value="express">Express Delivery</option>
+                  <option value="pickup">Pickup</option>
+                </select>
+              </label>
+
+              <label class="field field-full">
+                <span>Delivery Address</span>
+                <input type="text" name="address" placeholder="Street / Area / Landmark" autocomplete="street-address" required />
+                <small class="hint">For Pickup, enter your preferred meeting point.</small>
+              </label>
+
+              <label class="field">
+                <span>City</span>
+                <input type="text" name="city" placeholder="e.g. Kumasi" autocomplete="address-level2" required />
+              </label>
+
+              <label class="field">
+                <span>Region</span>
+                <input type="text" name="region" placeholder="e.g. Ashanti" autocomplete="address-level1" required />
+              </label>
+
+              <label class="field field-full">
+                <span>Order Notes (optional)</span>
+                <textarea name="notes" rows="3" placeholder="Anything we should know? (optional)"></textarea>
+              </label>
+            </div>
+
+            <div class="consents">
+              <label class="check">
+                <input type="checkbox" id="agreePolicies" required />
+                <span>I agree to the store policies and confirm my order details are correct.</span>
+              </label>
+
+              <label class="check">
+                <input type="checkbox" id="saveDetails" />
+                <span>Save my details for faster checkout next time.</span>
+              </label>
+            </div>
+
+            <div class="checkout-actions">
+              <button type="button" class="btn btn-primary btn-wide" id="payNowBtn">
+                <i class="fa-solid fa-credit-card" aria-hidden="true"></i> Pay Now
+              </button>
+              <button type="button" class="btn btn-ghost btn-wide" data-close-modal="checkoutModal">
+                Cancel
+              </button>
+            </div>
+
+            <div class="checkout-feedback" id="checkoutFeedback" aria-live="polite"></div>
+          </form>
+        </section>
+
+        <aside class="checkout-right" aria-label="Order summary">
+          <div class="summary-card">
+            <div class="summary-head">
+              <h3>Order Summary</h3>
+              <button class="linkish" type="button" data-close-modal="checkoutModal" data-open-drawer="cartDrawer">
+                Edit cart
+              </button>
+            </div>
+
+            <div class="summary-items" id="checkoutItems">
+              <!-- JS renders summary items -->
+            </div>
+
+            <div class="summary-lines">
+              <div class="line">
+                <span>Subtotal</span>
+                <strong id="checkoutSubtotal">₵0.00</strong>
+              </div>
+              <div class="line">
+                <span>Delivery</span>
+                <strong id="checkoutDeliveryFee">₵0.00</strong>
+              </div>
+              <div class="line">
+                <span>Discount</span>
+                <strong id="checkoutDiscount">-₵0.00</strong>
+              </div>
+              <div class="line total">
+                <span>Total</span>
+                <strong id="checkoutTotal">₵0.00</strong>
+              </div>
+            </div>
+
+            <div class="summary-foot">
+              <p class="mini-muted">
+                <i class="fa-solid fa-lock" aria-hidden="true"></i> Payments handled securely by Paystack.
+              </p>
+            </div>
+          </div>
+        </aside>
       </div>
-    </footer>
-
-    <!-- BACK TO TOP (sticky) -->
-    <button id="backToTop" aria-label="Back to top" title="Back to top" style="position:fixed;right:18px;bottom:18px;display:none;border-radius:999px;padding:10px;z-index:1400">
-      <i class="fa-solid fa-arrow-up"></i>
-    </button>
-
-    <!-- modal root placeholders (kept for scripts) -->
-    <div id="modalRoot" aria-live="polite" style="display:none"></div>
-
+    </div>
   </div>
 
- <script>
-(() => {
-  /* =========================
-     CONFIG
-     ========================= */
-  const CONFIG = {
-    paystackPublicKey: 'pk_test_297586e51710e83d3c159bfe71ff45c7e23411fa',
-    formspreeEndpoint: 'https://formspree.io/f/xrbyrqry',
-    currencySymbol: 'GH₵',
-    processingRate: 0.0295, // 2.95%
-    localKeys: {
-      cart: 'ab_cart_v1',
-      history: 'ab_history_v1'
-    },
-    productPageSize: 12,
-    historyLimit: 100
-  };
+  <!-- RECEIPT MODAL -->
+  <div class="modal" id="receiptModal" aria-hidden="true">
+    <div class="modal-overlay" data-close-modal="receiptModal"></div>
 
-  /* =========================
-     UTILITIES
-     ========================= */
-  const $ = (sel, root = document) => root.querySelector(sel);
-  const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
-  const fmt = (n) => `${CONFIG.currencySymbol} ${Number(n).toFixed(2)}`;
-  const nowISO = () => new Date().toISOString();
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="receiptTitle">
+      <header class="modal-header">
+        <div>
+          <h2 id="receiptTitle">Receipt</h2>
+          <p class="muted">Thank you for shopping April Blossoms.</p>
+        </div>
+        <button class="icon-btn" type="button" data-close-modal="receiptModal" aria-label="Close receipt">
+          <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+        </button>
+      </header>
 
-   function safeParseJSON(s, fallback) {
-    try {
-      const parsed = JSON.parse(s);
-      // JSON.parse(null) -> null, we want fallback in that case
-      return (parsed === null) ? fallback : parsed;
-    } catch (e) {
-      return fallback;
-    }
-  }
-
-  function showToast(msg, opts = {}) {
-    // simple toast: create container if missing
-    let container = document.getElementById('ab_toast_container');
-    if (!container) {
-      container = document.createElement('div');
-      container.id = 'ab_toast_container';
-      container.style.position = 'fixed';
-      container.style.right = '18px';
-      container.style.bottom = '18px';
-      container.style.display = 'flex';
-      container.style.flexDirection = 'column';
-      container.style.gap = '8px';
-      container.style.zIndex = 99999;
-      document.body.appendChild(container);
-    }
-    const toast = document.createElement('div');
-    toast.textContent = msg;
-    toast.style.background = '#fff';
-    toast.style.border = '1px solid rgba(0,0,0,0.06)';
-    toast.style.padding = '10px 12px';
-    toast.style.borderRadius = '10px';
-    toast.style.boxShadow = '0 8px 30px rgba(0,0,0,0.06)';
-    toast.style.fontWeight = '700';
-    container.appendChild(toast);
-    setTimeout(() => {
-      toast.style.opacity = '0';
-      toast.style.transform = 'translateY(8px)';
-      setTimeout(() => toast.remove(), 260);
-    }, opts.duration || 2200);
-    return toast;
-  }
-
-  /* =========================
-     PRODUCTS (50 items provided)
-     ========================= */
-  const PRODUCTS = [
-  { id: "DRESS-001", title: "Floral Ruffles", price: 40.00, description: "One-of-a-kind floral ruffle dress", sizes: ["4","5"], ageCategory: "4-5", images: ["IMG_5700.JPG","IMG_5700.JPG"], available: true, createdAt: new Date(Date.now()-1*86400000).toISOString() },
-  { id: "DRESS-002", title: "Sunshine Dress", price: 30.00, description: "Bright yellow play dress", sizes: ["6","7"], ageCategory: "4-5", images: ["IMG_5701.JPG"], available: true, createdAt: new Date(Date.now()-2*86400000).toISOString() },
-  { id: "DRESS-003", title: "Party Bow Dress", price: 35.00, description: "Elegant dress for special occasions", sizes: ["7","8"], ageCategory: "4-5", images: ["IMG_5702.JPG","IMG_5702.JPG"], available: true, createdAt: new Date(Date.now()-3*86400000).toISOString() },
-  { id: "DRESS-004", title: "Polka Play", price: 35.00, description: "Polka-dot twirl dress", sizes: ["0-3M","3-6M"], ageCategory: "4-5", images: ["IMG_5703.JPG"], available: true, createdAt: new Date(Date.now()-4*86400000).toISOString() },
-  { id: "DRESS-005", title: "Candy Stripes", price: 35.00, description: "Soft striped cotton dress", sizes: ["4","5"], ageCategory: "4-5", images: ["IMG_5704.JPG","IMG_5704.JPG"], available: true, createdAt: new Date(Date.now()-5*86400000).toISOString() },
-  { id: "DRESS-006", title: "Meadow Tiny", price: 35.00, description: "Hand-stitched meadow pattern", sizes: ["5","6"], ageCategory: "4-5", images: ["IMG_5705.JPG"], available: true, createdAt: new Date(Date.now()-6*86400000).toISOString() },
-  { id: "DRESS-007", title: "Lace Halo", price: 40.00, description: "Lace-trim party dress", sizes: ["6","7"], ageCategory: "4-5", images: ["IMG_5706.JPG","IMG_5706.JPG"], available: true, createdAt: new Date(Date.now()-7*86400000).toISOString() },
-  { id: "DRESS-008", title: "Seaside Sundress", price: 35.00, description: "Cool and breezy sun dress", sizes: ["7","8"], ageCategory: "4-5", images: ["IMG_5707.JPG"], available: true, createdAt: new Date(Date.now()-8*86400000).toISOString() },
-  { id: "DRESS-009", title: "Minty Bow", price: 100.00, description: "White Shirt with skirt", sizes: ["8","9"], ageCategory: "4-5", images: ["IMG_5708.JPG","IMG_5708.JPG"], available: true, createdAt: new Date(Date.now()-9*86400000).toISOString() },
-  { id: "DRESS-010", title: "Rosette Charm", price: 35.00, description: "Rosette detailing, comfy fit", sizes: ["9","10"], ageCategory: "4-5", images: ["IMG_5709.JPG"], available: true, createdAt: new Date(Date.now()-10*86400000).toISOString() },
-
-  { id: "DRESS-011", title: "Blossom Day", price: 30.00, description: "Lightweight blossom print dress", sizes: ["10","12"], ageCategory: "4-5", images: ["IMG_5710.JPG","IMG_5710.JPG"], available: true, createdAt: new Date(Date.now()-11*86400000).toISOString() },
-  { id: "DRESS-012", title: "Vintage Coral", price: 40.00, description: "Retro coral dress with pockets", sizes: ["S","M"], ageCategory: "4-5", images: ["IMG_5711.JPG"], available: true, createdAt: new Date(Date.now()-12*86400000).toISOString() },
-  { id: "DRESS-013", title: "Petal Puff", price: 30.00, description: "Petal-pattern puff sleeve dress", sizes: ["4","5"], ageCategory: "4-5", images: ["IMG_5712.JPG","IMG_5712.JPG"], available: true, createdAt: new Date(Date.now()-13*86400000).toISOString() },
-  { id: "DRESS-014", title: "Lemon Drop", price: 65.00, description: "Blue jeans trousers", sizes: ["5","6"], ageCategory: "4-5", images: ["IMG_5713.JPG"], available: true, createdAt: new Date(Date.now()-14*86400000).toISOString() },
-  { id: "DRESS-015", title: "Bluebell Classic", price: 65.00, description: "Black jeans trousers", sizes: ["6","7"], ageCategory: "4-5", images: ["IMG_5714.JPG","IMG_5714.JPG"], available: true, createdAt: new Date(Date.now()-15*86400000).toISOString() },
-  { id: "DRESS-016", title: "Gingham Girl", price: 35.00, description: "Cute gingham for playdates", sizes: ["7","8"], ageCategory: "4-5", images: ["IMG_5715.JPG"], available: true, createdAt: new Date(Date.now()-16*86400000).toISOString() },
-  { id: "DRESS-017", title: "Velvet Holiday", price: 50.00, description: "Velvet holiday edition", sizes: ["8","9"], ageCategory: "4-5", images: ["IMG_5716.JPG","IMG_5716.JPG"], available: true, createdAt: new Date(Date.now()-17*86400000).toISOString() },
-  { id: "DRESS-018", title: "Daisy Chain", price: 70.00, description: "Daisy print with soft lining", sizes: ["9","10"], ageCategory: "4-5", images: ["IMG_5717.JPG"], available: true, createdAt: new Date(Date.now()-18*86400000).toISOString() },
-  { id: "DRESS-019", title: "Sunset Ombre", price: 50.00, description: "Ombre fade summer dress", sizes: ["10","12"], ageCategory: "4-5", images: ["IMG_5718.JPG","IMG_5718.JPG"], available: true, createdAt: new Date(Date.now()-19*86400000).toISOString() },
-  { id: "DRESS-020", title: "Coral Petals", price: 70.00, description: "Coral floral with ruffled hem", sizes: ["S","M"], ageCategory: "4-5", images: ["IMG_5719.JPG"], available: true, createdAt: new Date(Date.now()-20*86400000).toISOString() },
-
-  { id: "DRESS-021", title: "Lavender Mist", price: 28.00, description: "Soft lavender cotton dress", sizes: ["4","5"], ageCategory: "4-5", images: ["IMG_5720.JPG","IMG_5720.JPG"], available: true, createdAt: new Date(Date.now()-21*86400000).toISOString() },
-  { id: "DRESS-022", title: "Plaid Picnic", price: 28.00, description: "Cute plaid button dress", sizes: ["5","6"], ageCategory: "4-5", images: ["IMG_5720.JPG"], available: true, createdAt: new Date(Date.now()-22*86400000).toISOString() },
-  { id: "DRESS-023", title: "Rosebud Twirl", price: 120.00, description: "Lightweight twirl skirt", sizes: ["6","7"], ageCategory: "4-5", images: ["IMG_5721.JPG","IMG_5721.JPG"], available: true, createdAt: new Date(Date.now()-23*86400000).toISOString() },
-  { id: "DRESS-024", title: "Mint Sprig", price: 80.00, description: "Refreshingly cool mint dress", sizes: ["7","8"], ageCategory: "4-5", images: ["IMG_5722.JPG"], available: true, createdAt: new Date(Date.now()-24*86400000).toISOString() },
-  { id: "DRESS-025", title: "Buttercup", price: 35.00, description: "Premium buttercup fabric", sizes: ["8","9"], ageCategory: "4-5", images: ["IMG_5723.JPG","IMG_5723.JPG"], available: true, createdAt: new Date(Date.now()-25*86400000).toISOString() },
-  { id: "DRESS-026", title: "Peach Dream", price: 60.00, description: "Soft peach party dress", sizes: ["9","10"], ageCategory: "4-5", images: ["IMG_5724.JPG"], available: true, createdAt: new Date(Date.now()-26*86400000).toISOString() },
-  { id: "DRESS-027", title: "Ivy Garden", price: 35.00, description: "Ivy print with tiny pleats", sizes: ["10","12"], ageCategory: "4-5", images: ["IMG_5725.JPG","IMG_5725.JPG"], available: true, createdAt: new Date(Date.now()-27*86400000).toISOString() },
-  { id: "DRESS-028", title: "Ocean Breeze", price: 45.00, description: "Nautical details and stripes", sizes: ["S","M"], ageCategory: "4-5", images: ["IMG_5726.JPG"], available: true, createdAt: new Date(Date.now()-28*86400000).toISOString() },
-  { id: "DRESS-029", title: "Lilac Lace", price: 35.00, description: "Delicate lilac lace overlay", sizes: ["4","5"], ageCategory: "4-5", images: ["IMG_5727.JPG","IMG_5727.JPG"], available: true, createdAt: new Date(Date.now()-29*86400000).toISOString() },
-  { id: "DRESS-030", title: "Maple Sweet", price: 40.00, description: "Warm tones for autumn play", sizes: ["5","6"], ageCategory: "4-5", images: ["IMG_5728.JPG"], available: true, createdAt: new Date(Date.now()-30*86400000).toISOString() },
-
-  { id: "DRESS-031", title: "Cherry Puff", price: 40.00, description: "Cherry prints and puff sleeves", sizes: ["6","7"], ageCategory: "4-5", images: ["IMG_5729.JPG","IMG_5729.JPG"], available: true, createdAt: new Date(Date.now()-31*86400000).toISOString() },
-  { id: "DRESS-032", title: "Starry Night", price: 35.00, description: "Dark blue with star pattern", sizes: ["7","8"], ageCategory: "4-5", images: ["IMG_5730.JPG"], available: true, createdAt: new Date(Date.now()-32*86400000).toISOString() },
-  { id: "DRESS-033", title: "Palm Picnic", price: 35.00, description: "Tropical print for sunny days", sizes: ["8","9"], ageCategory: "4-5", images: ["IMG_5731.JPG","IMG_5731.JPG"], available: true, createdAt: new Date(Date.now()-33*86400000).toISOString() },
-  { id: "DRESS-034", title: "Velvet Ribbon", price: 40.00, description: "Lux velvet with ribbon tie", sizes: ["9","10"], ageCategory: "4-5", images: ["IMG_5732.JPG"], available: true, createdAt: new Date(Date.now()-34*86400000).toISOString() },
-  { id: "DRESS-035", title: "Rose Quartz", price: 35.00, description: "Soft pink, comfy cotton", sizes: ["10","12"], ageCategory: "4-5", images: ["IMG_5733.JPG","IMG_5733.JPG"], available: true, createdAt: new Date(Date.now()-35*86400000).toISOString() },
-  { id: "DRESS-036", title: "Star Bloom", price: 30.00, description: "Star bloom pattern, breezy", sizes: ["S","M"], ageCategory: "4-5", images: ["IMG_5734.JPG"], available: true, createdAt: new Date(Date.now()-36*86400000).toISOString() },
-  { id: "DRESS-037", title: "Meadow Stitch", price: 40.00, description: "Detailed stitching, floral", sizes: ["4","5"], ageCategory: "4-5", images: ["IMG_5735.JPG","IMG_5735.JPG"], available: true, createdAt: new Date(Date.now()-37*86400000).toISOString() },
-  { id: "DRESS-038", title: "Denim Dolly", price: 50.00, description: "Soft denim dress with buttons", sizes: ["5","6"], ageCategory: "4-5", images: ["IMG_5736.JPG"], available: true, createdAt: new Date(Date.now()-38*86400000).toISOString() },
-  { id: "DRESS-039", title: "Citrine Bloom", price: 65.00, description: "Sunny citrine color", sizes: ["6","7"], ageCategory: "4-5", images: ["IMG_5737.JPG","IMG_5737.JPG"], available: true, createdAt: new Date(Date.now()-39*86400000).toISOString() },
-  { id: "DRESS-040", title: "Cloud Puff", price: 25.00, description: "Puffy clouds print", sizes: ["7","8"], ageCategory: "4-5", images: ["IMG_5738.JPG"], available: true, createdAt: new Date(Date.now()-40*86400000).toISOString() },
-
-  { id: "DRESS-041", title: "Mint Melody", price: 28.00, description: "Light mint with trims", sizes: ["8","9"], ageCategory: "4-5", images: ["IMG_5739.JPG","IMG_5739.JPG"], available: true, createdAt: new Date(Date.now()-41*86400000).toISOString() },
-  { id: "DRESS-042", title: "Petite Pearl", price: 25.00, description: "Pearl button detail", sizes: ["9","10"], ageCategory: "4-5", images: ["IMG_5740.JPG"], available: true, createdAt: new Date(Date.now()-42*86400000).toISOString() },
-  { id: "DRESS-043", title: "Coral Breeze", price: 35.00, description: "Soft coral shade", sizes: ["10","12"], ageCategory: "4-5", images: ["IMG_5741.JPG","IMG_5741.JPG"], available: true, createdAt: new Date(Date.now()-43*86400000).toISOString() },
-  { id: "DRESS-044", title: "Pineapple Pop", price: 30.00, description: "Fun pineapple print", sizes: ["4","5"], ageCategory: "4-5", images: ["IMG_5742.JPG"], available: true, createdAt: new Date(Date.now()-44*86400000).toISOString() },
-  { id: "DRESS-045", title: "Willow Whisper", price: 40.00, description: "Earthy willow tones", sizes: ["5","6"], ageCategory: "4-5", images: ["IMG_5743.JPG","IMG_5743.JPG"], available: true, createdAt: new Date(Date.now()-45*86400000).toISOString() },
-  { id: "DRESS-046", title: "Sunbeam Tuck", price: 35.00, description: "Tucked waist, sunny print", sizes: ["6","7"], ageCategory: "4-5", images: ["IMG_5744.JPG"], available: true, createdAt: new Date(Date.now()-46*86400000).toISOString() },
-  { id: "DRESS-047", title: "Peppermint Twist", price: 30.00, description: "Mint stripes and soft collar", sizes: ["7","8"], ageCategory: "4-5", images: ["IMG_5745.JPG","IMG_5745.JPG"], available: true, createdAt: new Date(Date.now()-47*86400000).toISOString() },
-  { id: "DRESS-048", title: "Dotted Dreams", price: 60.00, description: "Subtle dotted pattern", sizes: ["8","9"], ageCategory: "4-5", images: ["IMG_5746.JPG"], available: true, createdAt: new Date(Date.now()-48*86400000).toISOString() },
-  { id: "DRESS-049", title: "Little Luxe", price: 80.00, description: "Tiny luxe finish", sizes: ["9","10"], ageCategory: "7-8", images: ["IMG_5747.JPG","IMG_5747.JPG"], available: true, createdAt: new Date(Date.now()-49*86400000).toISOString() },
-  { id: "DRESS-050", title: "Pocket Garden", price: 40.00, description: "Playful pockets and cotton", sizes: ["10","12"], ageCategory: "4-5", images: ["IMG_5748.JPG"], available: true, createdAt: new Date(Date.now()-50*86400000).toISOString() }
-  ];
-
-  /* =========================
-     STATE MANAGEMENT
-     ========================= */
-  let state = {
-    products: PRODUCTS.slice(), // clone
-    visibleCount: CONFIG.productPageSize,
-    cart: loadCart(),           // array of cart entries {id, productSnapshot, addedAt}
-    history: loadHistory()      // array of receipts
-  };
-
-  /* =========================
-     STORAGE HELPERS
-     ========================= */
-  function loadCart() {
-    const raw = localStorage.getItem(CONFIG.localKeys.cart);
-   const parsed = safeParseJSON(raw, []);
-   return Array.isArray(parsed) ? parsed : [];
-  }
-  function saveCart() {
-    localStorage.setItem(CONFIG.localKeys.cart, JSON.stringify(state.cart));
-    // update visible UI with the canonical functions we have
-    try {
-      renderCartItems();
-      updateCartTotals();
-      updateCartBadge();
-    } catch (err) {
-      // If something unexpected happens, log it but don't crash the app
-      // (this prevents UI update errors from bubbling up)
-      // eslint-disable-next-line no-console
-      console.warn('saveCart UI update error', err);
-    }
-  }
-  function clearCart() {
-    state.cart = [];
-    saveCart();
-  }
-
-  function loadHistory() {
-    const raw = localStorage.getItem(CONFIG.localKeys.history);
-    const parsed = safeParseJSON(raw, []);
-    return Array.isArray(parsed) ? parsed : [];
-  }
-  function saveHistory() {
-    localStorage.setItem(CONFIG.localKeys.history, JSON.stringify(state.history));
-    updateHistoryBadge();
-  }
-  function addHistoryEntry(entry) {
-    // entry: receipt object
-    state.history.unshift(Object.assign({ savedAt: nowISO() }, entry));
-    // limit
-    if (state.history.length > CONFIG.historyLimit) state.history.length = CONFIG.historyLimit;
-    saveHistory();
-  }
-  function clearHistory() {
-    state.history = [];
-    saveHistory();
-  }
-
-  /* =========================
-     UI UPDATES: BADGES & COUNTS
-     ========================= */
-  function updateCartBadge() {
-    const count = state.cart.length;
-    const el = document.getElementById('cartCount');
-    if (el) {
-      el.textContent = String(count);
-      el.style.display = count > 0 ? 'inline-block' : 'none';
-    }
-  }
-  function updateHistoryBadge() {
-    const count = state.history.length;
-    const el = document.getElementById('historyCount');
-    if (el) {
-      el.textContent = String(count);
-      el.style.display = count > 0 ? 'inline-block' : 'none';
-    }
-  }
-
-  function updateVisibleCount() {
-    const vc = Math.min(state.visibleCount, state.products.length);
-    const el = document.getElementById('visibleCount');
-    if (el) el.textContent = String(vc);
-  }
-
-  /* =========================
-     PRODUCT RENDERING
-     ========================= */
-  function renderProducts() {
-    const grid = document.getElementById('productGrid');
-    if (!grid) return;
-    grid.innerHTML = '';
-    const tpl = document.getElementById('productTemplate');
-    const slice = state.products.slice(0, state.visibleCount);
-    slice.forEach(prod => {
-      const frag = tpl.content.cloneNode(true);
-      const art = frag.querySelector('.product-card');
-      art.dataset.id = prod.id;
-      const img = frag.querySelector('.card-image');
-      img.src = prod.images && prod.images.length ? prod.images[0] : 'placeholder.jpg';
-      img.alt = prod.title;
-      frag.querySelector('.product-title').textContent = prod.title;
-      frag.querySelector('.product-price').textContent = fmt(prod.price);
-      frag.querySelector('.product-desc').textContent = prod.description;
-      const addBtn = frag.querySelector('.add-to-cart');
-      addBtn.addEventListener('click', () => addToCart(prod.id));
-      const viewBtn = frag.querySelector('.view-detail');
-      viewBtn.addEventListener('click', () => showProductQuickView(prod));
-      grid.appendChild(frag);
-    });
-
-    updateVisibleCount();
-    // toggle show/hide buttons
-    const showMoreBtn = document.getElementById('showMoreBtn');
-    const showLessBtn = document.getElementById('showLessBtn');
-    if (!showMoreBtn || !showLessBtn) return;
-    if (state.visibleCount >= state.products.length) {
-      showMoreBtn.style.display = 'none';
-      showLessBtn.style.display = 'inline-block';
-    } else {
-      showMoreBtn.style.display = 'inline-block';
-      showLessBtn.style.display = 'none';
-    }
-  }
-
-  /* =========================
-     HERO SLIDESHOW
-     ========================= */
-  function heroInit() {
-    const slides = $$('.hero-slide');
-    const dots = $$('.hero-dot');
-    let idx = 0;
-    let timer = null;
-    const total = slides.length;
-
-    function show(i) {
-      slides.forEach((s, k) => {
-        const hidden = k !== i;
-        s.setAttribute('aria-hidden', hidden ? 'true' : 'false');
-        s.style.opacity = hidden ? '0' : '1';
-        s.style.transition = 'opacity 420ms ease';
-      });
-      dots.forEach((d, k) => d.setAttribute('aria-pressed', String(k===i)));
-      idx = i;
-    }
-
-    function next() { show((idx+1) % total); }
-    function prev() { show((idx-1+total) % total); }
-
-    // wire controls
-    $('#heroNext')?.addEventListener('click', () => { stopAuto(); next(); });
-    $('#heroPrev')?.addEventListener('click', () => { stopAuto(); prev(); });
-    dots.forEach(d => d.addEventListener('click', (e) => { stopAuto(); show(Number(e.currentTarget.dataset.slide)); }));
-
-    // auto play
-    function startAuto() { timer = setInterval(next, 4500); }
-    function stopAuto() { if (timer) { clearInterval(timer); timer = null; } }
-    startAuto();
-
-    // keyboard support
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'ArrowRight') { stopAuto(); next(); }
-      if (e.key === 'ArrowLeft') { stopAuto(); prev(); }
-    });
-  }
-
-  /* =========================
-     CART LOGIC
-     ========================= */
-  function findProductById(id) {
-    return state.products.find(p => p.id === id);
-  }
-
-  function addToCart(productId) {
-    const product = findProductById(productId);
-    if (!product) return showToast('Product not found');
-    // enforce one-of-a-kind: if already in cart or sold (history contains order for this product), block
-    const inCart = state.cart.find(c => c.id === productId);
-    const soldPreviously = state.history.some(h => (h.items || []).some(it => it && it.id === productId));
-    if (inCart) return showToast('This item is already in your cart (only one allowed).');
-    if (soldPreviously) return showToast('Sorry — this item was already purchased.');
-
-    // Add snapshot to cart
-    const snapshot = {
-      id: product.id,
-      title: product.title,
-      price: product.price,
-      image: (product.images && product.images[0]) || '',
-      addedAt: nowISO()
-    };
-    state.cart.push({ id: product.id, product: snapshot });
-    saveCart();
-    showToast(`${product.title} added to cart`);
-  }
-
-  function removeFromCart(productId) {
-    state.cart = state.cart.filter(c => c.id !== productId);
-    saveCart();
-    showToast('Removed from cart');
-  }
-
-  function renderCartItems() {
-    const container = document.getElementById('cartItems');
-    if (!container) return;
-    container.innerHTML = '';
-    if (!state.cart.length) {
-      const empty = document.createElement('div');
-      empty.id = 'cartEmptyNote';
-      empty.className = 'cart-empty';
-      empty.style.padding = '18px';
-      empty.style.borderRadius = '8px';
-      empty.style.border = '1px dashed rgba(0,0,0,0.04)';
-      empty.style.textAlign = 'center';
-      empty.textContent = 'Your cart is empty';
-      container.appendChild(empty);
-      updateCartTotals();
-      return;
-    }
-
-    state.cart.forEach((entry) => {
-      const row = document.createElement('div');
-      row.style.display = 'flex';
-      row.style.gap = '8px';
-      row.style.alignItems = 'center';
-      row.style.border = '1px solid rgba(0,0,0,0.04)';
-      row.style.padding = '8px';
-      row.style.borderRadius = '8px';
-
-      const img = document.createElement('img');
-      img.src = entry.product.image || 'placeholder.jpg';
-      img.alt = entry.product.title;
-      img.style.width = '64px';
-      img.style.height = '64px';
-      img.style.objectFit = 'cover';
-      img.style.borderRadius = '6px';
-
-      const meta = document.createElement('div');
-      meta.style.flex = '1';
-      meta.innerHTML = `<div style="font-weight:700">${escapeHtml(entry.product.title)}</div><div style="font-size:13px;color:#666">${fmt(entry.product.price)}</div>`;
-
-      const actions = document.createElement('div');
-      actions.style.display = 'flex';
-      actions.style.flexDirection = 'column';
-      actions.style.gap = '6px';
-      const removeBtn = document.createElement('button');
-      removeBtn.className = 'outline';
-      removeBtn.textContent = 'Remove';
-      removeBtn.addEventListener('click', () => removeFromCart(entry.id));
-      const buyNow = document.createElement('button');
-      buyNow.className = 'btn';
-      buyNow.textContent = 'Buy now';
-      buyNow.addEventListener('click', () => {
-        // open checkout and prefill this single item only
-        openCartPanel();
-        openCheckoutModal(true, entry);
-      });
-      actions.appendChild(buyNow);
-      actions.appendChild(removeBtn);
-
-      row.appendChild(img);
-      row.appendChild(meta);
-      row.appendChild(actions);
-      container.appendChild(row);
-    });
-
-    // small "save for later" area can be added here later
-    updateCartTotals();
-  }
-
-  /* =========================
-     CART TOTALS & PROCESSING
-     ========================= */
-  function calculateCartTotals() {
-    // all math in pennies (cents) for accuracy
-    const subtotalCents = state.cart.reduce((acc, c) => {
-      const cents = Math.round(Number(c.product.price || 0) * 100);
-      return acc + cents;
-    }, 0);
-    const processingCents = Math.round(subtotalCents * CONFIG.processingRate);
-    const totalCents = subtotalCents + processingCents;
-    return {
-      subtotal: subtotalCents / 100,
-      processing: processingCents / 100,
-      total: totalCents / 100,
-      subtotalCents, processingCents, totalCents
-    };
-  }
-
-  function updateCartTotals() {
-    const { subtotal, processing, total } = calculateCartTotals();
-    $('#cartSubtotal').textContent = fmt(subtotal);
-    $('#cartProcessing').textContent = fmt(processing);
-    $('#cartTotal').textContent = fmt(total);
-    $('#summarySubtotal') && ($('#summarySubtotal').textContent = fmt(subtotal));
-    $('#summaryProcessing') && ($('#summaryProcessing').textContent = fmt(processing));
-    $('#summaryTotal') && ($('#summaryTotal').textContent = fmt(total));
-    $('#summaryItemsCount') && ($('#summaryItemsCount').textContent = String(state.cart.length));
-    updateCartBadge();
-  }
-
-  /* =========================
-     CART PANEL UI (open/close)
-     ========================= */
-  function openCartPanel() {
-    const panel = document.getElementById('cartPanel');
-    if (!panel) return;
-    panel.style.display = 'block';
-    panel.setAttribute('aria-hidden', 'false');
-    // trap focus loosely by focusing close button
-    $('#closeCartBtn')?.focus();
-    renderCartItems();
-  }
-  function closeCartPanel() {
-    const panel = document.getElementById('cartPanel');
-    if (!panel) return;
-    panel.style.display = 'none';
-    panel.setAttribute('aria-hidden', 'true');
-    $('#cartBtn')?.focus();
-  }
-
-  /* =========================
-     PRODUCT QUICK VIEW (modalRoot)
-     ========================= */
-  function showProductQuickView(product) {
-    const modalRoot = document.getElementById('modalRoot');
-    if (!modalRoot) return;
-    modalRoot.style.display = 'block';
-    modalRoot.innerHTML = `
-      <div class="modal-backdrop" id="pvBackdrop" role="dialog" aria-modal="true" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:12000">
-        <div class="modal" role="document" style="width:720px;max-width:96%;background:#fff;padding:16px;border-radius:10px">
-          <div style="display:flex;justify-content:space-between;align-items:center">
-            <h3 style="margin:0">${escapeHtml(product.title)}</h3>
-            <button id="pvClose" class="outline" aria-label="Close quick view"><i class="fa-solid fa-xmark"></i></button>
-          </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px">
-            <div>
-              <img src="${product.images && product.images.length ? product.images[0] : 'placeholder.jpg'}" alt="${escapeHtml(product.title)}" style="width:100%;height:320px;object-fit:cover;border-radius:8px" />
+      <div class="modal-body">
+        <div class="receipt" id="receiptRoot">
+          <div class="receipt-top">
+            <div class="receipt-brand">
+              <img src="logo.jpg" alt="April Blossoms" class="receipt-logo" />
+              <div>
+                <p class="receipt-name">April Blossoms</p>
+                <p class="receipt-meta">
+                  <span id="receiptDate">—</span>
+                  <span class="dot">•</span>
+                  <span id="receiptOrderId">Order —</span>
+                </p>
+              </div>
             </div>
-            <div>
-              <p style="margin-top:0">${escapeHtml(product.description)}</p>
-              <p style="font-weight:800;font-size:18px">${fmt(product.price)}</p>
-              <p style="color:#666;font-size:13px">Age: ${escapeHtml(product.ageCategory || '')}</p>
-              <div style="display:flex;gap:8px;margin-top:12px">
-                <button id="pvAdd" class="btn">Add to cart</button>
-                <button id="pvBuy" class="outline">Buy now</button>
+
+            <div class="receipt-status" id="receiptStatus">
+              <span class="pill success">
+                <i class="fa-solid fa-circle-check" aria-hidden="true"></i> Paid
+              </span>
+            </div>
+          </div>
+
+          <div class="receipt-customer">
+            <h3>Customer</h3>
+            <div class="receipt-grid">
+              <div>
+                <p class="label">Name</p>
+                <p class="value" id="receiptCustomerName">—</p>
+              </div>
+              <div>
+                <p class="label">Email</p>
+                <p class="value" id="receiptCustomerEmail">—</p>
+              </div>
+              <div>
+                <p class="label">Phone</p>
+                <p class="value" id="receiptCustomerPhone">—</p>
+              </div>
+              <div>
+                <p class="label">Delivery</p>
+                <p class="value" id="receiptDelivery">—</p>
+              </div>
+              <div class="span-2">
+                <p class="label">Address</p>
+                <p class="value" id="receiptAddress">—</p>
               </div>
             </div>
           </div>
-        </div>
-      </div>
-    `;
-    $('#pvAdd')?.addEventListener('click', () => { addToCart(product.id); closeModalRoot(); });
-    $('#pvBuy')?.addEventListener('click', () => { addToCart(product.id); openCheckoutModal(); closeModalRoot(); });
-    $('#pvClose')?.addEventListener('click', closeModalRoot);
-    document.getElementById('pvBackdrop')?.addEventListener('click', (e) => { if (e.target.id === 'pvBackdrop') closeModalRoot(); });
-  }
-  function closeModalRoot() { const root = document.getElementById('modalRoot'); if (!root) return; root.style.display = 'none'; root.innerHTML = ''; }
 
-  /* =========================
-     CHECKOUT FLOW
-     ========================= */
-  function openCheckoutModal(singleItem = false, singleEntry = null) {
-    const ck = document.getElementById('checkoutModal');
-    if (!ck) return;
-    ck.style.display = 'block';
-    // prefill summary depending on context
-    if (singleItem && singleEntry) {
-      // temporarily set cart to the single item for the checkout summary
-      state._checkoutTemp = state.cart; // backup
-      state.cart = [{ id: singleEntry.id, product: singleEntry.product }];
-    } else {
-      state._checkoutTemp = null;
-    }
-    renderCartItems();
-    updateCartTotals();
-    // focus first input
-    $('#buyerName')?.focus();
-  }
+          <div class="receipt-items">
+            <h3>Items</h3>
+            <div class="receipt-list" id="receiptItems">
+              <!-- JS renders items -->
+            </div>
+          </div>
 
-  function closeCheckoutModal() {
-    const ck = document.getElementById('checkoutModal');
-    if (!ck) return;
-    ck.style.display = 'none';
-    // restore cart if we used a temp
-    if (state._checkoutTemp) {
-      state.cart = state._checkoutTemp;
-      state._checkoutTemp = null;
-      saveCart();
-    }
-  }
+          <div class="receipt-totals">
+            <div class="line">
+              <span>Subtotal</span>
+              <strong id="receiptSubtotal">₵0.00</strong>
+            </div>
+            <div class="line">
+              <span>Delivery</span>
+              <strong id="receiptDeliveryFee">₵0.00</strong>
+            </div>
+            <div class="line">
+              <span>Discount</span>
+              <strong id="receiptDiscount">-₵0.00</strong>
+            </div>
+            <div class="line total">
+              <span>Total</span>
+              <strong id="receiptTotal">₵0.00</strong>
+            </div>
+          </div>
 
-  function validateCheckoutForm() {
-    const name = ($('#buyerName') && $('#buyerName').value.trim()) || '';
-    const phone = ($('#buyerPhone') && $('#buyerPhone').value.trim()) || '';
-    const email = ($('#buyerEmail') && $('#buyerEmail').value.trim()) || '';
-    const address = ($('#buyerAddress') && $('#buyerAddress').value.trim()) || '';
-    if (!name) { alert('Enter a buyer name'); $('#buyerName')?.focus(); return null; }
-    if (!phone) { alert('Enter a phone'); $('#buyerPhone')?.focus(); return null; }
-    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i.test(email)) { alert('Enter a valid email'); $('#buyerEmail')?.focus(); return null; }
-    // address can be 'pickup' as per requirement, so allow
-    return { name, phone, email, address, note:($('#orderNote') && $('#orderNote').value.trim()) || '' };
-  }
-
-  async function startPaymentFlow() {
-    const formData = validateCheckoutForm();
-    if (!formData) return;
-    if (!state.cart.length) { alert('Your cart is empty'); return; }
-    const totals = calculateCartTotals();
-    const amountPesewas = Math.round(totals.total * 100);
-
-    // build metadata & items snapshot
-    const items = state.cart.map(c => ({ id: c.id, title: c.product.title, price: c.product.price }));
-
-    const metadata = {
-      custom_fields: [
-        { display_name: 'Phone', variable_name: 'phone', value: formData.phone },
-        { display_name: 'Items', variable_name: 'items', value: JSON.stringify(items.map(it => ({ id: it.id, title: it.title, price: it.price }))) },
-      ]
-    };
-
-    const reference = `AB-${Date.now()}-${Math.floor(Math.random()*90000+10000)}`;
-
-    // ensure Paystack available
-    if (typeof PaystackPop === 'undefined' || !CONFIG.paystackPublicKey) {
-      // fallback: simulate payment for local dev/test with confirmation
-      const simulate = confirm('Paystack is not available. Simulate a successful payment? (for testing only)');
-      if (!simulate) return;
-      const fakeResponse = { reference, status: 'success' };
-      await finalizeSuccessfulPayment(fakeResponse, { formData, items, totals });
-      return;
-    }
-
-    const handler = PaystackPop.setup({
-      key: CONFIG.paystackPublicKey,
-      email: formData.email,
-      amount: amountPesewas,
-      currency: 'GHS',
-      ref: reference,
-      metadata,
-      onClose: function() {
-        showToast('Payment popup closed');
-      },
-      callback: async function(response) {
-        // response.reference
-        await finalizeSuccessfulPayment(response, { formData, items, totals });
-      }
-    });
-
-    handler.openIframe();
-  }
-
-  /* finalize after successful payment: save history, send formspree, show receipt modal */
-  async function finalizeSuccessfulPayment(paystackResponse, { formData, items, totals }) {
-    // build receipt object
-    const receipt = {
-      orderId: paystackResponse.reference || `AB-${Date.now()}`,
-      payRef: paystackResponse.reference || '',
-      buyerName: formData.name,
-      buyerEmail: formData.email,
-      phone: formData.phone,
-      address: formData.address || '',
-      items: items || [],
-      subtotal: totals.subtotal,
-      processingFee: totals.processing,
-      totalCharged: totals.total,
-      timestamp: nowISO()
-    };
-
-    // Save to history (and remove purchased items from cart)
-    addHistoryEntry(receipt);
-
-    // Remove purchased items from cart (and persist)
-    const purchasedIds = items.map(it => it.id);
-    state.cart = state.cart.filter(c => !purchasedIds.includes(c.id));
-    saveCart();
-
-    // Send to Formspree (best-effort)
-    sendToFormspree(receipt).catch(() => { /* ignore errors */ });
-
-    // Show receipt modal
-    showReceiptModal(receipt);
-
-    showToast('Payment successful — receipt ready');
-    closeCheckoutModal();
-    closeCartPanel();
-  }
-
-  /* =========================
-     Formspree submission
-     ========================= */
-  async function sendToFormspree(receipt) {
-    if (!CONFIG.formspreeEndpoint) return;
-    try {
-      const payload = {
-        order_id: receipt.orderId,
-        payment_reference: receipt.payRef,
-        buyer_name: receipt.buyerName,
-        buyer_email: receipt.buyerEmail,
-        phone: receipt.phone,
-        address: receipt.address,
-        items: JSON.stringify(receipt.items),
-        subtotal: String(receipt.subtotal),
-        processing_fee: String(receipt.processingFee),
-        total_charged: String(receipt.totalCharged),
-        timestamp: receipt.timestamp,
-        message: `Order ${receipt.orderId} by ${receipt.buyerName}`
-      };
-      const res = await fetch(CONFIG.formspreeEndpoint, {
-        method: 'POST',
-        headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-        mode: 'cors'
-      });
-      if (!res.ok) throw new Error('Formspree returned non-OK');
-      showToast('Order data sent to store (Formspree)');
-      return res.json().catch(() => ({}));
-    } catch (err) {
-      console.warn('Formspree failed', err);
-      showToast('Could not send order to Formspree (check endpoint).', { duration: 4000 });
-    }
-  }
-
-  /* =========================
-     RECEIPT UI & PDF
-     ========================= */
-  function showReceiptModal(receipt) {
-    const rm = document.getElementById('receiptModal');
-    if (!rm) return;
-    const content = document.getElementById('receiptContent');
-    if (!content) return;
-    content.innerHTML = buildReceiptHTML(receipt);
-    rm.style.display = 'block';
-    $('#downloadPdfBtn')?.addEventListener('click', () => downloadPdf(receipt));
-    $('#printReceiptBtn')?.addEventListener('click', () => printReceipt(receipt));
-  }
-  function closeReceiptModal() {
-    const rm = document.getElementById('receiptModal');
-    if (!rm) return;
-    rm.style.display = 'none';
-  }
-
-  function buildReceiptHTML(receipt) {
-    const itemsHtml = (receipt.items || []).map(it => `<div style="display:flex;justify-content:space-between;padding:6px 0"><div>${escapeHtml(it.title)} (${escapeHtml(it.id)})</div><div>${fmt(it.price)}</div></div>`).join('');
-    return `
-      <div style="padding:6px 0">
-        <div style="display:flex;justify-content:space-between"><div><strong>Order</strong></div><div><code>${escapeHtml(receipt.orderId)}</code></div></div>
-        <div style="margin-top:8px">${itemsHtml}</div>
-        <hr/>
-        <div style="display:flex;justify-content:space-between"><div>Subtotal</div><div>${fmt(receipt.subtotal)}</div></div>
-        <div style="display:flex;justify-content:space-between"><div>Processing fee</div><div>${fmt(receipt.processingFee)}</div></div>
-        <div style="display:flex;justify-content:space-between;font-weight:800;margin-top:6px"><div>Total</div><div>${fmt(receipt.totalCharged)}</div></div>
-        <div style="margin-top:10px;font-size:13px;color:#666">Buyer: ${escapeHtml(receipt.buyerName)} — ${escapeHtml(receipt.phone)} — ${escapeHtml(receipt.buyerEmail)}</div>
-        <div style="margin-top:6px;font-size:12px;color:#666">Note: Delivery charges (if any) will be communicated separately.</div>
-      </div>
-    `;
-  }
-
-  async function downloadPdf(receipt) {
-    if (!window.jspdf || !window.jspdf.jsPDF) {
-      alert('PDF generator (jsPDF) not available.');
-      return;
-    }
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({ unit: 'pt', format: 'a4' });
-    const w = doc.internal.pageSize.getWidth();
-    let y = 40;
-    doc.setFontSize(16);
-    doc.text('April Blossoms — Receipt', w/2, y, { align: 'center' });
-    y += 24;
-    doc.setFontSize(10);
-    doc.text(`Order: ${receipt.orderId}`, 40, y); y += 16;
-    doc.text(`Buyer: ${receipt.buyerName} — ${receipt.phone} — ${receipt.buyerEmail}`, 40, y); y += 18;
-
-    doc.setDrawColor(230); doc.line(40, y, w-40, y); y += 12;
-    (receipt.items || []).forEach(it => {
-      doc.text(it.title, 40, y);
-      doc.text(fmt(it.price), w - 100, y, { align: 'right' });
-      y += 16;
-    });
-    y += 6;
-    doc.text('Subtotal', 40, y); doc.text(fmt(receipt.subtotal), w - 100, y, { align: 'right' }); y += 14;
-    doc.text('Processing fee', 40, y); doc.text(fmt(receipt.processingFee), w - 100, y, { align: 'right' }); y += 14;
-    doc.setFontSize(12); doc.setFont(undefined, 'bold');
-    doc.text('Total', 40, y); doc.text(fmt(receipt.totalCharged), w - 100, y, { align: 'right' });
-    const fname = `AprilBlossoms_${receipt.orderId || Date.now()}.pdf`;
-    doc.save(fname);
-    showToast('PDF downloaded');
-  }
-
-  function printReceipt(receipt) {
-    const win = window.open('', '_blank', 'noopener');
-    const html = `
-      <!doctype html><html><head><meta charset="utf-8"><title>Receipt ${receipt.orderId}</title></head><body>${buildReceiptHTML(receipt)}</body></html>
-    `;
-    if (!win) { alert('Unable to open print window'); return; }
-    win.document.write(html);
-    win.document.close();
-    win.focus();
-    setTimeout(()=>win.print(), 300);
-  }
-
-  /* =========================
-     HISTORY MODAL: render + actions
-     ========================= */
-  function renderHistoryModal() {
-    const modal = document.getElementById('historyModal');
-    const content = document.getElementById('historyContent');
-    if (!modal || !content) return;
-    if (!state.history.length) {
-      content.innerHTML = '<p class="muted">No purchases yet. Completed orders will appear here.</p>';
-      return;
-    }
-    const rows = state.history.map((h, idx) => {
-      const when = new Date(h.savedAt || h.timestamp || '').toLocaleString();
-      const total = fmt(h.totalCharged || h.total || 0);
-      const items = (h.items || []).map(it => `${escapeHtml(it.title)} (${escapeHtml(it.id)})`).join('<br/>');
-      return `<div style="border-top:1px solid rgba(0,0,0,0.04);padding:10px;display:flex;justify-content:space-between;gap:12px">
-        <div style="flex:1">
-          <div style="font-weight:700">${escapeHtml(h.buyerName || '')} — <code>${escapeHtml(h.orderId || h.payRef || '')}</code></div>
-          <div style="font-size:13px;color:#666">${items}</div>
-          <div style="font-size:12px;color:#666;margin-top:6px">${when}</div>
-        </div>
-        <div style="min-width:140px;text-align:right">
-          <div style="font-weight:800">${total}</div>
-          <div style="display:flex;gap:6px;justify-content:flex-end;margin-top:8px">
-            <button class="outline history-view" data-idx="${idx}">View</button>
-            <button class="outline history-download" data-idx="${idx}">PDF</button>
-            <button class="outline history-delete" data-idx="${idx}">Delete</button>
+          <div class="receipt-foot">
+            <p class="mini-muted">
+              Need help? WhatsApp us anytime.
+            </p>
           </div>
         </div>
-      </div>`;
-    }).join('');
-    content.innerHTML = rows;
 
-    // wire actions
-    $$('.history-view', content).forEach(btn => btn.addEventListener('click', (e) => {
-      const idx = Number(e.currentTarget.dataset.idx);
-      const entry = state.history[idx];
-      if (!entry) return showToast('Entry not found');
-      showReceiptModal(entry);
-    }));
-    $$('.history-download', content).forEach(btn => btn.addEventListener('click', (e) => {
-      const idx = Number(e.currentTarget.dataset.idx);
-      const entry = state.history[idx];
-      if (!entry) return showToast('Entry not found');
-      downloadPdf(entry);
-    }));
-    $$('.history-delete', content).forEach(btn => btn.addEventListener('click', (e) => {
-      const idx = Number(e.currentTarget.dataset.idx);
-      if (!confirm('Delete this saved purchase?')) return;
-      state.history.splice(idx,1); saveHistory(); renderHistoryModal();
-    }));
-  }
+        <div class="receipt-actions">
+          <button class="btn btn-primary btn-wide" type="button" id="downloadReceiptBtn">
+            <i class="fa-solid fa-file-arrow-down" aria-hidden="true"></i> Download PDF
+          </button>
+          <button class="btn btn-ghost btn-wide" type="button" id="copyReceiptBtn">
+            <i class="fa-regular fa-copy" aria-hidden="true"></i> Copy Receipt
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 
-  /* =========================
-     BACK TO TOP
-     ========================= */
-  function backToTopInit() {
-    const b = document.getElementById('backToTop');
-    window.addEventListener('scroll', () => {
-      if (window.scrollY > window.innerHeight) b.style.display = 'block';
-      else b.style.display = 'none';
-    });
-    b.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
-  }
+  <!-- HISTORY MODAL -->
+  <div class="modal" id="historyModal" aria-hidden="true">
+    <div class="modal-overlay" data-close-modal="historyModal"></div>
 
-  /* =========================
-     SEARCH / SORT / FILTERS
-     ========================= */
-  function applySearchAndSort() {
-    const q = ($('#searchInput') && $('#searchInput').value.trim().toLowerCase()) || '';
-    const sort = ($('#sortSelect') && $('#sortSelect').value) || 'newest';
-    let list = PRODUCTS.slice();
+    <div class="modal-card modal-wide" role="dialog" aria-modal="true" aria-labelledby="historyTitle">
+      <header class="modal-header">
+        <div>
+          <h2 id="historyTitle">Purchase History</h2>
+          <p class="muted">Your purchased items and downloadable receipts.</p>
+        </div>
+        <button class="icon-btn" type="button" data-close-modal="historyModal" aria-label="Close history">
+          <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+        </button>
+      </header>
 
-    if (q) {
-      list = list.filter(p => (p.title + ' ' + p.description + ' ' + (p.id || '')).toLowerCase().includes(q));
-    }
+      <div class="modal-body">
+        <div class="history-toolbar">
+          <button class="pill" type="button" id="exportHistoryBtn">
+            <i class="fa-solid fa-file-export" aria-hidden="true"></i> Export
+          </button>
+          <button class="pill" type="button" id="clearHistoryBtn">
+            <i class="fa-solid fa-broom" aria-hidden="true"></i> Clear History
+          </button>
+          <div class="history-search">
+            <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+            <input type="search" id="historySearch" placeholder="Search by order ID or item…" />
+          </div>
+        </div>
 
-    // sort
-    if (sort === 'newest') list.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
-    if (sort === 'price-low') list.sort((a,b) => a.price - b.price);
-    if (sort === 'price-high') list.sort((a,b) => b.price - a.price);
-    if (sort === 'alpha') list.sort((a,b) => a.title.localeCompare(b.title));
+        <div class="history-list" id="historyList" aria-live="polite">
+          <!-- JS renders purchases -->
+          <div class="empty-state" id="historyEmpty">
+            <i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i>
+            <h3>No purchases yet</h3>
+            <p>Your receipts and purchased items will appear here after checkout.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-    state.products = list;
-    // reset visible count to default
-    state.visibleCount = CONFIG.productPageSize;
-    renderProducts();
-  }
+  <!-- SEARCH MODAL -->
+  <div class="modal" id="searchModal" aria-hidden="true">
+    <div class="modal-overlay" data-close-modal="searchModal"></div>
 
-  /* =========================
-     HELPERS & SAFETY
-     ========================= */
-  function escapeHtml(s='') {
-    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  }
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="searchTitle">
+      <header class="modal-header">
+        <h2 id="searchTitle">Search</h2>
+        <button class="icon-btn" type="button" data-close-modal="searchModal" aria-label="Close search">
+          <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+        </button>
+      </header>
 
-  /* =========================
-     EVENT BINDINGS
-     ========================= */
-  function attachUIEvents() {
-    // header buttons
-    $('#cartBtn')?.addEventListener('click', openCartPanel);
-    $('#closeCartBtn')?.addEventListener('click', closeCartPanel);
-    $('#clearCartBtn')?.addEventListener('click', () => { if (!state.cart.length) return; if (!confirm('Clear cart?')) return; clearCart(); showToast('Cart cleared'); });
+      <div class="modal-body">
+        <div class="search-box">
+          <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+          <input type="search" id="searchInput" placeholder="Search by name, ID, or keyword…" />
+        </div>
 
-    // checkout modal wiring
-    $('#checkoutBtn')?.addEventListener('click', () => openCheckoutModal());
-    $('#checkoutCancel')?.addEventListener('click', closeCheckoutModal);
-    $('#closeCheckoutBtn')?.addEventListener('click', closeCheckoutModal);
-    $('#payWithPaystack')?.addEventListener('click', startPaymentFlow);
+        <div class="search-results" id="searchResults" aria-live="polite">
+          <!-- JS injects results -->
+          <p class="mini-muted">Try: “Floral”, “DRESS-010”, “Premium”…</p>
+        </div>
+      </div>
+    </div>
+  </div>
 
-    // receipt modal close
-    $('#closeReceiptBtn')?.addEventListener('click', closeReceiptModal);
+  <!-- SAVED MODAL -->
+  <div class="modal" id="savedModal" aria-hidden="true">
+    <div class="modal-overlay" data-close-modal="savedModal"></div>
 
-    // history modal open/close
-    $('#historyBtn')?.addEventListener('click', () => { renderHistoryModal(); $('#historyModal').style.display = 'block'; });
-    $('#closeHistoryModalBtn')?.addEventListener('click', () => $('#historyModal').style.display = 'none');
-    $('#closeHistoryFooterBtn')?.addEventListener('click', () => $('#historyModal').style.display = 'none');
-    $('#clearHistoryBtn')?.addEventListener('click', () => { if (!confirm('Clear purchase history?')) return; clearHistory(); renderHistoryModal(); });
+    <div class="modal-card modal-wide" role="dialog" aria-modal="true" aria-labelledby="savedTitle">
+      <header class="modal-header">
+        <div>
+          <h2 id="savedTitle">Saved Items</h2>
+          <p class="muted">Bookmark items and come back anytime.</p>
+        </div>
+        <button class="icon-btn" type="button" data-close-modal="savedModal" aria-label="Close saved items">
+          <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+        </button>
+      </header>
 
-    // search and sort
-    $('#searchBtn')?.addEventListener('click', applySearchAndSort);
-    $('#searchInput')?.addEventListener('keypress', (e) => { if (e.key === 'Enter') applySearchAndSort(); });
-    $('#sortSelect')?.addEventListener('change', applySearchAndSort);
+      <div class="modal-body">
+        <div class="saved-list" id="savedList" aria-live="polite">
+          <div class="empty-state" id="savedEmpty">
+            <i class="fa-regular fa-bookmark" aria-hidden="true"></i>
+            <h3>No saved items</h3>
+            <p>Tap the bookmark icon on a product to save it for later.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-    // show more / less
-    $('#showMoreBtn')?.addEventListener('click', () => { state.visibleCount = Math.min(state.products.length, state.visibleCount + CONFIG.productPageSize); renderProducts(); });
-    $('#showLessBtn')?.addEventListener('click', () => { state.visibleCount = CONFIG.productPageSize; renderProducts(); });
+  <!-- FILTERS MODAL -->
+  <div class="modal" id="filtersModal" aria-hidden="true">
+    <div class="modal-overlay" data-close-modal="filtersModal"></div>
 
-    // newsletter
-    $('#subscribeBtn')?.addEventListener('click', () => {
-      const email = ($('#newsletterEmail') && $('#newsletterEmail').value.trim()) || '';
-      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i.test(email)) { showToast('Enter a valid email'); return; }
-      // naive local subscription demo (in production: call your subscription API)
-      showToast('Thanks — subscribed!');
-      $('#newsletterEmail').value = '';
-    });
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="filtersTitle">
+      <header class="modal-header">
+        <div>
+          <h2 id="filtersTitle">Filters</h2>
+          <p class="muted">Refine the collection.</p>
+        </div>
+        <button class="icon-btn" type="button" data-close-modal="filtersModal" aria-label="Close filters">
+          <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+        </button>
+      </header>
 
-    // coupon apply (demo)
-    $('#applyCouponBtn')?.addEventListener('click', () => {
-      const code = ($('#couponInput') && $('#couponInput').value.trim()) || '';
-      if (!code) { showToast('Enter a coupon'); return; }
-      // demo: accept 'APRIL10' for 10% off (example). This implementation will modify processing fee as a simple demo.
-      if (code.toUpperCase() === 'APRIL10') {
-        showToast('Coupon applied: 10% off (demo) - applied to subtotal');
-        // apply discount by adjusting each cart item price proportionally (demo only)
-        state.cart = state.cart.map(c => {
-          const newPrice = Math.round((c.product.price * 0.9) * 100) / 100;
-          return { ...c, product: { ...c.product, price: newPrice } };
-        });
-        saveCart();
-      } else {
-        showToast('Coupon not recognized');
-      }
-    });
+      <div class="modal-body">
+        <div class="filters">
+          <div class="filter-block">
+            <h3>Availability</h3>
+            <label class="check"><input type="checkbox" id="filterAvailable" /> <span>Show available only</span></label>
+          </div>
 
-    // back to top
-    backToTopInit();
+          <div class="filter-block">
+            <h3>Price</h3>
+            <div class="range">
+              <label class="field">
+                <span>Min</span>
+                <input type="number" id="priceMin" placeholder="0" />
+              </label>
+              <label class="field">
+                <span>Max</span>
+                <input type="number" id="priceMax" placeholder="200" />
+              </label>
+            </div>
+          </div>
 
-    // close overlays on escape
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') {
-        closeCartPanel();
-        closeCheckoutModal();
-        closeReceiptModal();
-        $('#historyModal').style.display = 'none';
-        closeModalRoot();
-      }
-    });
+          <div class="filter-block">
+            <h3>Age Category</h3>
+            <label class="radio"><input type="radio" name="ageCat" value="all" checked /> <span>All</span></label>
+            <label class="radio"><input type="radio" name="ageCat" value="4-5" /> <span>4–5</span></label>
+            <label class="radio"><input type="radio" name="ageCat" value="7-8" /> <span>7–8</span></label>
+          </div>
 
-    // cart pop when clicking outside (optional) - not auto-close to avoid bad UX
-  }
+          <div class="filter-actions">
+            <button class="btn btn-primary btn-wide" type="button" id="applyFiltersBtn">
+              Apply Filters
+            </button>
+            <button class="btn btn-ghost btn-wide" type="button" id="resetFiltersBtn">
+              Reset
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-  /* =========================
-     INIT
-     ========================= */
-  function init() {
-    // Render initial UI
-    updateHistoryBadge();
-    renderProducts();
-    heroInit();
-    attachUIEvents();
-    updateCartBadge();
-    renderCartItems();
-    updateCartTotals();
-    // set year in footer
-    const yNow = new Date().getFullYear();
-    const yn = document.getElementById('yearNow');
-    if (yn) yn.textContent = String(yNow);
-  }
+  <!-- POLICIES MODAL -->
+  <div class="modal" id="policiesModal" aria-hidden="true">
+    <div class="modal-overlay" data-close-modal="policiesModal"></div>
 
-  // run on DOM ready
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-  } else {
-    init();
-  }
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="policiesTitle">
+      <header class="modal-header">
+        <div>
+          <h2 id="policiesTitle">Policies</h2>
+          <p class="muted">Clear & simple.</p>
+        </div>
+        <button class="icon-btn" type="button" data-close-modal="policiesModal" aria-label="Close policies">
+          <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+        </button>
+      </header>
 
- 
-  // Expose some helpers to window for debugging in dev
-  window.AB = {
-    state,
-    addToCart,
-    removeFromCart,
-    clearCart,
-    saveCart,
-    loadCart,
-    PRODUCTS,
-    finalizeSuccessfulPayment,
-    downloadPdf,
-    showToast
-  };
+      <div class="modal-body">
+        <div class="policies">
+          <article>
+            <h3>One-off Items</h3>
+            <p>Each item is unique. If it sells out, it won’t be restocked.</p>
+          </article>
+          <article>
+            <h3>Returns</h3>
+            <p>Returns are handled case-by-case. Contact us within 24 hours of delivery.</p>
+          </article>
+          <article>
+            <h3>Delivery</h3>
+            <p>Delivery fees depend on your selected option and location.</p>
+          </article>
+          <article>
+            <h3>Payments</h3>
+            <p>Payments are processed securely via Paystack.</p>
+          </article>
+        </div>
+      </div>
+    </div>
+  </div>
 
-})();
-</script>
+  <!-- HOW IT WORKS MODAL -->
+  <div class="modal" id="howItWorksModal" aria-hidden="true">
+    <div class="modal-overlay" data-close-modal="howItWorksModal"></div>
+
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="howTitle">
+      <header class="modal-header">
+        <div>
+          <h2 id="howTitle">How It Works</h2>
+          <p class="muted">Simple steps, premium experience.</p>
+        </div>
+        <button class="icon-btn" type="button" data-close-modal="howItWorksModal" aria-label="Close">
+          <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+        </button>
+      </header>
+
+      <div class="modal-body">
+        <ol class="steps">
+          <li>
+            <strong>Pick a dress</strong>
+            <p>Each listing is one item only—no sizes selection needed.</p>
+          </li>
+          <li>
+            <strong>Add to cart</strong>
+            <p>Use the cart drawer to adjust delivery and apply promo codes.</p>
+          </li>
+          <li>
+            <strong>Pay securely</strong>
+            <p>Paystack handles payment and verifies instantly.</p>
+          </li>
+          <li>
+            <strong>Get your receipt</strong>
+            <p>Download a PDF receipt and view it in your history anytime.</p>
+          </li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <!-- SHIPPING MODAL -->
+  <div class="modal" id="shippingModal" aria-hidden="true">
+    <div class="modal-overlay" data-close-modal="shippingModal"></div>
+
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="shipTitle">
+      <header class="modal-header">
+        <div>
+          <h2 id="shipTitle">Shipping & Delivery</h2>
+          <p class="muted">Choose what works best for you.</p>
+        </div>
+        <button class="icon-btn" type="button" data-close-modal="shippingModal" aria-label="Close">
+          <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+        </button>
+      </header>
+
+      <div class="modal-body">
+        <div class="shipping-grid">
+          <article class="ship-card">
+            <h3>Standard</h3>
+            <p>Affordable delivery for most locations.</p>
+          </article>
+          <article class="ship-card">
+            <h3>Express</h3>
+            <p>Faster delivery when you need it urgently.</p>
+          </article>
+          <article class="ship-card">
+            <h3>Pickup</h3>
+            <p>Arrange a pickup point via WhatsApp.</p>
+          </article>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NEW ARRIVALS MODAL -->
+  <div class="modal" id="newArrivalsModal" aria-hidden="true">
+    <div class="modal-overlay" data-close-modal="newArrivalsModal"></div>
+
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="newTitle">
+      <header class="modal-header">
+        <div>
+          <h2 id="newTitle">New Arrivals</h2>
+          <p class="muted">Freshly added and trending picks.</p>
+        </div>
+        <button class="icon-btn" type="button" data-close-modal="newArrivalsModal" aria-label="Close">
+          <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+        </button>
+      </header>
+
+      <div class="modal-body">
+        <div class="new-arrivals" id="newArrivalsList">
+          <!-- JS can populate: newest items / trending -->
+          <p class="mini-muted">We’ll automatically show the newest dresses here.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CARE GUIDE MODAL -->
+  <div class="modal" id="careGuideModal" aria-hidden="true">
+    <div class="modal-overlay" data-close-modal="careGuideModal"></div>
+
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="careTitle">
+      <header class="modal-header">
+        <div>
+          <h2 id="careTitle">Care Guide</h2>
+          <p class="muted">Keep your dress looking new.</p>
+        </div>
+        <button class="icon-btn" type="button" data-close-modal="careGuideModal" aria-label="Close">
+          <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+        </button>
+      </header>
+
+      <div class="modal-body">
+        <ul class="care-list">
+          <li><i class="fa-solid fa-droplet" aria-hidden="true"></i> Gentle wash recommended.</li>
+          <li><i class="fa-solid fa-sun" aria-hidden="true"></i> Dry in shade when possible.</li>
+          <li><i class="fa-solid fa-temperature-low" aria-hidden="true"></i> Avoid harsh heat on delicate trims.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTACT QUICK MODAL -->
+  <div class="modal" id="contactModal" aria-hidden="true">
+    <div class="modal-overlay" data-close-modal="contactModal"></div>
+
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="contactTitle">
+      <header class="modal-header">
+        <div>
+          <h2 id="contactTitle">Quick Contact</h2>
+          <p class="muted">Pick one and we’ll help immediately.</p>
+        </div>
+        <button class="icon-btn" type="button" data-close-modal="contactModal" aria-label="Close">
+          <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+        </button>
+      </header>
+
+      <div class="modal-body">
+        <div class="quick-contact-grid">
+          <a class="quick-contact" href="tel:+233000000000">
+            <i class="fa-solid fa-phone" aria-hidden="true"></i>
+            <span>Phone</span>
+          </a>
+          <a class="quick-contact" href="https://wa.me/233000000000" target="_blank" rel="noopener">
+            <i class="fa-brands fa-whatsapp" aria-hidden="true"></i>
+            <span>WhatsApp</span>
+          </a>
+          <a class="quick-contact" href="mailto:hello@aprilblossoms.shop">
+            <i class="fa-solid fa-envelope" aria-hidden="true"></i>
+            <span>Email</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MOBILE MENU MODAL -->
+  <div class="modal" id="menuModal" aria-hidden="true">
+    <div class="modal-overlay" data-close-modal="menuModal"></div>
+
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="menuTitle">
+      <header class="modal-header">
+        <h2 id="menuTitle">Menu</h2>
+        <button class="icon-btn" type="button" data-close-modal="menuModal" aria-label="Close menu">
+          <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+        </button>
+      </header>
+
+      <div class="modal-body">
+        <nav class="mobile-nav" aria-label="Mobile navigation">
+          <a href="#shop" data-close-modal="menuModal">Shop</a>
+          <a href="#about" data-close-modal="menuModal">About</a>
+          <a href="#contact" data-close-modal="menuModal">Contact</a>
+          <button class="mobile-link" type="button" data-open-modal="policiesModal" data-close-modal="menuModal">Policies</button>
+          <button class="mobile-link" type="button" data-open-drawer="cartDrawer" data-close-modal="menuModal">Cart</button>
+          <button class="mobile-link" type="button" data-open-modal="historyModal" data-close-modal="menuModal">History</button>
+        </nav>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer (VERY stacked) -->
+  <footer class="site-footer" aria-label="Footer">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <img src="logo.jpg" alt="April Blossoms" class="footer-logo" />
+        <p class="footer-title">April Blossoms</p>
+        <p class="footer-sub">
+          One-off kidswear pieces — crafted for joy, finished with care.
+        </p>
+
+        <div class="footer-cta">
+          <a class="btn btn-primary" href="#shop">Shop Now</a>
+          <button class="btn btn-ghost" type="button" data-open-modal="contactModal">Contact</button>
+        </div>
+
+        <div class="footer-social" aria-label="Social links">
+          <a href="#" aria-label="Instagram"><i class="fa-brands fa-instagram" aria-hidden="true"></i></a>
+          <a href="#" aria-label="TikTok"><i class="fa-brands fa-tiktok" aria-hidden="true"></i></a>
+          <a href="#" aria-label="Facebook"><i class="fa-brands fa-facebook" aria-hidden="true"></i></a>
+        </div>
+      </div>
+
+      <div class="footer-cols">
+        <div class="footer-col">
+          <h3>Shop</h3>
+          <a href="#shop">All Products</a>
+          <button class="linkish" type="button" data-open-modal="filtersModal">Filters</button>
+          <button class="linkish" type="button" data-open-modal="newArrivalsModal">New Arrivals</button>
+          <button class="linkish" type="button" data-open-drawer="cartDrawer">Cart</button>
+        </div>
+
+        <div class="footer-col">
+          <h3>Help</h3>
+          <button class="linkish" type="button" data-open-modal="shippingModal">Shipping</button>
+          <button class="linkish" type="button" data-open-modal="policiesModal">Policies</button>
+          <button class="linkish" type="button" data-open-modal="careGuideModal">Care Guide</button>
+          <button class="linkish" type="button" data-open-modal="historyModal">Purchase History</button>
+        </div>
+
+        <div class="footer-col">
+          <h3>Contact</h3>
+          <a href="tel:+233000000000"><i class="fa-solid fa-phone" aria-hidden="true"></i> Phone</a>
+          <a href="https://wa.me/233000000000" target="_blank" rel="noopener">
+            <i class="fa-brands fa-whatsapp" aria-hidden="true"></i> WhatsApp
+          </a>
+          <a href="mailto:hello@aprilblossoms.shop"><i class="fa-solid fa-envelope" aria-hidden="true"></i> Email</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer extras -->
+    <div class="footer-extras">
+      <div class="extras-grid">
+        <div class="extra-card">
+          <h3>Newsletter</h3>
+          <p>Get notified when new one-off pieces drop.</p>
+          <form id="newsletterForm" action="#" method="POST" novalidate>
+            <div class="newsletter">
+              <input type="email" name="newsletterEmail" placeholder="Email address" required />
+              <button class="btn btn-primary" type="submit">Join</button>
+            </div>
+            <div class="mini-muted" id="newsletterFeedback" aria-live="polite"></div>
+          </form>
+        </div>
+
+        <div class="extra-card">
+          <h3>Store Hours</h3>
+          <p>Online store is open 24/7.</p>
+          <p class="mini-muted">Support replies fastest on WhatsApp.</p>
+        </div>
+
+        <div class="extra-card">
+          <h3>Secure Payments</h3>
+          <ul class="pay-icons" aria-label="Payment options">
+            <li><i class="fa-brands fa-cc-visa" aria-hidden="true"></i></li>
+            <li><i class="fa-brands fa-cc-mastercard" aria-hidden="true"></i></li>
+            <li><i class="fa-solid fa-credit-card" aria-hidden="true"></i></li>
+            <li><i class="fa-solid fa-building-columns" aria-hidden="true"></i></li>
+          </ul>
+          <p class="mini-muted">Powered by Paystack.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p>© <span id="yearNow">2026</span> April Blossoms. All rights reserved.</p>
+      <div class="footer-links">
+        <button class="linkish" type="button" data-open-modal="policiesModal">Policies</button>
+        <button class="linkish" type="button" data-open-modal="shippingModal">Delivery</button>
+        <button class="linkish" type="button" data-open-modal="careGuideModal">Care</button>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Back to top (shows after scrolling past hero) -->
+  <button class="back-to-top" id="backToTop" type="button" aria-label="Back to top" aria-hidden="true">
+    <i class="fa-solid fa-arrow-up" aria-hidden="true"></i>
+  </button>
+
+  <!-- Toast notifications -->
+  <div class="toasts" id="toastRoot" aria-live="polite" aria-atomic="true"></div>
+
+  <!-- Product Quick View Modal -->
+  <div class="modal" id="quickViewModal" aria-hidden="true">
+    <div class="modal-overlay" data-close-modal="quickViewModal"></div>
+
+    <div class="modal-card modal-wide" role="dialog" aria-modal="true" aria-labelledby="quickViewTitle">
+      <header class="modal-header">
+        <div>
+          <h2 id="quickViewTitle">Product</h2>
+          <p class="muted" id="quickViewMeta">—</p>
+        </div>
+        <button class="icon-btn" type="button" data-close-modal="quickViewModal" aria-label="Close quick view">
+          <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+        </button>
+      </header>
+
+      <div class="modal-body quickview-body">
+        <div class="quickview-gallery" id="quickViewGallery">
+          <!-- JS injects images carousel -->
+        </div>
+
+        <div class="quickview-details">
+          <p class="price" id="quickViewPrice">₵0.00</p>
+          <p class="desc" id="quickViewDesc">—</p>
+
+          <div class="quickview-badges">
+            <span class="tag" id="quickViewStockTag">Available</span>
+            <span class="tag" id="quickViewAgeTag">Age —</span>
+          </div>
+
+          <div class="quickview-actions">
+            <button class="btn btn-primary btn-wide" type="button" id="quickViewAddBtn">
+              <i class="fa-solid fa-bag-shopping" aria-hidden="true"></i> Add to Cart
+            </button>
+            <button class="btn btn-ghost btn-wide" type="button" id="quickViewSaveBtn">
+              <i class="fa-regular fa-bookmark" aria-hidden="true"></i> Save
+            </button>
+          </div>
+
+          <div class="mini-muted">
+            <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+            One-off item: only 1 available.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Accessibility helpers -->
+  <div class="sr-only" aria-live="polite" id="a11yLive"></div>
 </body>
-
-
-</html>
