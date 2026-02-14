@@ -5173,156 +5173,128 @@ main{
   ------------- */
   $("#yearNow") && ($("#yearNow").textContent = String(new Date().getFullYear()));
 
-  /* -------------
-     CONTACT LINKS
-  ------------- */
-  function hydrateContactLinks() {
-    $$("a[href^='tel:']").forEach(a => a.href = `tel:${CONTACT.phone}`);
-    $$("a[href^='https://wa.me/']").forEach(a => a.href = `https://wa.me/${CONTACT.whatsapp}`);
-    $$("a[href^='mailto:']").forEach(a => a.href = `mailto:${CONTACT.email}`);
+ function hydrateContactLinks() {
+    // Ensure tel, mailto and WhatsApp links use the configured CONTACT values
+    $$("a[href^='tel:']").forEach(a => a.setAttribute("href", `tel:${CONTACT.phone}`));
+    $$("a[href^='mailto:']").forEach(a => a.setAttribute("href", `mailto:${CONTACT.email}`));
+    $$("a").forEach(a => {
+      const href = a.getAttribute("href") || "";
+      if (href.includes("wa.me") || href.includes("whatsapp")) {
+        a.setAttribute("href", `https://wa.me/${CONTACT.whatsapp}`);
+        a.setAttribute("target", "_blank");
+        a.setAttribute("rel", "noopener");
+      }
+    });
   }
 
-  /* -------------
-     CHECKOUT DEFAULTS
-  ------------- */
+  /* -----------------------
+     Small utility: accessible live region and toast
+     (keeps the rest of the script from failing if these were missing)
+  ----------------------- */
+  function setA11yLive(msg) {
+    const el = $("#a11yLive");
+    if (!el) return;
+    el.textContent = msg;
+    // clear after a short time so repeated messages read correctly
+    setTimeout(() => { if (el.textContent === msg) el.textContent = ""; }, 750);
+  }
+
+  function toast(message, kind = "info", duration = 3500) {
+    const root = $("#toastRoot");
+    if (!root) {
+      console[kind === "error" ? "error" : "log"](message);
+      return;
+    }
+    const t = document.createElement("div");
+    t.className = `toast ${kind}`;
+    const icon = kind === "success" ? "fa-circle-check" : (kind === "error" ? "fa-triangle-exclamation" : "fa-circle-info");
+    t.innerHTML = `
+      <div class="toast-icon"><i class="fa-solid ${icon}" aria-hidden="true"></i></div>
+      <div class="toast-msg">${escapeHTML(message)}</div>
+      <button class="toast-x" aria-label="Dismiss">×</button>
+    `;
+    root.appendChild(t);
+    // dismiss
+    t.querySelector(".toast-x").addEventListener("click", () => {
+      t.classList.add("out");
+      setTimeout(() => t.remove(), 300);
+    });
+    setTimeout(() => { t.classList.add("out"); setTimeout(() => t.remove(), 300); }, duration);
+  }
+
+  /* -----------------------
+     Small missing helpers used earlier (stubs/implementations)
+  ----------------------- */
+  function exportHistoryJSON() {
+    try {
+      const blob = new Blob([JSON.stringify(state.history || [], null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "aprilblossoms-history.json";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      toast("Purchase history exported.", "success");
+    } catch (e) {
+      toast("Could not export history.", "error");
+    }
+  }
+
   function hydrateCheckoutDefaults() {
-    if (!state.customer) return;
+    // Pre-fill checkout form when we have saved customer details
+    const c = state.customer || {};
+    if (!c) return;
     const form = $("#checkoutForm");
     if (!form) return;
-    const c = state.customer;
-    const set = (name, value) => {
+    const setVal = (name, val) => {
       const el = form.querySelector(`[name="${name}"]`);
-      if (el && value != null) el.value = value;
+      if (el) el.value = val || "";
     };
-    set("fullName", c.fullName);
-    set("email", c.email);
-    set("phone", c.phone);
-    set("delivery", c.delivery || "standard");
-    set("address", c.address);
-    set("city", c.city);
-    set("region", c.region);
-    set("notes", c.notes);
-    const ds = $("#deliverySelect");
-    if (ds && c.delivery) ds.value = c.delivery;
-    renderCart();
+    setVal("fullName", c.fullName);
+    setVal("email", c.email);
+    setVal("phone", c.phone);
+    setVal("address", c.address);
+   setVal("city", c.city);
+    setVal("region", c.region);
+    if ($("#checkoutDelivery")) $("#checkoutDelivery").value = c.delivery || "standard";
+    if ($("#deliverySelect")) $("#deliverySelect").value = c.delivery || "standard";
+    renderCartProgress();
   }
 
-  /* -------------
-     HISTORY EXPORT
-  ------------- */
-  function exportHistoryJSON() {
-    const blob = new Blob([JSON.stringify(state.history, null, 2)], { type: "application/json" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = `april-blossoms-history-${new Date().toISOString().slice(0,10)}.json`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(a.href);
-    toast("History exported.", "success");
-  }
-
-  /* -------------
-     PURGE SOLD FROM CART (safety)
-  ------------- */
-  function purgeSoldFromCart() {
-    const before = state.cart.length;
-    state.cart = state.cart.filter(it => !isSold(it.id));
-    if (state.cart.length !== before) {
-      persist();
-      renderBadges();
-      renderCart();
-      renderProducts();
-      toast("Some items in your cart were sold and removed.", "info");
-    }
-  }
-
-  /* -------------
-     TOASTS + ACCESSIBILITY
-  ------------- */
-  const toastRoot = $("#toastRoot");
-  function toast(message, type = "info", ms = 2600) {
-    if (!toastRoot) return;
-    const el = document.createElement("div");
-    el.className = `toast ${type}`;
-    el.innerHTML = `
-      <div class="toast-icon">
-        <i class="fa-solid ${type === "success" ? "fa-circle-check" : type === "error" ? "fa-triangle-exclamation" : "fa-circle-info"}" aria-hidden="true"></i>
-      </div>
-      <div class="toast-msg">${escapeHTML(message)}</div>
-      <button class="toast-x" aria-label="Dismiss"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
-    `;
-    toastRoot.appendChild(el);
-    const kill = () => { el.classList.add("out"); setTimeout(() => el.remove(), 250); };
-    el.querySelector(".toast-x").addEventListener("click", kill);
-    setTimeout(kill, ms);
-  }
-  function setA11yLive(msg) {
-    const live = $("#a11yLive");
-    if (live) live.textContent = msg;
-  }
-
-  /* -------------
-     BOOTSTRAP: initialize everything on DOMContentLoaded
-  ------------- */
-  function init() {
+  /* -----------------------
+     Final initialization
+ ----------------------- */
+  document.addEventListener("DOMContentLoaded", () => {
     try {
-      hydrateContactLinks();
+      // ensure hero backgrounds exist or fall back
       ensureHeroBackgrounds();
+     // start hero slider
       initHero();
+      // render product grid and related UI
       renderProducts();
-      renderBadges();
       renderSaved();
       renderHistory();
-      renderCart();
+      renderBadges();
+      // wire contact/links
+      hydrateContactLinks();
+      // back-to-top visibility & scroll wiring
       initBackToTop();
-      // purge sold items if any on load
-      purgeSoldFromCart();
-
-      // Wire delegated listeners for product thumbnails inside modals (they are delegated elsewhere)
-      // Set up small UI interactions not covered above
-      document.querySelectorAll("img").forEach(img => {
-        img.addEventListener("error", () => { if (!img.dataset.fallbackSet) { img.dataset.fallbackSet = "1"; img.src = placeholderSVG; } });
-      });
-
-      // keep hero backgrounds checked after images load
-      window.setTimeout(() => ensureHeroBackgrounds(), 600);
-      window.addEventListener("resize", () => ensureHeroBackgrounds());
-
-      // Wire some UI helpers (search debounce)
-      let searchDeb;
-      const si = $("#searchInput");
-      if (si) {
-        si.addEventListener("input", (e) => {
-          clearTimeout(searchDeb);
-          searchDeb = setTimeout(() => renderSearchResults(e.target.value), 120);
-        });
-      }
+      // set year
+      $("#yearNow") && ($("#yearNow").textContent = String(new Date().getFullYear()));
+      // graceful cleanup of loading skeleton state
+      const grid = $("#productsGrid");
+      if (grid) grid.setAttribute("aria-busy", "false");
     } catch (err) {
-      console.error("Initialization failed", err);
+      console.error("Init error:", err);
+      toast("Initialization error (check console).", "error");
     }
-  }
-
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", init);
-  } else {
-    init();
-  }
-
-  /* -------------
-     DELEGATED CLICK: some actions that require listeners (open quickview from saved list etc.)
-     - This is intentionally separate to group modal actions
-  ------------- */
-  document.addEventListener("click", (e) => {
-    const el = e.target.closest("[data-action]");
-    if (!el) return;
-    const act = el.getAttribute("data-action");
-    const id = el.getAttribute("data-id");
-    if (!act) return;
-    if (act === "open-qv" && id) openQuickView(id);
   });
 
+  // close the top-level IIFE
 })();
+
 </script>
 
 </body>
