@@ -3688,7 +3688,13 @@ main{
   <div class="sr-only" aria-live="polite" id="a11yLive"></div>
 
 <script>
-
+/* =========================
+   April Blossoms — Robust Inline Script
+   Replace your existing <script> block with this entire block.
+   - Defensive: handles missing elements and blocked resources gracefully
+   - Image-safe: uses repository-root filenames (no folder required)
+   - Debug-friendly: logs key lifecycle events to console
+   ========================= */
 (function () {
   "use strict";
 
@@ -3954,38 +3960,38 @@ main{
 
       // Build innerHTML carefully to avoid template issues
       card.innerHTML = ""
-         '<div class="pc-media">'
-           `<img src="${escapeHTML(imgSrc)}" alt="${escapeHTML(p.title)}" loading="eager">`
-           '<div class="pc-badges">'
-             `<span class="badge-pill">${escapeHTML(p.id)}</span>`
-             `<span class="badge-pill">${escapeHTML("Age " + p.ageCategory)}</span>`
-             (sold ? `<span class="badge-pill danger">Sold</span>` : `<span class="badge-pill success">1 left</span>`)
-           '</div>'
-           `<button class="pc-icon pc-save ${saved ? "is-active" : ""}" type="button" data-action="toggle-save" aria-label="Save item">`
-             `<i class="fa-${saved ? "solid" : "regular"} fa-bookmark" aria-hidden="true"></i>`
-           `</button>`
-           `<button class="pc-icon pc-quick" type="button" data-action="quick-view" aria-label="Quick view">`
-             '<i class="fa-solid fa-eye" aria-hidden="true"></i>'
-           `</button>`
-         '</div>'
-         '<div class="pc-body">'
-           `<h3 class="pc-title">${escapeHTML(p.title)}</h3>`
-           `<p class="pc-desc">${escapeHTML(p.description)}</p>`
-           '<div class="pc-row">'
-             `<p class="pc-price">${money(p.price)}</p>`
-             `<p class="pc-mini">${sold ? "Unavailable" : "Ready to ship"}</p>`
-           '</div>'
-           '<div class="pc-actions">'
-             `<button class="btn btn-primary btn-wide" type="button" data-action="add-to-cart" ${sold || inCart ? "disabled" : ""}>`
-               '<i class="fa-solid fa-bag-shopping" aria-hidden="true"></i>'
-               `${sold ? "Sold Out" : inCart ? "In Cart" : "Add to Cart"}`
-             '</button>'
-             `<button class="btn btn-ghost" type="button" data-action="buy-now" ${sold ? "disabled" : ""}>`
-               '<i class="fa-solid fa-bolt" aria-hidden="true"></i>'
-               'Buy'
-             '</button>'
-           '</div>'
-         '</div>';
+        + '<div class="pc-media">'
+        +   `<img src="${escapeHTML(imgSrc)}" alt="${escapeHTML(p.title)}" loading="eager">`
+        +   '<div class="pc-badges">'
+        +     `<span class="badge-pill">${escapeHTML(p.id)}</span>`
+        +     `<span class="badge-pill">${escapeHTML("Age " + p.ageCategory)}</span>`
+        +     (sold ? `<span class="badge-pill danger">Sold</span>` : `<span class="badge-pill success">1 left</span>`)
+        +   '</div>'
+        +   `<button class="pc-icon pc-save ${saved ? "is-active" : ""}" type="button" data-action="toggle-save" aria-label="Save item">`
+        +     `<i class="fa-${saved ? "solid" : "regular"} fa-bookmark" aria-hidden="true"></i>`
+        +   `</button>`
+        +   `<button class="pc-icon pc-quick" type="button" data-action="quick-view" aria-label="Quick view">`
+        +     '<i class="fa-solid fa-eye" aria-hidden="true"></i>'
+        +   `</button>`
+        + '</div>'
+        + '<div class="pc-body">'
+        +   `<h3 class="pc-title">${escapeHTML(p.title)}</h3>`
+        +   `<p class="pc-desc">${escapeHTML(p.description)}</p>`
+        +   '<div class="pc-row">'
+        +     `<p class="pc-price">${money(p.price)}</p>`
+        +     `<p class="pc-mini">${sold ? "Unavailable" : "Ready to ship"}</p>`
+        +   '</div>'
+        +   '<div class="pc-actions">'
+        +     `<button class="btn btn-primary btn-wide" type="button" data-action="add-to-cart" ${sold || inCart ? "disabled" : ""}>`
+        +       '<i class="fa-solid fa-bag-shopping" aria-hidden="true"></i>'
+        +       `${sold ? "Sold Out" : inCart ? "In Cart" : "Add to Cart"}`
+        +     '</button>'
+        +     `<button class="btn btn-ghost" type="button" data-action="buy-now" ${sold ? "disabled" : ""}>`
+        +       '<i class="fa-solid fa-bolt" aria-hidden="true"></i>'
+        +       'Buy'
+        +     '</button>'
+        +   '</div>'
+        + '</div>';
 
       // attach image fallback
       const imgEl = card.querySelector("img");
@@ -4191,7 +4197,8 @@ main{
     const saveBtn = $("#quickViewSaveBtn");
 
     if (addBtn) { addBtn.disabled = sold || !canAddToCart(p.id); addBtn.onclick = () => { addToCart(p.id); openDrawer("cartDrawer"); }; }
-     if (saveBtn) {
+    if (saveBtn) {
+      // set initial label/icon
       const s = state.saved.includes(p.id);
       saveBtn.innerHTML = `\<i class="fa-${s ? "solid" : "regular"} fa-bookmark" aria-hidden="true"></i> ${s ? "Saved" : "Save"}`;
 
@@ -5131,6 +5138,21 @@ main{
   info(syntaxErrHint);
 
   console.groupEnd();
+
+  try {
+    renderProducts();
+    renderBadges();
+    renderSaved();
+    renderCart();
+    renderHistory();
+    renderSearchResults("");
+    // set footer year dynamically
+    const yEl = document.getElementById("yearNow");
+    if (yEl) yEl.textContent = new Date().getFullYear();
+    console.info("April Blossoms script ready.");
+  } catch (err) {
+    console.error("Initialization error:", err);
+  }
 })();
 </script>
 
