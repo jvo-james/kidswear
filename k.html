@@ -28,28 +28,30 @@
    Design tokens
 ------------------------- */
 :root{
-  --bg: #0b0c10;
-  --surface: rgba(255,255,255,.06);
-  --surface-2: rgba(255,255,255,.09);
-  --card: rgba(255,255,255,.08);
-  --card-2: rgba(255,255,255,.10);
-  --border: rgba(255,255,255,.12);
-  --border-2: rgba(255,255,255,.18);
+  /* base */
+  --bg: #f7f8fb;               /* page background (very light) */
+  --surface: #ffffff;          /* card surfaces */
+  --surface-2: #fbfbfb;
+  --card: #ffffff;
+  --card-2: #fcfcff;
+  --border: rgba(15,23,42,.06);  /* subtle border */
+  --border-2: rgba(15,23,42,.09);
 
-  --text: rgba(255,255,255,.92);
-  --muted: rgba(255,255,255,.70);
-  --muted2: rgba(255,255,255,.55);
+  --text: #0b1220;            /* main text (dark navy) */
+  --muted: rgba(11,18,32,.64);/* secondary text */
+  --muted2: rgba(11,18,32,.45);
 
-  --shadow: 0 18px 45px rgba(0,0,0,.45);
-  --shadow2: 0 30px 85px rgba(0,0,0,.60);
+  --shadow: 0 8px 24px rgba(11,18,32,.06);
+  --shadow2: 0 18px 40px rgba(11,18,32,.08);
 
   --radius-sm: 12px;
   --radius: 18px;
   --radius-lg: 26px;
 
-  --focus: rgba(255,255,255,.22);
+  --focus: rgba(11,18,32,.06);
 
-  --brand-1: #ff5fa2; /* blossom */
+  /* keep brand colors */
+  --brand-1: #ff5fa2; /* blossom - pink */
   --brand-2: #8a5cff; /* violet */
   --brand-3: #2be7c8; /* mint */
   --brand-4: #ffd36d; /* warm */
@@ -62,7 +64,7 @@
   --max: 1180px;
   --headerH: 64px;
 
-  --glass: blur(16px) saturate(1.35);
+  --glass: blur(8px) saturate(1.05);
   --ease: cubic-bezier(.2,.9,.2,1);
 
   --font: "Poppins", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
@@ -92,7 +94,160 @@ body{
     #07080b;
   overflow-x: hidden;
 }
+body{
+  background:
+    radial-gradient(800px 400px at 10% 10%, rgba(255,95,162,.06), transparent 55%),
+    radial-gradient(600px 300px at 90% 10%, rgba(138,92,255,.04), transparent 50%),
+    radial-gradient(600px 300px at 50% 90%, rgba(43,231,200,.03), transparent 50%),
+    var(--bg);
+  color: var(--text);
+}
 
+/* header */
+.site-header{
+  background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(255,255,255,.96));
+  border-bottom: 1px solid var(--border);
+  box-shadow: 0 6px 18px rgba(11,18,32,.03);
+  backdrop-filter: var(--glass);
+  color: var(--text);
+}
+
+/* announcements */
+.announce{ background: rgba(11,18,32,.02); border-top: 1px solid rgba(11,18,32,.02); color: var(--muted); }
+
+/* nav & icon buttons (light variants) */
+.icon-btn{
+  background: rgba(11,18,32,.03);
+  border: 1px solid rgba(11,18,32,.04);
+  color: var(--text);
+}
+.icon-btn i{ color: var(--text); }
+
+/* hero adjustments so text is dark and readable on lightened images */
+.hero-slide .hero-img { filter: saturate(1.02) contrast(.98); }
+.hero-overlay{
+  /* lighten hero image slightly so dark text reads well */
+  background:
+    linear-gradient(to top, rgba(255,255,255,.85), rgba(255,255,255,.45) 55%, rgba(255,255,255,.28));
+  z-index:1;
+}
+.hero-title, .hero-kicker, .hero-subtitle { color: var(--text); }
+
+/* product cards: white surface, subtle border & soft shadow */
+.product-card{
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  color: var(--text);
+}
+.product-card.is-sold{ opacity: .92; filter: none; }
+
+/* product media badges */
+.pc-badges .badge-pill{
+  background: rgba(11,18,32,.06);
+  border: 1px solid rgba(11,18,32,.04);
+  color: var(--text);
+}
+
+/* pc-icon (save / quick view) on light bg */
+.pc-icon{
+  background: rgba(11,18,32,.04);
+  border: 1px solid rgba(11,18,32,.05);
+  color: var(--text);
+}
+.pc-save.is-active{
+  background: linear-gradient(135deg, var(--brand-1), var(--brand-2));
+  color: #fff;
+  border-color: rgba(0,0,0,.06);
+}
+
+/* card body text */
+.pc-desc, .pc-mini { color: var(--muted); }
+
+/* buttons - light base, keep brand primary */
+.btn{
+  background: #fff;
+  border: 1px solid rgba(11,18,32,.06);
+  color: var(--text);
+  box-shadow: 0 8px 20px rgba(11,18,32,.03);
+}
+.btn:hover{ transform: translateY(-2px); box-shadow: 0 12px 30px rgba(11,18,32,.05); }
+
+/* primary action keeps brand gradient and white text for contrast */
+.btn-primary{
+  background: linear-gradient(135deg, var(--brand-1), var(--brand-2));
+  border-color: rgba(0,0,0,.06);
+  color: #ffffff;
+  box-shadow: 0 14px 36px rgba(138,92,255,.08);
+}
+
+/* ghost buttons keep soft outline on light bg */
+.btn-ghost{
+  background: transparent;
+  border: 1px solid rgba(11,18,32,.06);
+  color: var(--text);
+}
+
+/* forms and inputs on light bg */
+input, select, textarea{
+  background: #fff;
+  border: 1px solid rgba(11,18,32,.06);
+  color: var(--text);
+}
+input:focus, select:focus, textarea:focus{
+  box-shadow: 0 6px 18px rgba(11,18,32,.04), 0 0 0 4px rgba(138,92,255,.06);
+  border-color: rgba(138,92,255,.28);
+}
+
+/* trust / panels / about cards */
+.trust-card, .about-copy, .panel, .contact-card, .checkout-left, .checkout-right, .receipt, .modal-card, .drawer-panel, .footer-col, .footer-brand, .extra-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  color: var(--text);
+}
+
+/* cart drawer on light background */
+.drawer-panel{
+  background: #ffffff;
+  color: var(--text);
+  border-left: 1px solid rgba(11,18,32,.04);
+}
+
+/* footer */
+.site-footer{ background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(250,250,252,.98)); border-top: 1px solid rgba(11,18,32,.03); color: var(--text); }
+.footer-logo{ border: 1px solid rgba(11,18,32,.04); }
+
+/* toasts on light background */
+.toast{ background: #ffffff; border: 1px solid rgba(11,18,32,.06); color: var(--text); box-shadow: var(--shadow); }
+
+/* empty states / skeletons: tweak for light theme */
+.product-skeleton{ background: linear-gradient(110deg, rgba(11,18,32,.03) 8%, rgba(11,18,32,.05) 18%, rgba(11,18,32,.03) 33%); }
+
+/* badges & pills (use brand accents) */
+.badge{
+  background: linear-gradient(135deg, var(--brand-4), var(--brand-1));
+  color: #fff;
+  border: 1px solid rgba(0,0,0,.06);
+}
+.pill{ background: rgba(11,18,32,.03); border: 1px solid rgba(11,18,32,.05); color: var(--text); }
+
+/* small polish: scrollbar for light background */
+::-webkit-scrollbar-thumb{ background: rgba(11,18,32,.12); border: 2px solid rgba(255,255,255,.98); }
+
+/* ensure hero text stays dark */
+.hero-kicker, .hero-title, .hero-subtitle { color: var(--text) !important; }
+
+/* quick accessibility: invert icons that relied on white */
+.fa-solid, .fa-regular, .fa-brands { color: inherit; }
+
+/* mobile menu / overlays */
+.modal-card, .cart-drawer .drawer-panel{ background: var(--surface); }
+
+/* make "sold" styling still visible on light background */
+.product-card.is-sold { opacity: 0.85; filter: grayscale(.06); }
+.badge-pill.danger{ background: rgba(255,81,111,.12); border-color: rgba(255,81,111,.18); color: var(--text); }
+.badge-pill.success{ background: rgba(10,220,132,.12); border-color: rgba(10,220,132,.18); color: var(--text); }
 img{ max-width: 100%; display:block; }
 a{ color: inherit; text-decoration: none; }
 button, input, select, textarea{
