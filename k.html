@@ -3793,6 +3793,14 @@ main{
     }[m]));
   }
 
+  function setA11yLive(msg) {
+    const el = $("#a11yLive");
+    if (!el) return;
+    // Clear then set to force screen-readers to notice repeated messages
+    el.textContent = "";
+    setTimeout(() => { el.textContent = String(msg || ""); }, 50);
+  }
+  
   const placeholderSVG = (() => {
     // base64 inline SVG placeholder returned as data URI
     const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='800' height='1000' viewBox='0 0 800 1000'>
@@ -5147,130 +5155,56 @@ main{
   /* -------------
      BACK TO TOP
   ------------- */
-  function initBackToTop() {
+ function initBackToTop() {
     const btn = $("#backToTop");
-    if (!btn) return;
+   if (!btn) return;
     const hero = $(".hero");
     const showAfter = hero ? hero.offsetHeight * 0.8 : 500;
+
     const onScroll = () => {
       const y = window.scrollY || document.documentElement.scrollTop;
       const show = y > showAfter;
       btn.classList.toggle("show", show);
       btn.setAttribute("aria-hidden", show ? "false" : "true");
     };
+
     window.addEventListener("scroll", onScroll, { passive: true });
     onScroll();
-    btn.addEventListener("click", () => { window.scrollTo({ top: 0, behavior: "smooth" }); setA11yLive("Back to top."); });
+
+    btn.addEventListener("click", () => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      setA11yLive("Returned to top of page.");
+    });
   }
 
   /* -------------
-     YEAR
+     BOOT / INITIALIZATION
+     - safe: DOMContentLoaded aware; idempotent boot
   ------------- */
-  $("#yearNow") && ($("#yearNow").textContent = String(new Date().getFullYear()));
+  function boot() {
+    // fix hero backgrounds if any are missing
+    try { ensureHeroBackgrounds(); } catch (e) { /* ignore */ }
+    try { initHero(); } catch (e) { /* ignore */ }
+   try { renderProducts(); } catch (e) { console.error("renderProducts failed", e); }
+    try { renderBadges(); } catch {}
+    try { renderSaved(); } catch {}
+    try { renderHistory(); } catch {}
+    try { initBackToTop(); } catch {}
+  }
 
-function hydrateContactLinks() {
-   // Ensure tel, mailto and WhatsApp links use the configured CONTACT values
-   try {
-     $$('a[href^="tel:"], a[href^="mailto:"], a[href*="wa.me"]').forEach(a => {
-       try {
-         if (a.getAttribute('href')?.startsWith('tel:')) {
-           a.setAttribute('href', `tel:${CONTACT.phone}`);
-         }
-         if (a.getAttribute('href')?.startsWith('mailto:')) {
-           a.setAttribute('href', `mailto:${CONTACT.email}`);
-         }
-         if (a.getAttribute('href')?.includes('wa.me')) {
-           const num = CONTACT.whatsapp.replace(/\D/g, '');
-           a.setAttribute('href', `https://wa.me/${num}`);
-         }
-       } catch (e) { /* ignore per-link errors */ }
-     });
-   } catch (e) { /* no-op if environment odd */ }
- }
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", boot);
+  } else {
+    // script is at end of body — still safe to boot immediately
+    boot();
+  }
 
- /* ------------------------------------------------------------------
-    small UI helpers referenced earlier but not defined in your script
-    (toast + a11y live + export/history helpers + checkout hydrator)
-    ------------------------------------------------------------------ */
-function setA11yLive(msg) {
-   const el = $("#a11yLive");
-   if (el) el.textContent = msg || "";
- }
+  // expose a couple of helpers for debugging from console (optional)
+  window.__AB = {
+    PRODUCTS, state, renderProducts, renderCart, renderBadges, boot
+  };
 
- function toast(message, type = "info", timeout = 4000) {
-   const root = $("#toastRoot");
-   if (!root) return;
-   const t = document.createElement("div");
-   t.className = `toast ${escapeHTML(type)}`;
-   // choose icon class simply
-   const icon = type === "success" ? "fa-solid fa-circle-check" : type === "error" ? "fa-solid fa-circle-xmark" : "fa-solid fa-info";
-   t.innerHTML = `
-     <div class="toast-icon"><i class="${icon}" aria-hidden="true"></i></div>
-     <div class="toast-msg">${escapeHTML(message)}</div>
-     <button class="toast-x" aria-label="Dismiss">&times;</button>
-   `;
-   root.appendChild(t);
-   // dismiss handlers
-   t.querySelector(".toast-x")?.addEventListener("click", () => { t.classList.add("out"); setTimeout(()=> t.remove(), 220); });
-   // auto remove
-   setTimeout(() => { t.classList.add("out"); setTimeout(()=> t.remove(), 220); }, timeout);
- }
-
- function exportHistoryJSON() {
-   try {
-     const data = JSON.stringify(state.history || [], null, 2);
-     const blob = new Blob([data], { type: "application/json" });
-     const url = URL.createObjectURL(blob);
-     const a = document.createElement("a");
-     a.href = url;
-     a.download = "aprilblossoms_history.json";
-     document.body.appendChild(a);
-     a.click();
-     a.remove();
-     URL.revokeObjectURL(url);
-     toast("History exported.", "success");
-   } catch (e) { toast("Could not export history.", "error"); }
- }
-
- function hydrateCheckoutDefaults() {
-   // populate checkout form fields from stored customer (if any)
-   try {
-     const cust = state.customer;
-     if (!cust) return;
-     const f = $("#checkoutForm");
-     if (!f) return;
-     f.querySelector('[name="fullName"]') && (f.querySelector('[name="fullName"]').value = cust.fullName || "");
-     f.querySelector('[name="email"]') && (f.querySelector('[name="email"]').value = cust.email || "");
-     f.querySelector('[name="phone"]') && (f.querySelector('[name="phone"]').value = cust.phone || "");
-     if ($("#checkoutDelivery")) { $("#checkoutDelivery").value = cust.delivery || "standard"; }
-     if ($("#deliverySelect")) { $("#deliverySelect").value = cust.delivery || "standard"; }
-   } catch (e) { /* ignore */ }
- }
-
- /* -------------------------
-    Boot / initialization
-    ------------------------- */
-// Wait a tick so DOM is fully parsed (script is at page bottom but keep robust)
- requestAnimationFrame(() => {
-   try {
-     ensureHeroBackgrounds();
-     initHero();
-     renderProducts();
-     renderBadges();
-     renderSaved();
-    renderHistory();
-     initBackToTop();
-     hydrateContactLinks();
-     // ensure cart UI synchronized
-     renderCart();
-   } catch (e) {
-    // if something unexpected happens, show a friendly toast and log
-    console.error("Init error:", e);
-     toast("Initialization error — check console.", "error");
-   }
- });
-
- })();
+})();
 
 </script>
 
