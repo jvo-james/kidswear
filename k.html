@@ -5173,127 +5173,109 @@ main{
   ------------- */
   $("#yearNow") && ($("#yearNow").textContent = String(new Date().getFullYear()));
 
- function hydrateContactLinks() {
-    // Ensure tel, mailto and WhatsApp links use the configured CONTACT values
-    $$("a[href^='tel:']").forEach(a => a.setAttribute("href", `tel:${CONTACT.phone}`));
-    $$("a[href^='mailto:']").forEach(a => a.setAttribute("href", `mailto:${CONTACT.email}`));
-    $$("a").forEach(a => {
-      const href = a.getAttribute("href") || "";
-      if (href.includes("wa.me") || href.includes("whatsapp")) {
-        a.setAttribute("href", `https://wa.me/${CONTACT.whatsapp}`);
-        a.setAttribute("target", "_blank");
-        a.setAttribute("rel", "noopener");
-      }
-    });
-  }
+function hydrateContactLinks() {
+   // Ensure tel, mailto and WhatsApp links use the configured CONTACT values
+   try {
+     $$('a[href^="tel:"], a[href^="mailto:"], a[href*="wa.me"]').forEach(a => {
+       try {
+         if (a.getAttribute('href')?.startsWith('tel:')) {
+           a.setAttribute('href', `tel:${CONTACT.phone}`);
+         }
+         if (a.getAttribute('href')?.startsWith('mailto:')) {
+           a.setAttribute('href', `mailto:${CONTACT.email}`);
+         }
+         if (a.getAttribute('href')?.includes('wa.me')) {
+           const num = CONTACT.whatsapp.replace(/\D/g, '');
+           a.setAttribute('href', `https://wa.me/${num}`);
+         }
+       } catch (e) { /* ignore per-link errors */ }
+     });
+   } catch (e) { /* no-op if environment odd */ }
+ }
 
-  /* -----------------------
-     Small utility: accessible live region and toast
-     (keeps the rest of the script from failing if these were missing)
-  ----------------------- */
-  function setA11yLive(msg) {
-    const el = $("#a11yLive");
-    if (!el) return;
-    el.textContent = msg;
-    // clear after a short time so repeated messages read correctly
-    setTimeout(() => { if (el.textContent === msg) el.textContent = ""; }, 750);
-  }
+ /* ------------------------------------------------------------------
+    small UI helpers referenced earlier but not defined in your script
+    (toast + a11y live + export/history helpers + checkout hydrator)
+    ------------------------------------------------------------------ */
+function setA11yLive(msg) {
+   const el = $("#a11yLive");
+   if (el) el.textContent = msg || "";
+ }
 
-  function toast(message, kind = "info", duration = 3500) {
-    const root = $("#toastRoot");
-    if (!root) {
-      console[kind === "error" ? "error" : "log"](message);
-      return;
-    }
-    const t = document.createElement("div");
-    t.className = `toast ${kind}`;
-    const icon = kind === "success" ? "fa-circle-check" : (kind === "error" ? "fa-triangle-exclamation" : "fa-circle-info");
-    t.innerHTML = `
-      <div class="toast-icon"><i class="fa-solid ${icon}" aria-hidden="true"></i></div>
-      <div class="toast-msg">${escapeHTML(message)}</div>
-      <button class="toast-x" aria-label="Dismiss">×</button>
-    `;
-    root.appendChild(t);
-    // dismiss
-    t.querySelector(".toast-x").addEventListener("click", () => {
-      t.classList.add("out");
-      setTimeout(() => t.remove(), 300);
-    });
-    setTimeout(() => { t.classList.add("out"); setTimeout(() => t.remove(), 300); }, duration);
-  }
+ function toast(message, type = "info", timeout = 4000) {
+   const root = $("#toastRoot");
+   if (!root) return;
+   const t = document.createElement("div");
+   t.className = `toast ${escapeHTML(type)}`;
+   // choose icon class simply
+   const icon = type === "success" ? "fa-solid fa-circle-check" : type === "error" ? "fa-solid fa-circle-xmark" : "fa-solid fa-info";
+   t.innerHTML = `
+     <div class="toast-icon"><i class="${icon}" aria-hidden="true"></i></div>
+     <div class="toast-msg">${escapeHTML(message)}</div>
+     <button class="toast-x" aria-label="Dismiss">&times;</button>
+   `;
+   root.appendChild(t);
+   // dismiss handlers
+   t.querySelector(".toast-x")?.addEventListener("click", () => { t.classList.add("out"); setTimeout(()=> t.remove(), 220); });
+   // auto remove
+   setTimeout(() => { t.classList.add("out"); setTimeout(()=> t.remove(), 220); }, timeout);
+ }
 
-  /* -----------------------
-     Small missing helpers used earlier (stubs/implementations)
-  ----------------------- */
-  function exportHistoryJSON() {
-    try {
-      const blob = new Blob([JSON.stringify(state.history || [], null, 2)], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "aprilblossoms-history.json";
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
-      toast("Purchase history exported.", "success");
-    } catch (e) {
-      toast("Could not export history.", "error");
-    }
-  }
+ function exportHistoryJSON() {
+   try {
+     const data = JSON.stringify(state.history || [], null, 2);
+     const blob = new Blob([data], { type: "application/json" });
+     const url = URL.createObjectURL(blob);
+     const a = document.createElement("a");
+     a.href = url;
+     a.download = "aprilblossoms_history.json";
+     document.body.appendChild(a);
+     a.click();
+     a.remove();
+     URL.revokeObjectURL(url);
+     toast("History exported.", "success");
+   } catch (e) { toast("Could not export history.", "error"); }
+ }
 
-  function hydrateCheckoutDefaults() {
-    // Pre-fill checkout form when we have saved customer details
-    const c = state.customer || {};
-    if (!c) return;
-    const form = $("#checkoutForm");
-    if (!form) return;
-    const setVal = (name, val) => {
-      const el = form.querySelector(`[name="${name}"]`);
-      if (el) el.value = val || "";
-    };
-    setVal("fullName", c.fullName);
-    setVal("email", c.email);
-    setVal("phone", c.phone);
-    setVal("address", c.address);
-   setVal("city", c.city);
-    setVal("region", c.region);
-    if ($("#checkoutDelivery")) $("#checkoutDelivery").value = c.delivery || "standard";
-    if ($("#deliverySelect")) $("#deliverySelect").value = c.delivery || "standard";
-    renderCartProgress();
-  }
+ function hydrateCheckoutDefaults() {
+   // populate checkout form fields from stored customer (if any)
+   try {
+     const cust = state.customer;
+     if (!cust) return;
+     const f = $("#checkoutForm");
+     if (!f) return;
+     f.querySelector('[name="fullName"]') && (f.querySelector('[name="fullName"]').value = cust.fullName || "");
+     f.querySelector('[name="email"]') && (f.querySelector('[name="email"]').value = cust.email || "");
+     f.querySelector('[name="phone"]') && (f.querySelector('[name="phone"]').value = cust.phone || "");
+     if ($("#checkoutDelivery")) { $("#checkoutDelivery").value = cust.delivery || "standard"; }
+     if ($("#deliverySelect")) { $("#deliverySelect").value = cust.delivery || "standard"; }
+   } catch (e) { /* ignore */ }
+ }
 
-  /* -----------------------
-     Final initialization
- ----------------------- */
-  document.addEventListener("DOMContentLoaded", () => {
-    try {
-      // ensure hero backgrounds exist or fall back
-      ensureHeroBackgrounds();
-     // start hero slider
-      initHero();
-      // render product grid and related UI
-      renderProducts();
-      renderSaved();
-      renderHistory();
-      renderBadges();
-      // wire contact/links
-      hydrateContactLinks();
-      // back-to-top visibility & scroll wiring
-      initBackToTop();
-      // set year
-      $("#yearNow") && ($("#yearNow").textContent = String(new Date().getFullYear()));
-      // graceful cleanup of loading skeleton state
-      const grid = $("#productsGrid");
-      if (grid) grid.setAttribute("aria-busy", "false");
-    } catch (err) {
-      console.error("Init error:", err);
-      toast("Initialization error (check console).", "error");
-    }
-  });
+ /* -------------------------
+    Boot / initialization
+    ------------------------- */
+// Wait a tick so DOM is fully parsed (script is at page bottom but keep robust)
+ requestAnimationFrame(() => {
+   try {
+     ensureHeroBackgrounds();
+     initHero();
+     renderProducts();
+     renderBadges();
+     renderSaved();
+    renderHistory();
+     initBackToTop();
+     hydrateContactLinks();
+     // ensure cart UI synchronized
+     renderCart();
+   } catch (e) {
+    // if something unexpected happens, show a friendly toast and log
+    console.error("Init error:", e);
+     toast("Initialization error — check console.", "error");
+   }
+ });
 
-  // close the top-level IIFE
-})();
+ })();
 
 </script>
 
