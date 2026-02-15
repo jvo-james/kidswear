@@ -3472,6 +3472,242 @@ body.drawer-open {
 
  }
 
+  :root {
+  --fix-primary: var(--text, #0f172a);
+  --fix-muted:   var(--muted, #6b7280);
+  --fix-strong:  rgba(0,0,0,0.92);
+}
+
+/* 1) Surfaces that are often white/light -> make their text dark */
+.site-header,
+.site-header *,
+
+.announce,
+.announce *,
+
+.drawer-panel,
+.drawer-panel *,
+
+.modal-card,
+.modal-card *,
+
+.product-card,
+.product-card *,
+
+.receipt,
+.receipt *,
+
+.cart-summary,
+.cart-summary *,
+
+.empty-state,
+.empty-state *,
+
+.cart-empty,
+.cart-empty *,
+
+.footer-top,
+.footer-top *,
+.footer-col,
+.footer-col *,
+
+.extra-card,
+.extra-card *,
+
+.panel,
+.panel *,
+
+.about-copy,
+.about-copy *,
+
+.search-box,
+.search-box *,
+
+.toast,
+.toast *,
+
+.history-card,
+.history-card * {
+  color: var(--fix-primary) !important;
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
+}
+
+/* 2) Muted / secondary text on light surfaces -> use muted token (less contrast but still visible) */
+.site-header .brand-tagline,
+.announce p,
+.mini-muted,
+.muted,
+.pc-desc,
+.pc-mini,
+.section-head p,
+.footer-sub,
+.footer-bottom p,
+.form-note,
+.hint,
+.ci-desc,
+.ci-id,
+.si-sub,
+.receipt-meta,
+.receipt-grid .label,
+.ship-card p {
+  color: var(--fix-muted) !important;
+}
+
+/* 3) Toast specifics (you mentioned toasts are white-on-white) */
+.toast {
+  background: linear-gradient(180deg, #fff 0%, #fffefc 100%) !important; /* keep look, ensure readable */
+  color: var(--fix-primary) !important;
+  border-color: rgba(0,0,0,0.06) !important;
+}
+.toast .toast-msg { color: var(--fix-primary) !important; font-weight:700 !important; }
+.toast .toast-icon, .toast .toast-x { background: #fff !important; border-color: rgba(0,0,0,0.06) !important; }
+.toast.success .toast-icon { background: rgba(16,185,129,0.10) !important; }
+.toast.error .toast-icon { background: rgba(239,68,68,0.08) !important; }
+
+/* 4) Make announcement / header tagline readable */
+.brand-tagline,
+.announce p,
+.announce strong {
+  color: var(--fix-muted) !important;
+  text-shadow: none !important;
+}
+
+/* 5) Buttons / linkish on light surfaces — ensure readable */
+.btn, .btn * { color: inherit !important; }
+.linkish, .footer-col a, .footer-col .linkish { color: var(--fix-primary) !important; }
+
+/* 6) Badges / pill text on light surfaces */
+.badge-pill,
+.chip,
+.tag,
+.pill,
+.badge,
+.product-card .pc-badges .badge-pill {
+  color: var(--fix-primary) !important;
+  border-color: rgba(0,0,0,0.06) !important;
+}
+
+/* 7) Inputs / placeholders on light surfaces */
+input, select, textarea {
+  color: var(--fix-primary) !important;
+  border-color: rgba(0,0,0,0.08) !important;
+}
+input::placeholder, textarea::placeholder { color: rgba(0,0,0,0.44) !important; }
+
+/* 8) Receipt: make text larger / easier to read on mobile surfaces (keeps vertical flow later) */
+.receipt, .receipt * {
+  color: var(--fix-primary) !important;
+}
+
+/* 9) Ensure product titles & price are always readable */
+.pc-title, .product-title, .pc-price, .price, .si-title, .si-price, .ci-title, .ci-price {
+  color: var(--fix-strong) !important;
+}
+
+/* 10) Ensure any icon-only controls with light background have dark icons */
+.icon-btn, .pc-icon, .mini-icon {
+  color: var(--fix-primary) !important;
+}
+
+/* 11) Fail-safe: any element on a very light background that still ended up with white text — force readable fallback */
+*[style*="background: #fff"], *[style*="background: white"], .bg-white, .panel[style], .modal-card[style] {
+  color: var(--fix-primary) !important;
+}
+
+/* 12) Preserve intended muted styles for very small labels while ensuring visibility */
+.small-muted, .mini-muted { color: rgba(0,0,0,0.54) !important; }
+
+ .hero-slide, .hero-content, .hero-subtitle {
+ }
+
+/* 14) Accessibility: ensure focus outlines visible on light surfaces */
+a:focus, button:focus, input:focus, select:focus, textarea:focus {
+  box-shadow: 0 0 0 4px rgba(0,0,0,0.06) !important;
+  outline: none !important;
+}
+
+/* Reserve space for the scrollbar so layout doesn't jump when it appears */
+.modal .modal-body,
+.cart-list,
+.cart-items,
+.modal .modal-body,
+.modal .modal-card .modal-body {
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-gutter: stable both-edges; /* reserve space for scrollbar */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0,0,0,0.12) rgba(0,0,0,0.03);
+}
+
+/* WebKit scrollbar styling (Chrome, Safari, Edge) */
+.modal .modal-body::-webkit-scrollbar,
+.cart-list::-webkit-scrollbar,
+.modal .modal-card .modal-body::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+.modal .modal-body::-webkit-scrollbar-track,
+.cart-list::-webkit-scrollbar-track {
+  background: rgba(0,0,0,0.03);
+  border-radius: 12px;
+}
+.modal .modal-body::-webkit-scrollbar-thumb,
+.cart-list::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,0.12);
+  border-radius: 10px;
+  border: 3px solid rgba(255,255,255,0.92); /* thin inner stroke to create separation on light surfaces */
+}
+.modal .modal-body::-webkit-scrollbar-thumb:hover,
+.cart-list::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.18); }
+
+/* Make scrollbar track/padding visible for dark-theme modals too by using semi-transparent colors */
+.modal .modal-body, .drawer-panel {
+  padding-right: 6px; /* ensure content isn't flush against reserved scrollbar space */
+}
+
+/* ---------- Checkout: mobile reorder styling ---------- */
+/* Small screens breakpoint (match your other mobile breakpoints) */
+@media (max-width: 920px) {
+
+  /* When the checkout-right is moved into checkout-left it should display full width */
+  #checkoutModal .checkout-left > .checkout-right {
+    width: 100% !important;
+    margin-top: 14px !important;
+    box-sizing: border-box;
+    border-radius: 12px !important;
+    background: inherit !important; /* use modal surface */
+    border: 1px solid rgba(0,0,0,0.04) !important;
+    padding: 12px !important;
+  }
+
+  /* Make sure the payment action group remains visible and smaller than the items area */
+  #checkoutModal .checkout-left { display: block; }
+  #checkoutModal .checkout-left .checkout-actions {
+    margin-top: 12px;
+    position: relative;
+    z-index: 2;
+  }
+
+  /* If the summary includes images/rows, make them stack nicely */
+  #checkoutModal .checkout-left .summary-item,
+  #checkoutModal .checkout-left .summary-items .summary-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+   #checkoutModal .checkout-left .summary-lines { margin-top: 8px; }
+
+   #checkoutModal .checkout-left .consents { margin-top: 12px; }
+}
+
+/* ---------- Small polish: ensure scrollbar visible even on very narrow modals ---------- */
+@media (max-width:420px) {
+  .modal .modal-body, .drawer-panel { padding-right: 8px; }
+  .modal .modal-body::-webkit-scrollbar-thumb { border: 2px solid rgba(255,255,255,0.88); }
+}
+
 </style>
 </head>
 
@@ -6025,6 +6261,7 @@ function clearCart() {
     console.error("Global script error:", e.message, e.filename, e.lineno, e.colno);
   });
 
+  
 })();
 </script>
 <script>
@@ -6280,6 +6517,102 @@ function clearCart() {
     const obs = new MutationObserver(() => annotateProductIcons(productsGrid));
     obs.observe(productsGrid, { childList: true, subtree: true });
   }
+})();
+</script>
+<script>
+/* Task 4 JS: move the Order Summary into the Checkout left column on small screens,
+   restore it on larger screens; also ensure we re-run when the checkout modal opens.
+   Paste inside your main script near the end (or just before </body>).
+*/
+(function () {
+  const BREAKPOINT = 920; // mobile breakpoint (matches CSS)
+  const checkoutModal = document.getElementById('checkoutModal');
+  if (!checkoutModal) return;
+
+  const checkoutBody = checkoutModal.querySelector('.checkout-body');
+  const checkoutLeft = checkoutModal.querySelector('.checkout-left');
+  const checkoutRight = checkoutModal.querySelector('.checkout-right');
+  if (!checkoutLeft || !checkoutRight) return;
+
+  // Save original location so we can restore it
+  const originalParent = checkoutRight.parentNode;
+  const originalNextSibling = checkoutRight.nextSibling;
+
+  // Find the element inside checkout-left to insert before (consent section)
+  const consentsEl = checkoutLeft.querySelector('.consents') || checkoutLeft.querySelector('.checkout-actions') || null;
+
+  function moveSummaryIntoLeft() {
+    // Only move if on small screens and it isn't already moved
+    if (window.innerWidth <= BREAKPOINT && checkoutRight.parentNode !== checkoutLeft) {
+      // Insert the aside BEFORE the consent section if present, otherwise append to the end
+      if (consentsEl) checkoutLeft.insertBefore(checkoutRight, consentsEl);
+      else checkoutLeft.appendChild(checkoutRight);
+      // Add a small attribute/class to indicate mobile-moved state
+      checkoutRight.setAttribute('data-mobile-placed', '1');
+      // Ensure the element is focusable and scrollable (mobile)
+      checkoutRight.style.width = '100%';
+    }
+  }
+
+  function restoreSummaryPosition() {
+    // Restore if we previously moved it
+    if (checkoutRight.getAttribute('data-mobile-placed') && checkoutRight.parentNode !== originalParent) {
+      if (originalNextSibling) originalParent.insertBefore(checkoutRight, originalNextSibling);
+      else originalParent.appendChild(checkoutRight);
+      checkoutRight.removeAttribute('data-mobile-placed');
+      checkoutRight.style.width = '';
+    }
+  }
+
+  // Central adjust function
+  function adjustCheckoutLayout() {
+    try {
+      if (window.innerWidth <= BREAKPOINT) moveSummaryIntoLeft();
+      else restoreSummaryPosition();
+    } catch (e) {
+      console.warn("adjustCheckoutLayout error", e);
+    }
+  }
+
+  // Run on load
+  document.addEventListener('DOMContentLoaded', adjustCheckoutLayout);
+  // Run immediately too (in case script is loaded after DOM)
+  setTimeout(adjustCheckoutLayout, 50);
+
+  // Re-run on resize & orientation change
+  window.addEventListener('resize', () => { setTimeout(adjustCheckoutLayout, 60); }, { passive: true });
+  window.addEventListener('orientationchange', () => { setTimeout(adjustCheckoutLayout, 160); }, { passive: true });
+
+  // Re-run whenever checkout modal opens — observe class attribute changes
+  const mo = new MutationObserver((mutations) => {
+    for (const m of mutations) {
+      if (m.type === 'attributes' && m.attributeName === 'class') {
+        // if modal becomes open, ensure layout is correct
+        const isOpen = checkoutModal.classList.contains('open') || checkoutModal.getAttribute('aria-hidden') === 'false';
+        if (isOpen) {
+          // small delay to allow transitions to finish
+          setTimeout(adjustCheckoutLayout, 140);
+        }
+      }
+    }
+  });
+  mo.observe(checkoutModal, { attributes: true });
+
+  // Also observe DOM insertions inside the modal (e.g. dynamic render) so we can re-run if necessary
+  const modalBody = checkoutModal.querySelector('.modal-body');
+  if (modalBody) {
+    const bodyObs = new MutationObserver(() => { setTimeout(adjustCheckoutLayout, 120); });
+    bodyObs.observe(modalBody, { childList: true, subtree: true });
+  }
+
+  // Safety: run once when the checkout button (that opens the modal) is clicked
+  document.addEventListener('click', (ev) => {
+    const btn = ev.target.closest('[data-open-modal="checkoutModal"], [data-open-modal="#checkoutModal"]');
+    if (btn) {
+      setTimeout(adjustCheckoutLayout, 140);
+    }
+  }, { passive: true });
+
 })();
 </script>
 
