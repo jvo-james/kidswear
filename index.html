@@ -22,11 +22,6 @@
   <!-- Animate.css for animations -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
 <style>
- 
-
-/* -------------------------
-   Design tokens
-------------------------- */
 :root{
   --bg: #0b0c10;
   --surface: rgba(255,255,255,.06);
@@ -2398,6 +2393,174 @@ main{
   background-size: cover;
   background-position: center;
 }
+
+
+:root{
+  --brand-1: #ff6b8a;        /* playful pink */
+  --brand-2: #ffd166;        /* sunny yellow */
+  --accent:   #6ee7b7;       /* mint accent */
+  --bg:       #fffaf6;
+  --muted:    #6b7280;
+  --card:     #ffffff;
+  --glass:    rgba(255,255,255,0.6);
+  --shadow:   0 8px 24px rgba(23,23,23,0.08);
+  --radius-lg: 18px;
+  --radius-md: 12px;
+  --radius-sm: 8px;
+  --max-width: 1200px;
+  --transition-fast: 180ms;
+  --transition: 280ms;
+  --elev: 0 10px 30px rgba(16,24,40,0.08);
+  --focus: 0 0 0 4px rgba(110,231,183,0.18);
+  --text: #0f172a;
+  --success: #10b981;
+}
+
+/* general page background & main text color */
+body {
+  background: linear-gradient(180deg, var(--bg) 0%, #fff7f0 40%) !important;
+  color: var(--text) !important;
+}
+
+.product-card,
+.product-skeleton,
+.about-copy,
+.panel,
+.contact-card,
+.contact-form,
+.cart-panel,
+.drawer-panel,
+.modal-card,
+.modal-inner,
+.checkout-left,
+.checkout-right,
+.receipt,
+.cart-empty,
+.cart-item,
+.search-box,
+.quickview-details,
+.trust-card,
+.history-card,
+.footer-col,
+.footer-brand,
+.footer-logo,
+.extra-card,
+.hero-caption,
+.hero-caption *,
+.hero-slider,
+.hero-slides,
+.hero-slide {
+  background: var(--card) !important;
+  color: var(--text) !important;
+  border-color: rgba(15,23,42,0.04) !important;
+  box-shadow: var(--shadow) !important;
+}
+
+/* header & nav */
+.site-header,
+.header-inner {
+  background: linear-gradient(180deg, rgba(255,255,255,0.95), rgba(255,255,255,0.85)) !important;
+  border-bottom-color: rgba(15,23,42,0.04) !important;
+  color: var(--text) !important;
+}
+.brand-name, .brand-tagline, .nav-link { color: var(--text) !important; }
+
+/* buttons / primary accents */
+.btn-primary,
+.btn,
+.btn.large,
+.btn:where(.btn-primary) {
+  background: linear-gradient(90deg, var(--brand-1), var(--brand-2)) !important;
+  color: #ffffff !important;
+  border-color: rgba(15,23,42,0.04) !important;
+  box-shadow: 0 12px 30px rgba(255,107,138,0.08) !important;
+}
+.btn.accent {
+  background: linear-gradient(90deg, var(--accent), #34d399) !important;
+  color: #083325 !important;
+}
+.btn.outline {
+  background: transparent !important;
+  border-color: rgba(15,23,42,0.06) !important;
+  color: var(--text) !important;
+}
+
+/* badges, pills, chips */
+.badge,
+.badge-pill,
+.chip.is-active,
+.pc-save.is-active,
+.receipt-badge,
+.history-thumb {
+  background: linear-gradient(90deg, var(--brand-1), var(--brand-2)) !important;
+  color: #fff !important;
+  box-shadow: 0 8px 28px rgba(255,107,138,0.08) !important;
+}
+.chip { background: linear-gradient(180deg, var(--card), rgba(255,255,255,0.92)) !important; color: var(--muted) !important; }
+
+/* hero dot / active indicators */
+.hero-dots .dot.active,
+.dot-btn.is-active,
+.hero-badges li.is-active {
+  background: linear-gradient(90deg, var(--brand-1), var(--brand-2)) !important;
+}
+
+/* text-muted */
+.muted, .mini-muted, .pc-mini, .receipt-grid .label, .form-note {
+  color: var(--muted) !important;
+}
+.muted2, .mini-muted2, .muted2 { color: var(--muted) !important; }
+
+/* card borders and subtle lines */
+hr, .divider, .site-footer, .footer-bottom, .header-inner, .cart-summary, .modal-header {
+  border-color: rgba(15,23,42,0.04) !important;
+}
+
+/* inputs & search */
+input, textarea, select, .search-wrap, .search-box {
+  background: var(--card) !important;
+  border: 1px solid rgba(15,23,42,0.04) !important;
+  color: var(--text) !important;
+}
+
+/* overlays & backdrops (leave darkness but tint with brand) */
+.modal-overlay,
+.drawer-overlay,
+.cart-drawer .drawer-overlay,
+.receipt-modal .modal-overlay {
+  background: rgba(8,15,24,0.06) !important;
+}
+
+/* toasts */
+.toast {
+  background: var(--card) !important;
+  color: var(--text) !important;
+  border-color: rgba(15,23,42,0.04) !important;
+  box-shadow: var(--shadow) !important;
+}
+
+/* cart badge / header badges */
+.badge, #cart-badge {
+  background: linear-gradient(90deg, var(--brand-2), var(--brand-1)) !important;
+  color: #fff !important;
+}
+
+/* focus outline using your accent */
+a:focus, button:focus, input:focus, select:focus, textarea:focus {
+  box-shadow: var(--focus) !important;
+  outline: none !important;
+}
+
+/* small utilities that otherwise hard-code white */
+.back-to-top { background: linear-gradient(135deg, var(--brand-1), var(--accent)) !important; color: #fff !important; }
+.pill { background: rgba(255,255,255,0.04) !important; border-color: rgba(15,23,42,0.04) !important; color: var(--text) !important; }
+
+img, svg { filter: none !important; }
+
+[style*="rgba(255,255,255"] {
+
+}
+
 
 </style>
 </head>
