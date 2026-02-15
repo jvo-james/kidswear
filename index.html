@@ -6003,13 +6003,7 @@ a:focus, button:focus, input:focus, select:focus, textarea:focus {
     setA11yLive(`Added ${p.title} to cart.`);
   }
 
- /* ============================
- Task 6 — Keep "Add to Cart" buttons synced with cart immediately
- Paste this inside your main IIFE (after addToCart/removeFromCart/clearCart definitions,
- or replace your existing removeFromCart and clearCart with the versions below).
- ============================ */
-
-// helper: safe CSS selector escape (fallback)
+ 
 function _escapeForSelector(s) {
   if (window.CSS && CSS.escape) return CSS.escape(s);
   return String(s).replace(/([ #;?%&,.+*~\':!^$[\]()=>|\/@])/g, "\\$1");
@@ -6213,10 +6207,7 @@ document.addEventListener("click", (e) => {
     }, 10);
   }
 
-  /* =========================
-   Task 7 — Open image-only modal when clicking product images
-   Paste this inside your main IIFE (near other delegated handlers)
-   ========================= */
+
 
 (function imageModalSetup() {
   // helper to open image modal with given src and caption
@@ -6882,12 +6873,6 @@ async function startPaystackPayment() {
   }
 }
 
-/* =========================
-  Robust onPaymentSuccess: persist order, close checkout, reload page,
-  then show confirmation modal after reload via sessionStorage marker.
-  Replace existing onPaymentSuccess with this.
-   ========================= */
-
 function onPaymentSuccess(orderPayload, reference) {
   try {
     console.info("onPaymentSuccess called", orderPayload, reference);
@@ -6971,12 +6956,7 @@ function onPaymentSuccess(orderPayload, reference) {
     btn && (btn.disabled = false);
   }
 }
-/* =========================
-  After reload: if sessionStorage contains a pending confirmation,
-  remove the marker, ensure history contains the order, and open the
-  paymentSuccessModal populated with the order details.
-  Paste this after your renderHistory / boot code (inside the IIFE).
-  ========================= */
+
 
 function populateAndOpenPaymentSuccessModal(order) {
   try {
@@ -7620,11 +7600,12 @@ function receiptHTML(order) {
         });
       }
 
-      // compute totals for this context
+      // compute totals for this context (match canonical computeCheckoutContextTotals)
       const subtotal = items.reduce((sum, it) => sum + (it.p.price * (it.qty || 1)), 0);
-      const deliveryFee = 0; // leave as before
+      const processingFee = round2(subtotal * 0.0295); // 2.95%
+      const deliveryFee = 0;
       const discount = 0;
-      const total = Math.max(0, subtotal + deliveryFee - discount);
+      const total = round2(subtotal + processingFee + deliveryFee - discount);
 
       // Populate checkout subtotal/total fields (checkout modal & cart summary mirrors)
       const checkoutSubtotalEl = document.getElementById('checkoutSubtotal');
@@ -7632,11 +7613,18 @@ function receiptHTML(order) {
       const checkoutDiscountEl = document.getElementById('checkoutDiscount');
       const checkoutTotalEl = document.getElementById('checkoutTotal');
 
-      if (checkoutSubtotalEl) checkoutSubtotalEl.textContent = money(subtotal);
+     if (checkoutSubtotalEl) checkoutSubtotalEl.textContent = money(subtotal);
       if (checkoutDeliveryFeeEl) checkoutDeliveryFeeEl.textContent = (deliveryFee === 0 ? 'To be confirmed after payment' : money(deliveryFee));
-      if (checkoutDiscountEl) checkoutDiscountEl.textContent = `-${money(discount)}`;
+      if (checkoutDiscountEl) {
+        // Show processing fee (positive number) and update label.
+        const crow = checkoutDiscountEl.closest('.line') || checkoutDiscountEl.parentElement;
+        if (crow) {
+          const lbl = crow.querySelector('span');
+          if (lbl) lbl.textContent = 'Processing fee';
+        }
+        checkoutDiscountEl.textContent = money(processingFee);
+      }
       if (checkoutTotalEl) checkoutTotalEl.textContent = money(total);
-
       // Also reflect in the visible cart summary area (in case the checkout modal re-uses these IDs)
       const coSub = document.getElementById('cartSubtotal');
       const coTotal = document.getElementById('cartTotal');
@@ -7738,44 +7726,29 @@ function receiptHTML(order) {
     mo.observe(modalEl, { attributes: true, attributeFilter: ['class','aria-hidden'] });
   }
 
-   const payNow = document.getElementById('payNowBtn');
-  if (payNow) {
-    // remove existing onclick to avoid duplicate behavior (if any)
-    payNow.onclick = null;
-    payNow.addEventListener('click', function (ev) {
-      ev.preventDefault();
-      // Use oneTimePurchase if set, else default to state.cart
-      const items = getCheckoutItemsForModal().map(it => ({ id: it.id, title: it.p.title, price: it.p.price, qty: it.qty || 1 }));
-      if (!items.length) {
-        toast("No items to checkout.", "error");
-        return;
-      }
+  
 
-          const form = document.getElementById('checkoutForm');
-      const formData = {};
-      if (form) {
-        new FormData(form).forEach((v, k) => { formData[k] = v; });
-      }
-        const payload = {
-        items,
-        customer: formData,
-        subtotal: items.reduce((s,i)=> s + (i.price*(i.qty||1)), 0),
-        context: state.oneTimePurchase ? 'one-time' : 'cart'
-      };
+      const payNow = document.getElementById('payNowBtn');
+ if (payNow) {
+   // remove any legacy onclick
+   payNow.onclick = null;
+   payNow.addEventListener('click', function (ev) {
+     ev.preventDefault();
+     // Ensure checkout context and totals are up-to-date
+     try { renderCheckoutContext(); } catch (e) { /* ignore */ }
 
-      // If you have an existing function startPayment / checkoutFlow, call it; otherwise fallback to existing behavior:
-      if (typeof window.startPayment === 'function') {
-        window.startPayment(payload);
-      } else if (typeof window.handleCheckout === 'function') {
-        window.handleCheckout(payload);
-      } else {
-          const evt = new CustomEvent('ab:pay-now', { detail: payload });
-        document.dispatchEvent(evt);
-        // Also show a small toast to indicate a prepared payload (developer friendly)
-        toast("Ready to pay for " + items.length + " item(s). Proceeding to payment...", "info");
-      }
-    }, { passive: false });
-  }
+     // Use the canonical startPaystackPayment so the inline Paystack callback executes in the same page context.
+     if (typeof startPaystackPayment === 'function') {
+       startPaystackPayment();
+       return;
+     }
+
+     // fallback: replicate a minimal behaviour (shouldn't be hit)
+     const items = getCheckoutItemsForModal().map(it => ({ id: it.id, title: it.p.title, price: it.p.price, qty: it.qty || 1 }));
+     if (!items.length) { toast("No items to checkout.", "error"); return; }
+     toast("Payment starting (fallback).", "info");
+   }, { passive: false });
+ }
 
    document.addEventListener('click', function (ev) {
     const opener = ev.target.closest && ev.target.closest('[data-open-modal="checkoutModal"], [data-open-modal="#checkoutModal"]');
