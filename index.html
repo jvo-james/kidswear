@@ -6795,8 +6795,6 @@ function renderCart() {
   renderCartProgress();
 }
 
-/* Update startPaystackPayment / onPaymentSuccess (ensure processingFee is included in orderPayload)
-   Replace whatever version you have with the following (compatible with Task 2's changes). */
 
 async function startPaystackPayment() {
   const feedback = $("#checkoutFeedback");
@@ -6884,125 +6882,211 @@ async function startPaystackPayment() {
   }
 }
 
+/* =========================
+  Robust onPaymentSuccess: persist order, close checkout, reload page,
+  then show confirmation modal after reload via sessionStorage marker.
+  Replace existing onPaymentSuccess with this.
+   ========================= */
+
 function onPaymentSuccess(orderPayload, reference) {
-  const feedback = $("#checkoutFeedback");
-  const btn = $("#payNowBtn");
+  try {
+    console.info("onPaymentSuccess called", orderPayload, reference);
 
-  // defensive availability re-check
-  const lock = lockCartItemsOrFail();
-  if (!lock.ok) {
-    btn && (btn.disabled = false);
-    feedback && (feedback.textContent = lock.msg);
-    toast(lock.msg, "error");
-    return;
-  }
+    const feedback = $("#checkoutFeedback");
+    const btn = $("#payNowBtn");
 
-  // Mark purchased items as sold (use items from payload for exactness)
-  const purchasedItems = (orderPayload && orderPayload.items) ? orderPayload.items : [];
-  purchasedItems.forEach(it => {
-    try { state.soldIds.add(it.id); } catch (e) { /* ignore */ }
-  });
+    // final availability check
+    const lock = lockCartItemsOrFail();
+    if (!lock.ok) {
+      btn && (btn.disabled = false);
+      feedback && (feedback.textContent = lock.msg);
+      toast(lock.msg, "error");
+      return;
+    }
 
-  // finalize order record
-  const paidAt = nowISO();
-  const order = { ...orderPayload, paystackRef: reference, paidAt };
+    // mark sold ids from payload items (defensive: falling back to state.cart)
+    const purchasedItems = (orderPayload && orderPayload.items && orderPayload.items.length)
+      ? orderPayload.items
+      : state.cart.map(it => ({ id: it.id }));
 
-  // Clear the proper context
-  if (!state.oneTimePurchase) {
-    // cart checkout
+    purchasedItems.forEach(it => {
+      if (it && it.id) state.soldIds.add(it.id);
+    });
+
+    // stamp paid time and reference
+    const paidAt = nowISO();
+    const order = Object.assign({}, orderPayload, { paystackRef: reference || orderPayload.paystackRef, paidAt });
+
+    // store order in history (will be persisted through reload)
+    state.history.push(order);
+
+    // clear cart + one-time context
     state.cart = [];
     state.appliedPromo = null;
-  } else {
-    // one-time Buy checkout
     state.oneTimePurchase = null;
+
+    // persist immediately so reload sees latest data
+    persist();
+
+    // update UI as best as we can before reload
+    renderBadges();
+    renderProducts();
+    renderCart();
+    renderSaved();
+    renderHistory();
+
+    // close checkout modal now (so the reload feels clean)
+    try { closeModal("checkoutModal"); } catch (e) { /* ignore */ }
+
+    // place order into sessionStorage so the next page load can open confirmation modal
+    try {
+      sessionStorage.setItem("ab_pending_confirmation", JSON.stringify(order));
+    } catch (e) { console.warn("Could not write sessionStorage pending confirmation", e); }
+
+    // ensure Pay button re-enabled in case anything blocks reload
+    btn && (btn.disabled = false);
+
+    // reload to ensure history/sold flags are applied everywhere.
+    // small timeout lets UI settle / modal close animate for better UX
+    setTimeout(() => {
+      try { location.reload(); } catch (e) {
+        // if reload fails (rare), fallback to opening confirmation immediately
+        console.warn("Reload failed — opening confirmation immediately", e);
+        try {
+          // populate and open confirmation right away as fallback
+          populateAndOpenPaymentSuccessModal(order);
+        } catch (err) { console.error("Fallback confirmation open failed", err); }
+      }
+    }, 180);
+
+    // send to Formspree asynchronously (fire & forget)
+    sendOrderToFormspree(order).catch(() => {});
+
+    // a small toast telling the user the next step
+    toast("Payment confirmed — finishing up…", "success", 3000);
+    setA11yLive("Payment successful. Finalizing your order.");
+  } catch (ex) {
+    console.error("onPaymentSuccess error", ex);
+    toast("An error occurred after payment. If you were charged, contact support.", "error", 7000);
+    btn && (btn.disabled = false);
   }
-
-  // persist & re-render so history contains the new order
-  state.history.push(order);
-  persist();
-  renderBadges();
-  renderProducts();
-  renderCart();
-  renderSaved();
-  renderHistory();
-
-  // Prepare the Payment Confirmation modal (psm = payment success modal)
-  try {
-    // meta
-    const psmMeta = $("#psmMeta");
-    if (psmMeta) psmMeta.textContent = `Order ${order.orderId} • Thank you!`;
-
-    // items
-    const psmItems = $("#psmItems");
-    if (psmItems) {
-      psmItems.innerHTML = order.items.map(it => {
-        return `<div style="display:flex; justify-content:space-between; gap:8px; align-items:center;"><div style="display:flex; gap:10px; align-items:center;"><img src="${escapeHTML(safeImageUrl((productById(it.id)?.images||[])[0] || ''))}" alt="${escapeHTML(it.title)}" style="width:54px;height:54px;object-fit:cover;border-radius:10px;border:1px solid rgba(0,0,0,0.06)" onerror="this.src='${placeholderSVG}'"><div style="min-width:0"><div style="font-weight:700">${escapeHTML(it.title)}</div><div class="mini-muted" style="font-size:12px">${escapeHTML(it.id)}</div></div></div><div style="font-weight:800">${money(it.price)}</div></div>`;
-      }).join("");
-    }
-
-    // totals
-    const psmSubtotal = $("#psmSubtotal");
-    const psmDelivery = $("#psmDelivery");
-    const psmDiscount = $("#psmDiscount");
-    const psmTotal = $("#psmTotal");
-
-    if (psmSubtotal) psmSubtotal.textContent = money(order.subtotal || 0);
-    if (psmDelivery) psmDelivery.textContent = (order.deliveryFee === 0 ? "To be confirmed" : money(order.deliveryFee));
-    if (psmDiscount) {
-      // this element previously labeled "Discount" — show processing fee positively
-      psmDiscount.textContent = money(order.processingFee || 0);
-      // ensure the label in the markup reads Processing fee — the markup text is static, so only change if necessary:
-      // (we don't need to change markup here; it's ok if label remains "Discount" because Task 3 updated labels earlier)
-    }
-    if (psmTotal) psmTotal.textContent = money(order.total || 0);
-  } catch (e) {
-    console.warn("psm populate error", e);
-  }
-
-  // Close checkout and open PAYMENT confirmation modal (not the receipt)
-  closeModal("checkoutModal");
-  openModal("paymentSuccessModal");
-
-  toast("Payment successful! See confirmation.", "success");
-  setA11yLive("Payment successful. Confirmation opened.");
-
-  // Re-enable pay button if present
-  btn && (btn.disabled = false);
-
-  // Ensure the PSM buttons behave:
-  const psmViewReceiptBtn = $("#psmViewReceiptBtn");
-  const psmCloseBtn = $("#psmCloseBtn");
-  const psmViewHistoryBtn = $("#psmViewHistoryBtn");
-
-  if (psmViewReceiptBtn) {
-    psmViewReceiptBtn.onclick = () => {
-      // close confirmation, then open receipt for this order
-      closeModal("paymentSuccessModal");
-      fillReceipt(order);
-      openModal("receiptModal");
-    };
-  }
-
-  if (psmViewHistoryBtn) {
-    psmViewHistoryBtn.onclick = () => {
-      closeModal("paymentSuccessModal");
-      renderHistory();
-      openModal("historyModal");
-    };
-  }
-
-  if (psmCloseBtn) {
-    psmCloseBtn.onclick = () => {
-      // close confirmation and refresh so UI (history, badges, sold flags) is up-to-date
-      closeModal("paymentSuccessModal");
-      // small delay to let modal close animation settle (optional)
-      setTimeout(() => { try { location.reload(); } catch (e) { /* fallback: re-render */ renderHistory(); } }, 220);
-    };
-  }
-
-  // last: send to Formspree (fire and forget)
-  sendOrderToFormspree(order).catch(() => {});
 }
+/* =========================
+  After reload: if sessionStorage contains a pending confirmation,
+  remove the marker, ensure history contains the order, and open the
+  paymentSuccessModal populated with the order details.
+  Paste this after your renderHistory / boot code (inside the IIFE).
+  ========================= */
+
+function populateAndOpenPaymentSuccessModal(order) {
+  try {
+    if (!order) return;
+
+    // ensure order is in state.history (if not already)
+    if (!findHistory(order.orderId)) {
+      state.history.push(order);
+      persist();
+      renderHistory();
+    }
+
+    // Fill PSM meta/items/totals (mirrors previous implementation)
+    try {
+      const psmMeta = $("#psmMeta");
+      if (psmMeta) psmMeta.textContent = `Order ${order.orderId} • Thank you!`;
+
+      const psmItems = $("#psmItems");
+      if (psmItems) {
+        psmItems.innerHTML = (order.items || []).map(it => {
+          const imgUrl = safeImageUrl((productById(it.id)?.images||[])[0] || "");
+          return `<div style="display:flex; justify-content:space-between; gap:8px; align-items:center;">
+            <div style="display:flex; gap:10px; align-items:center;">
+              <img src="${escapeHTML(imgUrl)}" alt="${escapeHTML(it.title)}" style="width:54px;height:54px;object-fit:cover;border-radius:10px;border:1px solid rgba(0,0,0,0.06)" onerror="this.src='${placeholderSVG}'">
+              <div style="min-width:0"><div style="font-weight:700">${escapeHTML(it.title)}</div><div class="mini-muted" style="font-size:12px">${escapeHTML(it.id)}</div></div>
+            </div>
+            <div style="font-weight:800">${money(it.price)}</div>
+          </div>`;
+        }).join("");
+      }
+
+      // totals
+      const psmSubtotal = $("#psmSubtotal");
+      const psmDelivery = $("#psmDelivery");
+      const psmDiscount = $("#psmDiscount");
+      const psmTotal = $("#psmTotal");
+
+      if (psmSubtotal) psmSubtotal.textContent = money(order.subtotal || 0);
+      if (psmDelivery) psmDelivery.textContent = (typeof order.deliveryFee === "number" && order.deliveryFee === 0) ? "To be confirmed" : (order.deliveryFee ? money(order.deliveryFee) : "To be confirmed");
+      if (psmDiscount) psmDiscount.textContent = money(order.processingFee || order.discount || 0);
+      if (psmTotal) psmTotal.textContent = money(order.total || 0);
+    } catch (e) {
+      console.warn("populateAndOpenPaymentSuccessModal — populate error", e);
+    }
+
+    // wire buttons inside confirmation modal
+    const psmViewReceiptBtn = $("#psmViewReceiptBtn");
+    const psmCloseBtn = $("#psmCloseBtn");
+    const psmViewHistoryBtn = $("#psmViewHistoryBtn");
+
+    if (psmViewReceiptBtn) {
+      psmViewReceiptBtn.onclick = () => {
+        closeModal("paymentSuccessModal");
+        fillReceipt(order);
+        openModal("receiptModal");
+      };
+    }
+
+    if (psmViewHistoryBtn) {
+      psmViewHistoryBtn.onclick = () => {
+        closeModal("paymentSuccessModal");
+        renderHistory();
+        openModal("historyModal");
+      };
+    }
+
+    if (psmCloseBtn) {
+      psmCloseBtn.onclick = () => {
+        closeModal("paymentSuccessModal");
+        // after user closes the confirmation, refresh to ensure everything is final.
+        setTimeout(() => {
+          try { location.reload(); } catch (e) { renderHistory(); }
+        }, 180);
+      };
+    }
+
+    // make sure any other modals are closed, then open the confirmation modal
+    closeAllOverlays();
+    openModal("paymentSuccessModal");
+    setA11yLive("Payment confirmation opened.");
+  } catch (err) {
+    console.error("populateAndOpenPaymentSuccessModal error:", err);
+  }
+}
+
+// On page load / boot: check for pending confirmation in sessionStorage
+(function checkPendingConfirmationOnLoad() {
+  try {
+    const pending = sessionStorage.getItem("ab_pending_confirmation");
+    if (!pending) return;
+    // remove marker first (so refresh / second-run doesn't re-open)
+    sessionStorage.removeItem("ab_pending_confirmation");
+    const order = JSON.parse(pending);
+    // ensure app has booted enough to render history — if boot not finished we wait a tick
+    setTimeout(() => {
+      try {
+        // renderHistory in case history UI not yet rendered
+        renderHistory();
+        // populate & open modal
+        populateAndOpenPaymentSuccessModal(order);
+      } catch (e) {
+        console.warn("checkPendingConfirmationOnLoad fallback", e);
+      }
+    }, 120);
+  } catch (e) {
+    console.warn("checkPendingConfirmationOnLoad error", e);
+  }
+})();
+
+  
 
 /* Ensure clicking "View Receipt" inside the History closes history modal first */
 document.addEventListener("click", (e) => {
@@ -7499,33 +7583,23 @@ function receiptHTML(order) {
     console.error("Global script error:", e.message, e.filename, e.lineno, e.colno);
   });
 
-
-  /* ==========================
-   Task 5 — "Buy" = one-off checkout (does NOT add to cart)
-   Insert inside your main script (IIFE) so it has access to productById, money, state, openModal, and toast.
-   ========================== */
-
 (function () {
-  // Add a lightweight one-time purchase slot in state (non-persistent)
-  state.oneTimePurchase = null; // { id: "DRESS-010", qty: 1 }
+   state.oneTimePurchase = null; // { id: "DRESS-010", qty: 1 }
 
-  // Helper: get checkout context items (either oneTimePurchase or state.cart)
-  function getCheckoutItemsForModal() {
+   function getCheckoutItemsForModal() {
     if (state.oneTimePurchase) {
       const entry = state.oneTimePurchase;
       const p = productById(entry.id);
       if (!p) return [];
       return [{ id: p.id, qty: entry.qty || 1, p }];
     }
-    // default: use normal cart items
-    return state.cart.map(it => {
+     return state.cart.map(it => {
       const p = productById(it.id);
       return p ? { id: it.id, qty: it.qty || 1, p } : null;
     }).filter(Boolean);
   }
 
-  // Render the checkout summary area (checkoutItems & totals) for current context
-  function renderCheckoutContext() {
+   function renderCheckoutContext() {
     try {
       const items = getCheckoutItemsForModal();
       const box = document.getElementById('checkoutItems');
@@ -7639,14 +7713,10 @@ function receiptHTML(order) {
     });
   }
 
-  // If user closes the checkout modal (close icon / Continue Shopping), clear oneTimePurchase
-  // We wire to close modal buttons (data-close-modal / data-close-drawer) and to modal class changes
-  document.addEventListener('click', function (ev) {
+   document.addEventListener('click', function (ev) {
     const closer = ev.target.closest && (ev.target.closest('[data-close-modal="checkoutModal"]') || ev.target.closest('[data-close-drawer="cartDrawer"]') || ev.target.closest('[data-close-modal]'));
     if (!closer) return;
-    // if the closed modal is the checkout modal, clear oneTimePurchase
-    // we need to get attribute from clicked target if it references checkoutModal
-    const attr = closer.getAttribute ? (closer.getAttribute('data-close-modal') || closer.getAttribute('data-close-drawer')) : null;
+     const attr = closer.getAttribute ? (closer.getAttribute('data-close-modal') || closer.getAttribute('data-close-drawer')) : null;
     if (attr && (attr === 'checkoutModal' || attr === '#checkoutModal' || attr === 'cartDrawer')) {
       clearOneTimePurchase();
     }
@@ -7668,9 +7738,7 @@ function receiptHTML(order) {
     mo.observe(modalEl, { attributes: true, attributeFilter: ['class','aria-hidden'] });
   }
 
-  // Override the Pay Now behavior so the payment logic can read the correct items
-  // If you already have a pay handler, this snippet will call your original handler if present.
-  const payNow = document.getElementById('payNowBtn');
+   const payNow = document.getElementById('payNowBtn');
   if (payNow) {
     // remove existing onclick to avoid duplicate behavior (if any)
     payNow.onclick = null;
@@ -7683,17 +7751,12 @@ function receiptHTML(order) {
         return;
       }
 
-      // Prepare the checkout payload (customer form values + items)
-      // Reuse existing checkout form values if your page expects them
-      const form = document.getElementById('checkoutForm');
+          const form = document.getElementById('checkoutForm');
       const formData = {};
       if (form) {
         new FormData(form).forEach((v, k) => { formData[k] = v; });
       }
-      // Attach items and context for your existing payment flow
-      // If you have a function `startPayment(payload)` or similar, call it here.
-      // We'll call a generic `startPayment` if it exists; otherwise call your existing pay flow.
-      const payload = {
+        const payload = {
         items,
         customer: formData,
         subtotal: items.reduce((s,i)=> s + (i.price*(i.qty||1)), 0),
@@ -7706,10 +7769,7 @@ function receiptHTML(order) {
       } else if (typeof window.handleCheckout === 'function') {
         window.handleCheckout(payload);
       } else {
-        // Fallback: trigger your current checkout open handler (if it listens to payNowBtn)
-        // As a last resort, just submit the form (if you used form-based checkout)
-        // But we will attempt to call existing `payNowBtn` behavior by dispatching a custom event
-        const evt = new CustomEvent('ab:pay-now', { detail: payload });
+          const evt = new CustomEvent('ab:pay-now', { detail: payload });
         document.dispatchEvent(evt);
         // Also show a small toast to indicate a prepared payload (developer friendly)
         toast("Ready to pay for " + items.length + " item(s). Proceeding to payment...", "info");
@@ -7717,9 +7777,7 @@ function receiptHTML(order) {
     }, { passive: false });
   }
 
-  // Make sure checkout modal shows the correct info when opened by other triggers (defensive)
-  // e.g., when a user clicks "Buy" from quickview which calls openModal('checkoutModal'), re-run render
-  document.addEventListener('click', function (ev) {
+   document.addEventListener('click', function (ev) {
     const opener = ev.target.closest && ev.target.closest('[data-open-modal="checkoutModal"], [data-open-modal="#checkoutModal"]');
     if (opener) {
       // If opener is the generic checkout button (cart), ensure oneTimePurchase cleared
@@ -7731,14 +7789,6 @@ function receiptHTML(order) {
   }, { passive: true });
 
 })();
-
-  /* =========================
-   Task 7 — Payment confirmation flow
-   Place inside your main script IIFE (near the end).
-   Listens for a 'payment success' call and shows the confirmation modal,
-   persists history, marks items sold, and wires View Receipt behaviour.
-   Also improves history -> open receipt flow.
-   ========================= */
 
 (function () {
   // Ensure modal helper fallbacks exist (don't override if your functions exist)
@@ -7759,10 +7809,7 @@ function receiptHTML(order) {
     document.body.classList.remove('modal-open');
   }
 
-  // Central function: handle successful payment payload
-  // payload may be provided by Paystack success callback. If not provided,
-  // the function will attempt to build an order from state.oneTimePurchase (one-item) or state.cart.
-  window.handlePaymentSuccess = window.handlePaymentSuccess || function (payload = {}) {
+   window.handlePaymentSuccess = window.handlePaymentSuccess || function (payload = {}) {
     try {
       console.info('handlePaymentSuccess', payload);
 
@@ -8229,8 +8276,6 @@ function receiptHTML(order) {
 
   // Run once after initial load
   document.addEventListener('DOMContentLoaded', () => annotateProductIcons(document));
-  // Run after initial script renderProducts() call if your page renders products dynamically,
-  // so schedule a small run after 200ms just in case
   setTimeout(() => annotateProductIcons(document), 250);
 
   // Observe product grid for changes (re-annotate when new product cards are inserted)
@@ -8242,10 +8287,7 @@ function receiptHTML(order) {
 })();
 </script>
 <script>
-/* Task 4 JS: move the Order Summary into the Checkout left column on small screens,
-   restore it on larger screens; also ensure we re-run when the checkout modal opens.
-   Paste inside your main script near the end (or just before </body>).
-*/
+
 (function () {
   const BREAKPOINT = 920; // mobile breakpoint (matches CSS)
   const checkoutModal = document.getElementById('checkoutModal');
