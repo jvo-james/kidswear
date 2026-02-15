@@ -6261,6 +6261,238 @@ function clearCart() {
     console.error("Global script error:", e.message, e.filename, e.lineno, e.colno);
   });
 
+  /* ==========================
+   Task 5 — "Buy" = one-off checkout (does NOT add to cart)
+   Insert inside your main script (IIFE) so it has access to productById, money, state, openModal, and toast.
+   ========================== */
+
+(function () {
+  // Add a lightweight one-time purchase slot in state (non-persistent)
+  state.oneTimePurchase = null; // { id: "DRESS-010", qty: 1 }
+
+  // Helper: get checkout context items (either oneTimePurchase or state.cart)
+  function getCheckoutItemsForModal() {
+    if (state.oneTimePurchase) {
+      const entry = state.oneTimePurchase;
+      const p = productById(entry.id);
+      if (!p) return [];
+      return [{ id: p.id, qty: entry.qty || 1, p }];
+    }
+    // default: use normal cart items
+    return state.cart.map(it => {
+      const p = productById(it.id);
+      return p ? { id: it.id, qty: it.qty || 1, p } : null;
+    }).filter(Boolean);
+  }
+
+  // Render the checkout summary area (checkoutItems & totals) for current context
+  function renderCheckoutContext() {
+    try {
+      const items = getCheckoutItemsForModal();
+      const box = document.getElementById('checkoutItems');
+      if (!box) return;
+
+      if (!items.length) {
+        box.innerHTML = `<p class="mini-muted">No items to checkout.</p>`;
+      } else {
+        box.innerHTML = "";
+        items.forEach(it => {
+          const img = (it.p.images && it.p.images[0]) ? safeImageUrl(it.p.images[0]) : placeholderSVG;
+          const el = document.createElement('div');
+          el.className = 'summary-item';
+          el.innerHTML = `<img src="${escapeHTML(img)}" alt="${escapeHTML(it.p.title)}"><div class="si-mid"><p class="si-title">${escapeHTML(it.p.title)}</p><p class="si-sub">${escapeHTML(it.p.id)} • Age ${escapeHTML(it.p.ageCategory)}</p></div><strong class="si-price">${money(it.p.price)}</strong>`;
+          const imgEl = el.querySelector('img');
+          if (imgEl) imgEl.addEventListener('error', () => imgEl.src = placeholderSVG);
+          box.appendChild(el);
+        });
+      }
+
+      // compute totals for this context
+      const subtotal = items.reduce((sum, it) => sum + (it.p.price * (it.qty || 1)), 0);
+      const deliveryFee = 0; // leave as before
+      const discount = 0;
+      const total = Math.max(0, subtotal + deliveryFee - discount);
+
+      // Populate checkout subtotal/total fields (checkout modal & cart summary mirrors)
+      const checkoutSubtotalEl = document.getElementById('checkoutSubtotal');
+      const checkoutDeliveryFeeEl = document.getElementById('checkoutDeliveryFee');
+      const checkoutDiscountEl = document.getElementById('checkoutDiscount');
+      const checkoutTotalEl = document.getElementById('checkoutTotal');
+
+      if (checkoutSubtotalEl) checkoutSubtotalEl.textContent = money(subtotal);
+      if (checkoutDeliveryFeeEl) checkoutDeliveryFeeEl.textContent = (deliveryFee === 0 ? 'To be confirmed after payment' : money(deliveryFee));
+      if (checkoutDiscountEl) checkoutDiscountEl.textContent = `-${money(discount)}`;
+      if (checkoutTotalEl) checkoutTotalEl.textContent = money(total);
+
+      // Also reflect in the visible cart summary area (in case the checkout modal re-uses these IDs)
+      const coSub = document.getElementById('cartSubtotal');
+      const coTotal = document.getElementById('cartTotal');
+      if (!state.oneTimePurchase) {
+        // show cart totals as usual (we won't overwrite)
+        // renderCart already handles this for cart context
+      } else {
+        if (coSub) coSub.textContent = money(subtotal);
+        if (coTotal) coTotal.textContent = money(total);
+      }
+    } catch (e) {
+      console.warn("renderCheckoutContext error", e);
+    }
+  }
+
+  // Opens checkout modal for a single product (does NOT add to cart)
+  function openCheckoutForProduct(id, qty = 1) {
+    const p = productById(id);
+    if (!p) { toast("Product not found", "error"); return; }
+    if (state.soldIds.has(id) || !p.available) { toast("Sorry — this item is no longer available.", "error"); renderProducts(); return; }
+
+    // Set one-time purchase context
+    state.oneTimePurchase = { id: id, qty: qty, createdAt: nowISO() };
+
+    // Render modal contents for this context
+    renderCheckoutContext();
+
+    // Open checkout modal (uses your existing helper)
+    try {
+      openModal && typeof openModal === 'function' ? openModal('checkoutModal') : (function fallback(){ 
+        const modal = document.getElementById('checkoutModal');
+        if (modal) { modal.classList.add('open'); modal.setAttribute('aria-hidden','false'); document.body.classList.add('modal-open'); }
+      })();
+    } catch (e) { console.warn("openCheckoutForProduct - openModal failed", e); }
+
+    // ensure "Pay Now" will submit the one-time context (we override on-click below)
+    renderCheckoutContext();
+  }
+
+  // Clear one-time purchase context (call when checkout closes or user cancels)
+  function clearOneTimePurchase() {
+    state.oneTimePurchase = null;
+    // re-render checkout summary (will fallback to cart)
+    renderCheckoutContext();
+  }
+
+  // Intercept clicks on product "Buy" buttons
+  document.addEventListener('click', function (ev) {
+    const btn = ev.target.closest && ev.target.closest('[data-action="buy-now"]');
+    if (!btn) return;
+    ev.preventDefault();
+    ev.stopPropagation();
+
+    const card = btn.closest('.product-card');
+    const productId = card ? card.getAttribute('data-product-id') : null;
+    if (!productId) {
+      toast("Could not determine product to buy.", "error");
+      return;
+    }
+    // Open checkout for only that product (qty 1)
+    openCheckoutForProduct(productId, 1);
+  }, { passive: false });
+
+  // If user clicks the normal "Checkout" button (cart flow), ensure oneTimePurchase is cleared
+  const checkoutBtn = document.getElementById('checkoutBtn');
+  if (checkoutBtn) {
+    checkoutBtn.addEventListener('click', () => {
+      // using cart checkout; clear one-time context
+      state.oneTimePurchase = null;
+      // render totals for cart
+      renderCart();
+      renderCheckoutSummary && renderCheckoutSummary(); // preserve existing behavior if present
+      renderCheckoutContext();
+    });
+  }
+
+  // If user closes the checkout modal (close icon / Continue Shopping), clear oneTimePurchase
+  // We wire to close modal buttons (data-close-modal / data-close-drawer) and to modal class changes
+  document.addEventListener('click', function (ev) {
+    const closer = ev.target.closest && (ev.target.closest('[data-close-modal="checkoutModal"]') || ev.target.closest('[data-close-drawer="cartDrawer"]') || ev.target.closest('[data-close-modal]'));
+    if (!closer) return;
+    // if the closed modal is the checkout modal, clear oneTimePurchase
+    // we need to get attribute from clicked target if it references checkoutModal
+    const attr = closer.getAttribute ? (closer.getAttribute('data-close-modal') || closer.getAttribute('data-close-drawer')) : null;
+    if (attr && (attr === 'checkoutModal' || attr === '#checkoutModal' || attr === 'cartDrawer')) {
+      clearOneTimePurchase();
+    }
+  }, { passive: true });
+
+  // Also clear oneTimePurchase whenever the checkoutModal is hidden via mutation (robust)
+  const modalEl = document.getElementById('checkoutModal');
+  if (modalEl) {
+    const mo = new MutationObserver(() => {
+      const isOpen = modalEl.classList.contains('open') || modalEl.getAttribute('aria-hidden') === 'false';
+      if (!isOpen) {
+        // modal closed
+        clearOneTimePurchase();
+      } else {
+        // modal opened; re-render for current context
+        renderCheckoutContext();
+      }
+    });
+    mo.observe(modalEl, { attributes: true, attributeFilter: ['class','aria-hidden'] });
+  }
+
+  // Override the Pay Now behavior so the payment logic can read the correct items
+  // If you already have a pay handler, this snippet will call your original handler if present.
+  const payNow = document.getElementById('payNowBtn');
+  if (payNow) {
+    // remove existing onclick to avoid duplicate behavior (if any)
+    payNow.onclick = null;
+    payNow.addEventListener('click', function (ev) {
+      ev.preventDefault();
+      // Use oneTimePurchase if set, else default to state.cart
+      const items = getCheckoutItemsForModal().map(it => ({ id: it.id, title: it.p.title, price: it.p.price, qty: it.qty || 1 }));
+      if (!items.length) {
+        toast("No items to checkout.", "error");
+        return;
+      }
+
+      // Prepare the checkout payload (customer form values + items)
+      // Reuse existing checkout form values if your page expects them
+      const form = document.getElementById('checkoutForm');
+      const formData = {};
+      if (form) {
+        new FormData(form).forEach((v, k) => { formData[k] = v; });
+      }
+      // Attach items and context for your existing payment flow
+      // If you have a function `startPayment(payload)` or similar, call it here.
+      // We'll call a generic `startPayment` if it exists; otherwise call your existing pay flow.
+      const payload = {
+        items,
+        customer: formData,
+        subtotal: items.reduce((s,i)=> s + (i.price*(i.qty||1)), 0),
+        context: state.oneTimePurchase ? 'one-time' : 'cart'
+      };
+
+      // If you have an existing function startPayment / checkoutFlow, call it; otherwise fallback to existing behavior:
+      if (typeof window.startPayment === 'function') {
+        window.startPayment(payload);
+      } else if (typeof window.handleCheckout === 'function') {
+        window.handleCheckout(payload);
+      } else {
+        // Fallback: trigger your current checkout open handler (if it listens to payNowBtn)
+        // As a last resort, just submit the form (if you used form-based checkout)
+        // But we will attempt to call existing `payNowBtn` behavior by dispatching a custom event
+        const evt = new CustomEvent('ab:pay-now', { detail: payload });
+        document.dispatchEvent(evt);
+        // Also show a small toast to indicate a prepared payload (developer friendly)
+        toast("Ready to pay for " + items.length + " item(s). Proceeding to payment...", "info");
+      }
+    }, { passive: false });
+  }
+
+  // Make sure checkout modal shows the correct info when opened by other triggers (defensive)
+  // e.g., when a user clicks "Buy" from quickview which calls openModal('checkoutModal'), re-run render
+  document.addEventListener('click', function (ev) {
+    const opener = ev.target.closest && ev.target.closest('[data-open-modal="checkoutModal"], [data-open-modal="#checkoutModal"]');
+    if (opener) {
+      // If opener is the generic checkout button (cart), ensure oneTimePurchase cleared
+      if (opener === checkoutBtn) {
+        state.oneTimePurchase = null;
+      }
+      setTimeout(renderCheckoutContext, 80);
+    }
+  }, { passive: true });
+
+})();
+
   
 })();
 </script>
