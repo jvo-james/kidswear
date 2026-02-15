@@ -3968,6 +3968,82 @@ a:focus, button:focus, input:focus, select:focus, textarea:focus {
 }
 #receiptModal .modal-card { position: relative; }
 
+  @media (max-width: 920px) {
+  /* Make checkout-left a column flex container so we can accept moved summary */
+  #checkoutModal .checkout-left {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    box-sizing: border-box;
+  }
+
+  /* When the summary is moved into .checkout-left, ensure it looks like a card */
+  #checkoutModal .checkout-left > .checkout-right {
+    /* full width inside left column */
+    width: 100% !important;
+    margin-top: 4px !important;
+    padding: 12px !important;
+    box-sizing: border-box;
+    border-radius: 12px !important;
+    background: inherit !important;
+    border: 1px solid rgba(0,0,0,0.04) !important;
+    order: 2; /* place after customer fields (order 1) and before consents/actions (order 3) */
+  }
+
+  /* Ensure the original left children keep a predictable order */
+  #checkoutModal .checkout-left > h3,
+  #checkoutModal .checkout-left > form,
+  #checkoutModal .checkout-left > .checkout-left__customer {
+    order: 1;
+  }
+
+  /* Move consents & actions after summary visually */
+  #checkoutModal .checkout-left .consents,
+  #checkoutModal .checkout-left .checkout-actions {
+    order: 3;
+  }
+
+  /* Make sure summary-items inside moved summary wrap well */
+  #checkoutModal .checkout-left > .checkout-right .summary-items,
+  #checkoutModal .checkout-left > .checkout-right .summary-lines {
+    margin-top: 8px;
+  }
+}
+
+/* Visible, friendly scrollbars for all modal bodies */
+.modal .modal-body,
+.modal .modal-body * {
+  -webkit-overflow-scrolling: touch;
+  scrollbar-gutter: stable both-edges;
+  overflow: auto;
+}
+
+/* WebKit browsers (Chrome, Safari, Edge) - stronger visual hint */
+.modal .modal-body::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+.modal .modal-body::-webkit-scrollbar-track {
+  background: rgba(0,0,0,0.03);
+  border-radius: 999px;
+}
+.modal .modal-body::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(0,0,0,0.12), rgba(0,0,0,0.16));
+  border-radius: 999px;
+  border: 3px solid rgba(255,255,255,0.88); /* inner stroke to create contrast on light backgrounds */
+}
+.modal .modal-body::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgba(0,0,0,0.18), rgba(0,0,0,0.22));
+}
+
+/* Firefox (non-WebKit) */
+.modal .modal-body {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0,0,0,0.16) rgba(0,0,0,0.03);
+}
+
+/* Small padding so content doesn't touch the reserved scrollbar gutter */
+.modal .modal-body { padding-right: 8px; }
 </style>
 </head>
 
@@ -6019,134 +6095,224 @@ function clearCart() {
     return { ok: true, customer };
   }
 
-  function lockCartItemsOrFail() {
-    for (const it of state.cart) {
-      if (isSold(it.id)) {
-        const p = productById(it.id);
-        return { ok: false, msg: `“${p?.title || it.id}” has already been purchased. Remove it from cart.` };
-      }
+/* ============================
+   Task 2 — Paystack charges checkout-context total
+   Replace existing functions with the block below
+   ============================ */
+
+/**
+ * Validate that the items we intend to charge are still available.
+ * Works for both cart and one-time purchase (state.oneTimePurchase).
+ */
+function lockCartItemsOrFail() {
+  // If we have a one-time purchase context, check that single item
+  if (state.oneTimePurchase) {
+    const id = state.oneTimePurchase.id;
+    if (!id) return { ok: false, msg: "One-time product not found." };
+    if (isSold(id)) {
+      const p = productById(id);
+      return { ok: false, msg: `“${p?.title || id}” has already been purchased. Choose a different item.` };
     }
     return { ok: true };
   }
 
-  async function startPaystackPayment() {
-    const feedback = $("#checkoutFeedback");
-    const btn = $("#payNowBtn");
-
-    const val = validateCheckoutForm();
-    if (!val.ok) { feedback && (feedback.textContent = val.msg); toast(val.msg, "error"); return; }
-    const lock = lockCartItemsOrFail();
-    if (!lock.ok) { feedback && (feedback.textContent = lock.msg); toast(lock.msg, "error"); renderCart(); renderProducts(); return; }
-
-    const totals = computeTotals();
-    if (totals.total <= 0) { feedback && (feedback.textContent = "Total must be greater than zero."); toast("Total must be greater than zero.", "error"); return; }
-
-    if (!PAYSTACK_PUBLIC_KEY || PAYSTACK_PUBLIC_KEY.includes("PASTE_YOUR")) {
-      feedback && (feedback.textContent = "Paystack public key is missing. Add your key in the script config.");
-      toast("Paystack key missing in script config.", "error");
-      return;
-    }
-
-    if ($("#saveDetails")?.checked) { state.customer = val.customer; }
-    persist();
-
-    try {
-      btn && (btn.disabled = true);
-      await ensurePaystackLoaded();
-    } catch (err) {
-      btn && (btn.disabled = false);
-      feedback && (feedback.textContent = "Could not load Paystack. Check your internet connection.");
-      toast("Could not load Paystack.", "error");
-      return;
-    }
-
-    const orderId = uid();
-    const paystackRef = `${orderId}-${Math.random().toString(16).slice(2).toUpperCase()}`;
-
-    const items = state.cart.map(it => {
+  // Otherwise validate all items currently in the cart
+  for (const it of state.cart) {
+    if (isSold(it.id)) {
       const p = productById(it.id);
-      return { id: p.id, title: p.title, price: p.price, ageCategory: p.ageCategory };
-    });
-
-    const orderPayload = {
-      orderId,
-      paystackRef,
-      currency: STORE_CURRENCY,
-      subtotal: totals.subtotal,
-      deliveryFee: totals.deliveryFee,
-      discount: totals.discount,
-      total: totals.total,
-      customer: val.customer,
-      items,
-      paidAt: null,
-    };
-
-    feedback && (feedback.textContent = "Opening Paystack…");
-
-    const handler = window.PaystackPop.setup({
-      key: PAYSTACK_PUBLIC_KEY,
-      email: val.customer.email,
-      amount: Math.round(totals.total * 100),
-      currency: STORE_CURRENCY,
-      ref: paystackRef,
-      metadata: {
-        custom_fields: [
-          { display_name: "Order ID", variable_name: "order_id", value: orderId },
-          { display_name: "Phone", variable_name: "phone", value: val.customer.phone },
-          { display_name: "Delivery", variable_name: "delivery", value: val.customer.delivery }
-        ],
-        order: orderPayload
-      },
-      callback: function (response) {
-        onPaymentSuccess(orderPayload, response.reference || paystackRef);
-      },
-      onClose: function () {
-        btn && (btn.disabled = false);
-        feedback && (feedback.textContent = "Payment window closed.");
-        toast("Payment cancelled.", "info");
-      }
-    });
-
-    try { handler.openIframe(); } catch {
-      btn && (btn.disabled = false);
-      feedback && (feedback.textContent = "Could not open Paystack checkout.");
-      toast("Could not open Paystack checkout.", "error");
+      return { ok: false, msg: `“${p?.title || it.id}” has already been purchased. Remove it from cart.` };
     }
   }
+  return { ok: true };
+}
 
-  function onPaymentSuccess(orderPayload, reference) {
-    const feedback = $("#checkoutFeedback");
-    const btn = $("#payNowBtn");
+/**
+ * Compute totals for the standard cart (legacy function left for other uses).
+ * (Keeps existing external behaviour.)
+ */
+function computeTotals() {
+  const subtotal = cartSubtotal();
+  const deliveryFee = 0;
+  const discount = 0;
+  const total = Math.max(0, subtotal + deliveryFee - discount);
+  return { subtotal, deliveryKey: "to-be-confirmed", deliveryFee, discount, total, promoLabel: "" };
+}
 
-    const lock = lockCartItemsOrFail();
-    if (!lock.ok) { btn && (btn.disabled = false); feedback && (feedback.textContent = lock.msg); toast(lock.msg, "error"); return; }
+/**
+ * NEW: Compute totals & item list for the current checkout context.
+ * If state.oneTimePurchase exists, compute totals from that single item.
+ * Otherwise compute totals from the cart.
+ */
+function computeCheckoutContextTotals() {
+  // Build items array depending on context
+  let items = [];
 
-    state.cart.forEach(it => state.soldIds.add(it.id));
+  if (state.oneTimePurchase) {
+    const entry = state.oneTimePurchase;
+    const p = productById(entry.id);
+    if (!p) return null;
+    const qty = entry.qty || 1;
+    items = [{ id: p.id, title: p.title, price: p.price, qty, ageCategory: p.ageCategory }];
+  } else {
+    items = state.cart.map(it => {
+      const p = productById(it.id);
+      if (!p) return null;
+      return { id: p.id, title: p.title, price: p.price, qty: it.qty || 1, ageCategory: p.ageCategory };
+    }).filter(Boolean);
+  }
 
-    const paidAt = nowISO();
-    const order = { ...orderPayload, paystackRef: reference, paidAt };
-    state.history.push(order);
+  const subtotal = items.reduce((sum, it) => sum + (Number(it.price || 0) * (it.qty || 1)), 0);
+  const deliveryFee = 0; // keep existing behaviour (To be confirmed after payment)
+  const discount = 0;
+  const total = Math.max(0, subtotal + deliveryFee - discount);
 
+  return { items, subtotal, deliveryFee, discount, total };
+}
+
+/**
+ * Start payment using Paystack but use the checkout modal's context totals (cart OR one-time).
+ * Replaces prior startPaystackPayment(); paste into your script to override old version.
+ */
+async function startPaystackPayment() {
+  const feedback = $("#checkoutFeedback");
+  const btn = $("#payNowBtn");
+
+  const val = validateCheckoutForm();
+  if (!val.ok) { feedback && (feedback.textContent = val.msg); toast(val.msg, "error"); return; }
+
+  // Validate the specific checkout context (handles one-time and cart)
+  const lock = lockCartItemsOrFail();
+  if (!lock.ok) { feedback && (feedback.textContent = lock.msg); toast(lock.msg, "error"); renderCart(); renderProducts(); return; }
+
+  // Compute totals for the checkout context (either one-time product or full cart)
+  const ctx = computeCheckoutContextTotals();
+  if (!ctx) { feedback && (feedback.textContent = "Could not compute checkout totals."); toast("Checkout totals error.", "error"); return; }
+
+  if (ctx.total <= 0) { feedback && (feedback.textContent = "Total must be greater than zero."); toast("Total must be greater than zero.", "error"); return; }
+
+  if (!PAYSTACK_PUBLIC_KEY || PAYSTACK_PUBLIC_KEY.includes("PASTE_YOUR")) {
+    feedback && (feedback.textContent = "Paystack public key is missing. Add your key in the script config.");
+    toast("Paystack key missing in script config.", "error");
+    return;
+  }
+
+  // Persist saved customer details if user asked
+  if ($("#saveDetails")?.checked) { state.customer = val.customer; }
+  persist();
+
+  try {
+    btn && (btn.disabled = true);
+    await ensurePaystackLoaded();
+  } catch (err) {
+    btn && (btn.disabled = false);
+    feedback && (feedback.textContent = "Could not load Paystack. Check your internet connection.");
+    toast("Could not load Paystack.", "error");
+    return;
+  }
+
+  const orderId = uid();
+  const paystackRef = `${orderId}-${Math.random().toString(16).slice(2).toUpperCase()}`;
+
+  // Build items payload from the checkout context
+  const itemsPayload = ctx.items.map(it => ({ id: it.id, title: it.title, price: it.price, qty: it.qty, ageCategory: it.ageCategory }));
+
+  const orderPayload = {
+    orderId,
+    paystackRef,
+    currency: STORE_CURRENCY,
+    subtotal: ctx.subtotal,
+    deliveryFee: ctx.deliveryFee,
+    discount: ctx.discount,
+    total: ctx.total,
+    customer: val.customer,
+    items: itemsPayload,
+    paidAt: null,
+  };
+
+  feedback && (feedback.textContent = "Opening Paystack…");
+
+  const handler = window.PaystackPop.setup({
+    key: PAYSTACK_PUBLIC_KEY,
+    email: val.customer.email,
+    amount: Math.round(orderPayload.total * 100),
+    currency: STORE_CURRENCY,
+    ref: paystackRef,
+    metadata: {
+      custom_fields: [
+        { display_name: "Order ID", variable_name: "order_id", value: orderId },
+        { display_name: "Phone", variable_name: "phone", value: val.customer.phone },
+        { display_name: "Delivery", variable_name: "delivery", value: val.customer.delivery }
+      ],
+      order: orderPayload
+    },
+    callback: function (response) {
+      onPaymentSuccess(orderPayload, response.reference || paystackRef);
+    },
+    onClose: function () {
+      btn && (btn.disabled = false);
+      feedback && (feedback.textContent = "Payment window closed.");
+      toast("Payment cancelled.", "info");
+    }
+  });
+
+  try { handler.openIframe(); } catch {
+    btn && (btn.disabled = false);
+    feedback && (feedback.textContent = "Could not open Paystack checkout.");
+    toast("Could not open Paystack checkout.", "error");
+  }
+}
+
+/**
+ * Handle successful payment.
+ * Marks purchased items as sold and clears only the proper context:
+ * - if it was a one-time purchase, clear state.oneTimePurchase (do not clear cart)
+ * - if it was a cart checkout, clear state.cart
+ */
+function onPaymentSuccess(orderPayload, reference) {
+  const feedback = $("#checkoutFeedback");
+  const btn = $("#payNowBtn");
+
+  // Re-check availability (defensive)
+  const lock = lockCartItemsOrFail();
+  if (!lock.ok) { btn && (btn.disabled = false); feedback && (feedback.textContent = lock.msg); toast(lock.msg, "error"); return; }
+
+  // Mark sold items (use the items array from orderPayload to be exact)
+  const purchasedItems = (orderPayload && orderPayload.items) ? orderPayload.items : [];
+  purchasedItems.forEach(it => {
+    try { state.soldIds.add(it.id); } catch (e) { /* ignore */ }
+  });
+
+  const paidAt = nowISO();
+  const order = { ...orderPayload, paystackRef: reference, paidAt };
+
+  // If this was a cart checkout (no oneTimePurchase context) clear the cart
+  if (!state.oneTimePurchase) {
     state.cart = [];
     state.appliedPromo = null;
-
-    persist();
-    renderBadges();
-    renderProducts();
-    renderCart();
-    renderSaved();
-    renderHistory();
-
-    fillReceipt(order);
-    closeModal("checkoutModal");
-    openModal("receiptModal");
-
-    toast("Payment successful! Receipt ready.", "success");
-    setA11yLive("Payment successful. Receipt opened.");
-    btn && (btn.disabled = false);
-
-    sendOrderToFormspree(order).catch(() => {});
+  } else {
+    // One-time purchase flow: clear only the one-time context
+    state.oneTimePurchase = null;
   }
+
+  persist();
+  renderBadges();
+  renderProducts();
+  renderCart();
+  renderSaved();
+  renderHistory();
+
+  fillReceipt(order);
+  // Keep legacy behavior: close checkout modal and open receipt modal
+  closeModal("checkoutModal");
+  openModal("receiptModal");
+
+  toast("Payment successful! Receipt ready.", "success");
+  setA11yLive("Payment successful. Receipt opened.");
+  btn && (btn.disabled = false);
+
+  // Fire-and-forget: send order to Formspree if configured
+  sendOrderToFormspree(order).catch(() => {});
+}
 
   async function sendOrderToFormspree(order) {
     if (!FORMSPREE_ENDPOINT || FORMSPREE_ENDPOINT.includes("PASTE_YOUR")) return;
@@ -6572,6 +6738,73 @@ function clearCart() {
     console.error("Global script error:", e.message, e.filename, e.lineno, e.colno);
   });
 
+  (function setupCheckoutMobileReorder() {
+  const BREAKPOINT = 920;
+
+  function reorderCheckoutForMobile() {
+    const modal = document.getElementById('checkoutModal');
+    if (!modal) return;
+
+    const left = modal.querySelector('.checkout-left');
+    const right = modal.querySelector('.checkout-right');
+    if (!left || !right) return;
+
+    const isMobile = window.matchMedia(`(max-width: ${BREAKPOINT}px)`).matches;
+
+    if (isMobile) {
+      // Insert summary (right) into left, before consents if present
+      const consents = left.querySelector('.consents');
+      // if already moved, do nothing
+      if (right.parentElement === left) return;
+      try {
+        left.insertBefore(right, consents || null);
+        right.classList.add('moved-to-left');
+      } catch (e) {
+        console.warn('Could not move checkout summary into left column', e);
+      }
+    } else {
+      // restore: put .checkout-right back after left inside the modal body
+      const modalBody = modal.querySelector('.checkout-body');
+      if (!modalBody) return;
+      // if it's currently moved inside left, move it back
+      if (right.parentElement === left) {
+        try {
+          // append as sibling after left
+          modalBody.appendChild(right);
+          right.classList.remove('moved-to-left');
+        } catch (e) {
+          console.warn('Could not restore checkout summary position', e);
+        }
+      }
+    }
+  }
+
+  // Run when modal opens/closes: MutationObserver watches aria-hidden/class changes
+  const coModal = document.getElementById('checkoutModal');
+  if (coModal) {
+    const mo = new MutationObserver(() => {
+      const isOpen = coModal.classList.contains('open') || coModal.getAttribute('aria-hidden') === 'false';
+      if (isOpen) {
+        // delay slightly to ensure layout/CSS applied
+        setTimeout(reorderCheckoutForMobile, 12);
+      } else {
+        // restore layout on close
+        setTimeout(reorderCheckoutForMobile, 12);
+      }
+    });
+    mo.observe(coModal, { attributes: true, attributeFilter: ['class', 'aria-hidden'] });
+  }
+
+  // Also react to viewport resizes (user rotates or resizes)
+  window.addEventListener('resize', () => {
+    // small throttle
+    clearTimeout(window.__ab_checkout_reorder_t);
+    window.__ab_checkout_reorder_t = setTimeout(reorderCheckoutForMobile, 120);
+  }, { passive: true });
+
+  // If checkout is already open when this script runs, ensure it is reordered correctly once:
+  setTimeout(reorderCheckoutForMobile, 100);
+})();
   /* ==========================
    Task 5 — "Buy" = one-off checkout (does NOT add to cart)
    Insert inside your main script (IIFE) so it has access to productById, money, state, openModal, and toast.
