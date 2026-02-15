@@ -6005,15 +6005,6 @@ function clearCart() {
     return { ok: true, customer };
   }
 
-/* ============================
-   Task 2 — Paystack charges checkout-context total
-   Replace existing functions with the block below
-   ============================ */
-
-/**
- * Validate that the items we intend to charge are still available.
- * Works for both cart and one-time purchase (state.oneTimePurchase).
- */
 function lockCartItemsOrFail() {
   // If we have a one-time purchase context, check that single item
   if (state.oneTimePurchase) {
@@ -6036,13 +6027,6 @@ function lockCartItemsOrFail() {
   return { ok: true };
 }
 
-
-/* ================================
-   Task 3 — Processing fee (2.95%) support + cart/checkout/receipt updates
-   Replace the functions in your script with these versions
-   ================================ */
-
-/* helpers: round to 2 decimals consistently */
 function round2(n) { return Math.round((Number(n) || 0) * 100) / 100; }
 
 /* computeTotals for the cart context (used in many places) */
@@ -6339,24 +6323,37 @@ function onPaymentSuccess(orderPayload, reference) {
   const feedback = $("#checkoutFeedback");
   const btn = $("#payNowBtn");
 
+  // defensive availability re-check
   const lock = lockCartItemsOrFail();
-  if (!lock.ok) { btn && (btn.disabled = false); feedback && (feedback.textContent = lock.msg); toast(lock.msg, "error"); return; }
+  if (!lock.ok) {
+    btn && (btn.disabled = false);
+    feedback && (feedback.textContent = lock.msg);
+    toast(lock.msg, "error");
+    return;
+  }
 
+  // Mark purchased items as sold (use items from payload for exactness)
   const purchasedItems = (orderPayload && orderPayload.items) ? orderPayload.items : [];
   purchasedItems.forEach(it => {
     try { state.soldIds.add(it.id); } catch (e) { /* ignore */ }
   });
 
+  // finalize order record
   const paidAt = nowISO();
   const order = { ...orderPayload, paystackRef: reference, paidAt };
 
+  // Clear the proper context
   if (!state.oneTimePurchase) {
+    // cart checkout
     state.cart = [];
     state.appliedPromo = null;
   } else {
+    // one-time Buy checkout
     state.oneTimePurchase = null;
   }
 
+  // persist & re-render so history contains the new order
+  state.history.push(order);
   persist();
   renderBadges();
   renderProducts();
@@ -6364,17 +6361,97 @@ function onPaymentSuccess(orderPayload, reference) {
   renderSaved();
   renderHistory();
 
-  // Fill receipt (now expecting processingFee)
-  fillReceipt(order);
-  closeModal("checkoutModal");
-  openModal("receiptModal");
+  // Prepare the Payment Confirmation modal (psm = payment success modal)
+  try {
+    // meta
+    const psmMeta = $("#psmMeta");
+    if (psmMeta) psmMeta.textContent = `Order ${order.orderId} • Thank you!`;
 
-  toast("Payment successful! Receipt ready.", "success");
-  setA11yLive("Payment successful. Receipt opened.");
+    // items
+    const psmItems = $("#psmItems");
+    if (psmItems) {
+      psmItems.innerHTML = order.items.map(it => {
+        return `<div style="display:flex; justify-content:space-between; gap:8px; align-items:center;"><div style="display:flex; gap:10px; align-items:center;"><img src="${escapeHTML(safeImageUrl((productById(it.id)?.images||[])[0] || ''))}" alt="${escapeHTML(it.title)}" style="width:54px;height:54px;object-fit:cover;border-radius:10px;border:1px solid rgba(0,0,0,0.06)" onerror="this.src='${placeholderSVG}'"><div style="min-width:0"><div style="font-weight:700">${escapeHTML(it.title)}</div><div class="mini-muted" style="font-size:12px">${escapeHTML(it.id)}</div></div></div><div style="font-weight:800">${money(it.price)}</div></div>`;
+      }).join("");
+    }
+
+    // totals
+    const psmSubtotal = $("#psmSubtotal");
+    const psmDelivery = $("#psmDelivery");
+    const psmDiscount = $("#psmDiscount");
+    const psmTotal = $("#psmTotal");
+
+    if (psmSubtotal) psmSubtotal.textContent = money(order.subtotal || 0);
+    if (psmDelivery) psmDelivery.textContent = (order.deliveryFee === 0 ? "To be confirmed" : money(order.deliveryFee));
+    if (psmDiscount) {
+      // this element previously labeled "Discount" — show processing fee positively
+      psmDiscount.textContent = money(order.processingFee || 0);
+      // ensure the label in the markup reads Processing fee — the markup text is static, so only change if necessary:
+      // (we don't need to change markup here; it's ok if label remains "Discount" because Task 3 updated labels earlier)
+    }
+    if (psmTotal) psmTotal.textContent = money(order.total || 0);
+  } catch (e) {
+    console.warn("psm populate error", e);
+  }
+
+  // Close checkout and open PAYMENT confirmation modal (not the receipt)
+  closeModal("checkoutModal");
+  openModal("paymentSuccessModal");
+
+  toast("Payment successful! See confirmation.", "success");
+  setA11yLive("Payment successful. Confirmation opened.");
+
+  // Re-enable pay button if present
   btn && (btn.disabled = false);
 
+  // Ensure the PSM buttons behave:
+  const psmViewReceiptBtn = $("#psmViewReceiptBtn");
+  const psmCloseBtn = $("#psmCloseBtn");
+  const psmViewHistoryBtn = $("#psmViewHistoryBtn");
+
+  if (psmViewReceiptBtn) {
+    psmViewReceiptBtn.onclick = () => {
+      // close confirmation, then open receipt for this order
+      closeModal("paymentSuccessModal");
+      fillReceipt(order);
+      openModal("receiptModal");
+    };
+  }
+
+  if (psmViewHistoryBtn) {
+    psmViewHistoryBtn.onclick = () => {
+      closeModal("paymentSuccessModal");
+      renderHistory();
+      openModal("historyModal");
+    };
+  }
+
+  if (psmCloseBtn) {
+    psmCloseBtn.onclick = () => {
+      // close confirmation and refresh so UI (history, badges, sold flags) is up-to-date
+      closeModal("paymentSuccessModal");
+      // small delay to let modal close animation settle (optional)
+      setTimeout(() => { try { location.reload(); } catch (e) { /* fallback: re-render */ renderHistory(); } }, 220);
+    };
+  }
+
+  // last: send to Formspree (fire and forget)
   sendOrderToFormspree(order).catch(() => {});
 }
+
+/* Ensure clicking "View Receipt" inside the History closes history modal first */
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest && e.target.closest('[data-action="open-receipt"][data-order]');
+  if (!btn) return;
+  const orderId = btn.getAttribute("data-order");
+  if (!orderId) return;
+  const order = findHistory(orderId);
+  if (!order) return;
+  // close history modal, then open receipt modal for that order
+  closeModal("historyModal");
+  fillReceipt(order);
+  openModal("receiptModal");
+});
 
 /* Update fillReceipt to show 'Processing fee' rather than 'Discount' and show positive fee */
 function fillReceipt(order) {
