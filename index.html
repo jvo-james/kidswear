@@ -3968,6 +3968,106 @@ a:focus, button:focus, input:focus, select:focus, textarea:focus {
 }
 #receiptModal .modal-card { position: relative; }
 
+/* =========================
+   Task 5 — Mobile-first receipt improvements
+   Paste at the VERY END of your stylesheet
+   ========================= */
+
+/* Ensure the receipt modal uses a comfortable, column-first layout on small screens */
+#receiptModal .modal-card {
+  width: min(96vw, 760px);
+  max-height: 96vh;
+  border-radius: 12px;
+  overflow: hidden;
+  margin: 0 auto;
+}
+
+/* Make the modal body the scroll container (touch friendly) */
+#receiptModal .modal-body {
+  position: relative;
+  padding: 14px;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Make inner receipt content stack vertically and scale up for legibility */
+#receiptRoot.receipt {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px;
+  background: transparent;
+  color: var(--text, #0f172a) !important;
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+/* Top: logo and title stacked on mobile */
+.receipt-top {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+.receipt-brand { display:flex; gap:12px; align-items:center; min-width:0; }
+.receipt-logo {
+  width: 72px;
+  height: 72px;
+  border-radius: 12px;
+  object-fit: cover;
+  flex: 0 0 auto;
+}
+
+/* Make headings clearer and slightly larger */
+.receipt-name { font-size: 18px; font-weight:800; margin:0; }
+.receipt-meta { font-size: 13px; color: rgba(0,0,0,0.56); }
+
+/* stack customer and items vertically — single column on mobile */
+.receipt-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.receipt-items, .receipt-customer { margin-top: 12px; }
+
+/* Make list items touch-friendly: bigger padding, vertical stack */
+.receipt-list { display: grid; gap: 10px; margin-top: 8px; }
+.receipt-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.98);
+  border: 1px solid rgba(0,0,0,0.04);
+}
+
+/* Totals: make them compact and readable */
+.receipt-totals .line { display:flex; justify-content:space-between; padding:8px 0; color: rgba(0,0,0,0.6); }
+.receipt-totals .line.total { font-weight: 800; color: rgba(0,0,0,0.92); font-size: 16px; }
+
+/* Buttons stack on small screens */
+.receipt-actions { display:flex; gap:10px; margin-top:12px; flex-wrap:wrap; }
+.receipt-actions .btn { flex: 1 1 auto; min-width: 0; padding: 12px 14px; font-size: 15px; }
+
+/* On very small screens, force single-column grid and increase base font-size slightly */
+@media (max-width: 520px) {
+  #receiptRoot, #receiptRoot * { font-size: 15.5px; line-height: 1.45; }
+  .receipt-grid { grid-template-columns: 1fr; }
+  .receipt-logo { width: 64px; height: 64px; }
+  .receipt-name { font-size: 17px; }
+  .receipt-item { padding: 14px; }
+  .receipt-actions { flex-direction: column; }
+  .receipt-actions .btn { width: 100%; }
+  /* subtle shadow / separation to make it feel like a card on phones */
+  #receiptRoot { background: #fff; border-radius: 12px; box-shadow: 0 8px 30px rgba(16,24,40,0.06); }
+}
+
+/* When shown inside the receipt modal, ensure images scale nicely */
+#receiptModal .modal-card .modal-body img { max-width: 100%; height: auto; display:block; }
+
+/* For readability when opened in new tab / PDF viewer, ensure print-friendly font sizes */
+@media print {
+  body { font-size: 12pt !important; }
+  .receipt-item { page-break-inside: avoid; }
+}
 
   /* ================================
    Task 3 — Processing fee + cart summary layout tweaks
@@ -4026,6 +4126,95 @@ a:focus, button:focus, input:focus, select:focus, textarea:focus {
 
 /* hide delivery rows in cart summary (we'll leave the receipt delivery visible) */
 .cart-summary .summary-row[data-role="delivery-row"] { display: none !important; }
+
+  /* =========================
+   Task 7 — Image-only modal (click image to view original)
+   Paste at the VERY END of your stylesheet
+   ========================= */
+
+#imageModal { z-index: 4500 !important; }
+#imageModal .modal-overlay { background: rgba(0,0,0,0.78) !important; }
+
+/* make the image modal card visually minimal so image is the focus */
+.image-modal-card {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  padding: 0;
+  width: auto;
+  max-width: 98vw;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+/* close button (top-right, floating) */
+.image-modal-card .modal-image-close {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  z-index: 5;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  background: rgba(255,255,255,0.94);
+  color: var(--text);
+  border: 1px solid rgba(0,0,0,0.06);
+  box-shadow: 0 8px 30px rgba(2,6,23,0.08);
+}
+
+/* body acts as scroll container if image larger than viewport */
+.image-modal-body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 96vw;
+  max-height: 92vh;
+  padding: 12px;
+  box-sizing: border-box;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 12px;
+}
+
+/* the actual image — try to show original size. If it's larger than viewport, user can scroll. */
+.image-modal-img {
+  display: block;
+  width: auto !important;      /* do not force-fit width */
+  height: auto !important;     /* keep original aspect */
+  max-width: none !important;  /* allow showing the original full-width if smaller than viewport */
+  max-height: none !important; /* allow original height as well */
+  object-fit: contain;
+  user-select: none;
+  -webkit-user-drag: none;
+  box-shadow: 0 8px 30px rgba(2,6,23,0.08);
+  border-radius: 10px;
+}
+
+/* caption under image (optional) */
+.image-modal-caption {
+  margin-top: 10px;
+  text-align: center;
+  width: 100%;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* Responsive: small screens center and ensure comfortable padding */
+@media (max-width:520px) {
+  .image-modal-body {
+    padding: 10px;
+    max-height: 96vh;
+  }
+  .image-modal-card .modal-image-close { right: 8px; top: 8px; width:38px; height:38px; }
+}
+
+/* keep overlay scrollbar hint visible (consistent with other modals) */
+#imageModal .modal-body::-webkit-scrollbar { width: 10px; }
+#imageModal .modal-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 999px; }
 
 </style>
 </head>
@@ -5088,6 +5277,22 @@ a:focus, button:focus, input:focus, select:focus, textarea:focus {
   </div>
 </div>
 
+  <!-- IMAGE-ONLY MODAL (Task 7) -->
+<div class="modal" id="imageModal" aria-hidden="true">
+  <div class="modal-overlay" data-close-modal="imageModal"></div>
+
+  <div class="modal-card image-modal-card" role="dialog" aria-modal="true" aria-labelledby="imageModalTitle">
+    <button class="icon-btn modal-image-close" type="button" data-close-modal="imageModal" aria-label="Close image view">
+      <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+    </button>
+
+    <div class="modal-body image-modal-body" tabindex="0">
+      <img class="image-modal-img" src="" alt="Product image" />
+      <div class="image-modal-caption mini-muted" aria-hidden="true"></div>
+    </div>
+  </div>
+</div>
+
   <!-- CARE GUIDE MODAL -->
   <div class="modal" id="careGuideModal" aria-hidden="true">
     <div class="modal-overlay" data-close-modal="careGuideModal"></div>
@@ -5674,9 +5879,6 @@ a:focus, button:focus, input:focus, select:focus, textarea:focus {
     });
   }
 
-  /* =============
-     CART: calculations and rendering
-     ============= */
   function cartSubtotal() {
     return state.cart.reduce((sum, it) => {
       const p = productById(it.id);
@@ -5690,9 +5892,7 @@ a:focus, button:focus, input:focus, select:focus, textarea:focus {
    function calcDiscount(subtotal, deliveryFee) {
     return { discount: 0, deliveryOverride: null, label: "" };
   }
-
-
-
+  
   function renderCheckoutSummary() {
     const box = $("#checkoutItems");
     if (!box) return;
@@ -5803,16 +6003,163 @@ a:focus, button:focus, input:focus, select:focus, textarea:focus {
     setA11yLive(`Added ${p.title} to cart.`);
   }
 
-  function removeFromCart(id) { state.cart = state.cart.filter(x => x.id !== id); persist(); renderBadges(); renderCart(); renderProducts(); }
+ /* ============================
+ Task 6 — Keep "Add to Cart" buttons synced with cart immediately
+ Paste this inside your main IIFE (after addToCart/removeFromCart/clearCart definitions,
+ or replace your existing removeFromCart and clearCart with the versions below).
+ ============================ */
+
+// helper: safe CSS selector escape (fallback)
+function _escapeForSelector(s) {
+  if (window.CSS && CSS.escape) return CSS.escape(s);
+  return String(s).replace(/([ #;?%&,.+*~\':!^$[\]()=>|\/@])/g, "\\$1");
+}
+
+// update the Add to Cart button on the product card for a single product id
+function updateProductCardButton(id) {
+  try {
+    const sel = `.product-card[data-product-id="${_escapeForSelector(id)}"]`;
+    const card = document.querySelector(sel);
+    const p = productById(id);
+    if (!card || !p) return;
+
+    const btn = card.querySelector('[data-action="add-to-cart"]');
+    if (!btn) return;
+
+    const sold = isSold(id) || !p.available;
+    const inCart = state.cart.some(x => x.id === id);
+
+    if (sold) {
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-bag-shopping" aria-hidden="true"></i> Sold Out';
+    } else if (inCart) {
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-check" aria-hidden="true"></i> In Cart';
+    } else {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fa-solid fa-bag-shopping" aria-hidden="true"></i> Add to Cart';
+    }
+  } catch (e) {
+    console.warn("updateProductCardButton error", e);
+  }
+}
+
+// update every product card button (useful after a full clear)
+function updateAllProductButtons() {
+  try {
+    $$(".product-card").forEach(card => {
+      const id = card.getAttribute("data-product-id");
+      if (id) updateProductCardButton(id);
+    });
+  } catch (e) {
+    console.warn("updateAllProductButtons error", e);
+  }
+}
+
+  
+
+function removeFromCart(id) {
+  // remove item
+  state.cart = state.cart.filter(x => x.id !== id);
+  persist();
+
+  // re-render UI pieces that rely on cart
+  renderBadges();
+  renderCart();
+
+  // update the product card button so it immediately shows "Add to Cart"
+  updateProductCardButton(id);
+
+  // if quick view is open for this product, also update quick view add button
+  try {
+    const qTitle = document.getElementById("quickViewTitle")?.textContent || "";
+    const p = productById(id);
+    const qAdd = document.getElementById("quickViewAddBtn");
+    if (qAdd && p && qTitle && qTitle.indexOf(p.title) !== -1) {
+      qAdd.disabled = false;
+      qAdd.innerHTML = '<i class="fa-solid fa-bag-shopping" aria-hidden="true"></i> Add to Cart';
+    }
+  } catch (e) { /* ignore */ }
+
+  // keep product list consistent (re-render product cards if needed)
+  renderProducts();
+
+  // accessibility / feedback
+  toast("Removed from cart.", "info");
+  setA11yLive("Item removed from cart.");
+}
+
 function clearCart() {
+  // capture removed IDs so we can update product buttons
+  const removedIds = state.cart.map(it => it.id);
+
   state.cart = [];
   state.appliedPromo = null;
   persist();
+
+  // re-render cart & badges
   renderBadges();
   renderCart();
-  renderProducts(); 
+
+  // update product card buttons for items that were removed
+  removedIds.forEach(id => updateProductCardButton(id));
+
+  // ensure all product cards are consistent
+  updateAllProductButtons();
+
   toast("Cart cleared.", "info");
+  setA11yLive("Cart cleared.");
 }
+
+/* Make sure addToCart also forces an immediate button update (in case it didn't already) */
+const _origAddToCart = window.addToCart || addToCart;
+function addToCart_andSync(id) {
+  // call original implementation (some pages may have addToCart defined earlier)
+  try {
+    // If original addToCart exists within current scope, call it; otherwise call the local function
+    if (typeof _origAddToCart === "function") {
+      _origAddToCart(id);
+    } else {
+      // fallback to local addToCart if original wasn't captured
+      addToCart(id);
+    }
+  } catch (e) {
+    // fallback: attempt the known internal addToCart signature
+    try { addToCart(id); } catch (err) { console.warn("addToCart_andSync fallback failed", err); }
+  }
+
+  // update the single product card button
+  updateProductCardButton(id);
+
+  // if quick view is showing this product, update quick view button too
+  try {
+    const p = productById(id);
+    const qTitle = document.getElementById("quickViewTitle")?.textContent || "";
+    const qAdd = document.getElementById("quickViewAddBtn");
+    if (qAdd && p && qTitle && qTitle.indexOf(p.title) !== -1) {
+      qAdd.disabled = true;
+      qAdd.innerHTML = '<i class="fa-solid fa-check" aria-hidden="true"></i> In Cart';
+    }
+  } catch (e) { /* ignore */ }
+
+  // refresh products (keeps DOM consistent)
+  renderProducts();
+}
+
+// override delegated product add-to-cart clicks to use synced version
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest && e.target.closest('[data-action="add-to-cart"]');
+  if (!btn) return;
+  const card = btn.closest && btn.closest('.product-card');
+  if (!card) return;
+  const id = card.getAttribute("data-product-id");
+  if (!id) return;
+  e.preventDefault();
+  e.stopPropagation();
+  // call the synced addToCart wrapper
+  addToCart_andSync(id);
+}, { passive: false });
+
 
   function toggleSave(id) {
     const i = state.saved.indexOf(id);
@@ -5865,6 +6212,90 @@ function clearCart() {
       });
     }, 10);
   }
+
+  /* =========================
+   Task 7 — Open image-only modal when clicking product images
+   Paste this inside your main IIFE (near other delegated handlers)
+   ========================= */
+
+(function imageModalSetup() {
+  // helper to open image modal with given src and caption
+  function openImageModal(src, altText, captionText) {
+    const modal = document.getElementById("imageModal");
+    if (!modal) return;
+    const img = modal.querySelector(".image-modal-img");
+    const cap = modal.querySelector(".image-modal-caption");
+    try {
+      if (img) {
+        img.src = src || "";
+        img.alt = altText || "Product image";
+        // clear caption until loaded
+        if (cap) { cap.textContent = ""; cap.style.display = "none"; }
+        // on load show caption if provided
+        img.onload = () => {
+          if (captionText && cap) { cap.textContent = captionText; cap.style.display = "block"; }
+        };
+        img.onerror = () => { img.src = placeholderSVG; if (cap) { cap.textContent = "Image unavailable"; cap.style.display = "block"; } };
+      }
+    } catch (e) { console.warn("openImageModal error", e); }
+    openModal("imageModal");
+  }
+
+  // delegated click on product grid images
+  document.addEventListener("click", function (e) {
+    // if click landed inside quickView or other modals, ignore (so quickview thumb clicks still work)
+    if (e.target.closest && e.target.closest(".quickview-gallery")) return;
+
+    // target an image inside a product-card
+    const imgEl = e.target.closest && e.target.closest(".product-card img");
+    if (!imgEl) return;
+
+    // find product id from card
+    const card = imgEl.closest(".product-card");
+    const productId = card ? card.getAttribute("data-product-id") : null;
+    const p = productId ? productById(productId) : null;
+    // use product's original image if available; otherwise fall back to clicked src
+    const src = p && p.images && p.images[0] ? safeImageUrl(p.images[0]) : (imgEl.src || placeholderSVG);
+    const caption = p ? `${p.title} • ${p.id}` : (imgEl.alt || "");
+    e.preventDefault();
+    e.stopPropagation();
+    openImageModal(src, p ? p.title : imgEl.alt, caption);
+  }, { passive: false });
+
+  // Close modal when user presses Escape (existing closeAllOverlays handles Escape globally,
+  // but we keep this in case the site's behavior changed)
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") {
+      const m = document.getElementById("imageModal");
+      if (m && (m.classList.contains("open") || m.getAttribute("aria-hidden") === "false")) closeModal("imageModal");
+    }
+  });
+
+  // allow clicking the image itself to toggle full-fit vs original (optional small enhancement).
+  // We'll implement a simple tap-to-toggle: fit-to-viewport <-> original-size (scrollable).
+  (function enableTapToToggle() {
+    const modal = document.getElementById("imageModal");
+    if (!modal) return;
+    const body = modal.querySelector(".image-modal-body");
+    const img = modal.querySelector(".image-modal-img");
+    if (!body || !img) return;
+    let fit = false;
+    body.addEventListener("click", (ev) => {
+      // if clicking the overlay or close button, ignore here
+      if (ev.target.closest && (ev.target.closest("[data-close-modal]") || !ev.target.closest(".image-modal-img"))) return;
+      // toggle fit (when fit === true we constrain image to fit viewport)
+      fit = !fit;
+      if (fit) {
+        img.style.maxWidth = "96vw";
+        img.style.maxHeight = "92vh";
+      } else {
+        img.style.maxWidth = "none";
+        img.style.maxHeight = "none";
+      }
+    }, { passive: true });
+  })();
+
+})();
 
   /* =============
      HISTORY & RECEIPTS
@@ -5943,10 +6374,144 @@ function clearCart() {
     $("#downloadReceiptBtn") && ($("#downloadReceiptBtn").onclick = () => downloadReceiptPDF(order));
   }
 
-  function receiptHTML(order) {
-    const items = order.items.map(it => `<tr><td style="padding:8px 0; border-bottom:1px solid #eee;"><div style="font-weight:600;">${escapeHTML(it.title)}</div><div style="color:#666; font-size:12px;">${escapeHTML(it.id)} • Age ${escapeHTML(it.ageCategory || "")}</div></td><td style="padding:8px 0; border-bottom:1px solid #eee; text-align:right; font-weight:600;">${money(it.price)}</td></tr>`).join("");
-    return `<!doctype html><html><head><meta charset="utf-8"><title>Receipt ${escapeHTML(order.orderId)}</title><style>*{box-sizing:border-box}body{font-family:Arial, sans-serif; margin:24px; color:#111}.top{display:flex; justify-content:space-between; align-items:flex-start; gap:16px}.brand{display:flex; gap:12px; align-items:center}.logo{width:52px; height:52px; object-fit:cover; border-radius:12px}h1{font-size:18px; margin:0}.muted{color:#666; font-size:12px; margin-top:4px}.pill{display:inline-block; padding:6px 10px; border-radius:999px; background:#e8fff0; color:#0b6a2b; font-weight:700; font-size:12px}hr{border:none; border-top:1px solid #eee; margin:18px 0}.grid{display:grid; grid-template-columns:1fr 1fr; gap:14px}.box{border:1px solid #eee; border-radius:14px; padding:12px}.label{color:#666; font-size:12px}.value{font-weight:600; margin-top:2px}table{width:100%; border-collapse:collapse}.totals{margin-top:12px}.totals .row{display:flex; justify-content:space-between; padding:6px 0}.totals .row.total{border-top:1px solid #eee; padding-top:10px; font-size:16px; font-weight:800}.foot{margin-top:16px; color:#666; font-size:12px}@media print { body{margin:0; padding:18px} .no-print{display:none} }</style></head><body><div class="top"><div class="brand"><img src="logo.jpg" class="logo" alt="April Blossoms"><div><h1>April Blossoms — Receipt</h1><div class="muted">Order ${escapeHTML(order.orderId)} • ${new Date(order.paidAt).toLocaleString()}</div></div></div><div style="text-align:right"><div class="pill">PAID</div><div class="muted" style="margin-top:8px">Paystack Ref: ${escapeHTML(order.paystackRef || "—")}</div></div></div><hr><div class="grid"><div class="box"><div class="label">Customer</div><div class="value">${escapeHTML(order.customer.fullName || "—")}</div><div class="muted">${escapeHTML(order.customer.email || "—")} • ${escapeHTML(order.customer.phone || "—")}</div></div><div class="box"><div class="label">Delivery</div><div class="value">${escapeHTML(order.customer.delivery || "—")}</div><div class="muted">${escapeHTML(order.customer.address || "—")}, ${escapeHTML(order.customer.city || "")} ${escapeHTML(order.customer.region || "")}</div></div></div><hr><table><thead><tr><th style="text-align:left; padding-bottom:10px; color:#666; font-size:12px;">Item</th><th style="text-align:right; padding-bottom:10px; color:#666; font-size:12px;">Price</th></tr></thead><tbody>${items}</tbody></table><div class="totals"><div class="row"><span class="muted">Subtotal</span><strong>${money(order.subtotal)}</strong></div><div class="row"><span class="muted">Delivery</span><strong>${money(order.deliveryFee)}</strong></div><div class="row"><span class="muted">Discount</span><strong>-${money(order.discount)}</strong></div><div class="row total"><span>Total</span><span>${money(order.total)}</span></div></div><div class="foot">Need help? WhatsApp ${CONTACT.whatsapp} • Email ${CONTACT.email}</div><button class="no-print" onclick="window.print()" style="margin-top:18px; padding:10px 14px; border-radius:10px; border:1px solid #ddd; cursor:pointer;">Print / Save as PDF</button></body></html>`;
-  }
+function receiptHTML(order) {
+  // defensive defaults
+  const itemsHtml = (order.items || []).map(it => {
+    return `<tr class="item-row">
+      <td style="padding:10px 0; border-bottom:1px solid #eee;">
+        <div style="font-weight:700; font-size:15px;">${escapeHTML(it.title)}</div>
+        <div style="color:#666; font-size:12px; margin-top:6px;">${escapeHTML(it.id)}${it.ageCategory ? " • Age " + escapeHTML(it.ageCategory) : ""}</div>
+      </td>
+      <td style="padding:10px 0; border-bottom:1px solid #eee; text-align:right; font-weight:700;">${money(it.price)}</td>
+    </tr>`;
+  }).join("");
+
+  const deliveryFee = typeof order.deliveryFee !== "undefined" ? money(order.deliveryFee) : "To be confirmed";
+  const processingFee = typeof order.processingFee !== "undefined" ? money(order.processingFee) : money(0);
+
+  return `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1" />
+  <title>Receipt ${escapeHTML(order.orderId || "")}</title>
+  <style>
+    /* Mobile-first, single-column receipt */
+    :root{ --text:#111; --muted:#666; --accent:#ff6b8a; --card-bg:#fff }
+    html,body{ margin:0; padding:16px; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial; color:var(--text); background:#f6f7fb; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; }
+    .wrap{ max-width:720px; margin:0 auto; background:var(--card-bg); border-radius:12px; padding:16px; box-shadow: 0 12px 36px rgba(12,18,28,0.06); }
+    .top{ display:flex; gap:12px; align-items:center; justify-content:space-between; flex-wrap:wrap; }
+    .brand{ display:flex; gap:12px; align-items:center; }
+    .logo{ width:64px; height:64px; object-fit:cover; border-radius:12px; border:1px solid #eee; }
+    h1{ font-size:18px; margin:0; line-height:1.05; }
+    .muted{ color:var(--muted); font-size:13px; margin-top:6px; }
+    .pill{ display:inline-block; padding:6px 10px; border-radius:999px; background: rgba(16,185,129,0.12); color:#0b6a2b; font-weight:700; font-size:12px; }
+    hr{ border:none; border-top:1px solid #eee; margin:16px 0; }
+
+    .grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    .box{ background:#fff; border:1px solid #f0f0f0; border-radius:10px; padding:12px; }
+    .label{ color:var(--muted); font-size:12px }
+    .value{ font-weight:700; margin-top:6px; font-size:14px }
+
+    table{ width:100%; border-collapse:collapse; margin-top:12px; }
+    thead th{ text-align:left; color:var(--muted); font-size:12px; padding-bottom:10px; }
+    tbody td{ vertical-align:top; }
+
+    .totals{ margin-top:14px; }
+    .totals .row{ display:flex; justify-content:space-between; padding:8px 0; color:var(--muted); font-size:14px; }
+    .totals .row.total{ border-top:1px solid #eee; padding-top:12px; font-weight:800; color:var(--text); font-size:16px; }
+
+    .foot{ margin-top:14px; color:var(--muted); font-size:13px; }
+
+    .actions{ margin-top:14px; display:flex; gap:10px; flex-wrap:wrap; }
+    .btn{ padding:10px 14px; border-radius:10px; border:0; cursor:pointer; font-weight:700; font-size:14px; text-decoration:none; display:inline-block; text-align:center; }
+    .btn-primary{ background: linear-gradient(90deg, var(--accent), #ffd166); color:white; }
+    .btn-ghost{ background: transparent; border:1px solid #ddd; color:var(--text); }
+
+    /* Mobile adjustments — force everything vertical and increase touch targets */
+    @media (max-width:520px) {
+      .top{ align-items:flex-start; }
+      .logo{ width:56px; height:56px; }
+      h1{ font-size:17px; }
+      .grid{ grid-template-columns:1fr; }
+      .box{ padding:14px; border-radius:12px; }
+      .actions{ flex-direction:column; }
+      .btn{ width:100%; }
+      .wrap{ padding:14px; border-radius:10px; }
+    }
+
+    /* Print optimizations */
+    @media print {
+      body{ background:white; margin:0; padding:8px; }
+      .wrap{ box-shadow:none; border:none; border-radius:0; }
+      .actions { display:none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap" role="document" aria-label="Receipt ${escapeHTML(order.orderId||'')}">
+    <div class="top">
+      <div class="brand">
+        <img src="logo.jpg" alt="April Blossoms" class="logo" onerror="this.src='${placeholderSVG}'" />
+        <div>
+          <h1>April Blossoms — Receipt</h1>
+          <div class="muted">Order ${escapeHTML(order.orderId || "—")} • ${new Date(order.paidAt || Date.now()).toLocaleString()}</div>
+        </div>
+      </div>
+      <div style="text-align:right; min-width:110px;">
+        <div class="pill">PAID</div>
+        <div class="muted" style="margin-top:8px; font-size:12px">Paystack Ref: ${escapeHTML(order.paystackRef || "—")}</div>
+      </div>
+    </div>
+
+    <hr />
+
+    <div class="grid" aria-label="Customer and delivery">
+      <div class="box">
+        <div class="label">Customer</div>
+        <div class="value">${escapeHTML(order.customer.fullName || "—")}</div>
+        <div class="muted" style="margin-top:6px;">${escapeHTML(order.customer.email || "—")} • ${escapeHTML(order.customer.phone || "—")}</div>
+      </div>
+
+      <div class="box">
+        <div class="label">Delivery</div>
+        <div class="value">${escapeHTML(order.customer.delivery || "—")}</div>
+        <div class="muted" style="margin-top:6px;">${escapeHTML(order.customer.address || "—")}${(order.customer.city || order.customer.region) ? " • " + escapeHTML((order.customer.city || "") + " " + (order.customer.region || "")) : ""}</div>
+      </div>
+    </div>
+
+    <hr />
+
+    <div aria-label="Items">
+      <table role="table" aria-label="Purchased items">
+        <thead>
+          <tr><th>Item</th><th style="text-align:right">Price</th></tr>
+        </thead>
+        <tbody>
+          ${itemsHtml}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="totals" aria-label="Totals">
+      <div class="row"><span>Subtotal</span><strong>${money(order.subtotal)}</strong></div>
+      <div class="row"><span>Processing fee</span><strong>${processingFee}</strong></div>
+      <div class="row"><span>Delivery</span><strong>${deliveryFee}</strong></div>
+      <div class="row total"><span>Total</span><strong>${money(order.total)}</strong></div>
+    </div>
+
+    <div class="foot">
+      Need help? WhatsApp ${CONTACT.whatsapp} • Email ${CONTACT.email}
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-primary" onclick="window.print();">Print / Save as PDF</button>
+      <a class="btn btn-ghost" href="#" onclick="navigator.clipboard && navigator.clipboard.writeText(window.location.href); return false;">Copy Link</a>
+    </div>
+  </div>
+</body>
+</html>`;
+}
 
   function downloadReceiptPDF(order) {
     const w = window.open("", "_blank");
