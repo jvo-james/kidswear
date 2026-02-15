@@ -2563,6 +2563,606 @@ textarea:focus{
     linear-gradient(to top, rgba(255,250,246,.92), rgba(255,250,246,.45) 55%, rgba(255,250,246,.10)),
     radial-gradient(900px 600px at 25% 65%, rgba(255,107,138,.22), transparent 58%),
     radial
+  }
+  /* =========================================================
+   APRIL BLOSSOMS — FULL COLOR THEME OVERRIDE (LIGHT / PASTEL)
+   Paste this ENTIRE block at the VERY END of your CSS.
+   It ONLY changes colors (backgrounds, gradients, borders, shadows, text colors).
+   Layout/sizing/responsiveness stays exactly the same.
+   ========================================================= */
+
+/* -------------------------
+   1) Your exact color tokens
+------------------------- */
+:root{
+  --brand-1: #ff6b8a;        /* playful pink */
+  --brand-2: #ffd166;        /* sunny yellow */
+  --accent:   #6ee7b7;       /* mint accent */
+  --bg:       #fffaf6;
+  --muted:    #6b7280;
+  --card:     #ffffff;
+  --glass:    rgba(255,255,255,0.6);
+  --shadow:   0 8px 24px rgba(23,23,23,0.08);
+  --radius-lg: 18px;
+  --radius-md: 12px;
+  --radius-sm: 8px;
+  --max-width: 1200px;
+  --transition-fast: 180ms;
+  --transition: 280ms;
+  --elev: 0 10px 30px rgba(16,24,40,0.08);
+  --focus: 0 0 0 4px rgba(110,231,183,0.18);
+  --text: #0f172a;
+  --success: #10b981;
+
+  /* extra helpers (color-only) */
+  --border: rgba(15,23,42,0.08);
+  --border-2: rgba(15,23,42,0.12);
+  --surface: rgba(255,255,255,0.88);
+  --surface-2: rgba(255,255,255,0.96);
+  --ink: rgba(15,23,42,0.92);
+  --ink-2: rgba(15,23,42,0.72);
+  --danger: #ef4444;
+  --warning: #f59e0b;
+}
+
+/* -------------------------
+   2) Global base coloring
+------------------------- */
+html, body { color: var(--text) !important; }
+
+body{
+  background: linear-gradient(180deg, #fffaf6 0%, #fff7f0 40%) !important;
+  color: var(--text) !important;
+}
+
+/* selection */
+::selection{
+  background: rgba(255,107,138,0.22) !important;
+  color: var(--text) !important;
+}
+
+/* links */
+a{ color: var(--text) !important; }
+a:hover{ color: var(--ink) !important; }
+
+/* form controls */
+input, select, textarea{
+  background: var(--surface) !important;
+  border-color: var(--border) !important;
+  color: var(--text) !important;
+}
+input::placeholder, textarea::placeholder{ color: rgba(107,114,128,0.8) !important; }
+input:focus, select:focus, textarea:focus{
+  box-shadow: var(--focus) !important;
+  border-color: rgba(110,231,183,0.45) !important;
+  background: var(--surface-2) !important;
+}
+
+/* focus ring for everything */
+a:focus, button:focus, input:focus, select:focus, textarea:focus{
+  outline: none !important;
+  box-shadow: var(--focus) !important;
+}
+
+/* muted helpers */
+.muted, .mini-muted, .lead, .pc-desc, .pc-mini,
+.hero-subtitle, .section-head p, .announce p,
+.contact-card p, .about-copy p, .footer-sub, .footer-bottom p,
+.form-note, .hint, .ci-desc, .ci-id, .si-sub,
+.receipt-meta, .receipt-grid .label, .ship-card p{
+  color: var(--muted) !important;
+}
+
+/* -------------------------
+   3) Common surfaces (cards, panels, sections)
+------------------------- */
+.site-header,
+.hero-slides,
+.trust-card,
+.product-card,
+.about-copy,
+.panel,
+.highlight,
+.contact-card,
+.contact-form,
+.footer-brand,
+.footer-col,
+.extra-card,
+.ship-card,
+.policies article,
+.steps li,
+.care-list li,
+.quick-btn,
+.quick-contact,
+.search-item,
+.saved-item,
+.history-card,
+.summary-item,
+.cart-item,
+.checkout-left,
+.checkout-right,
+.receipt,
+.modal-inner,
+.modal-card{
+  background: linear-gradient(180deg, #ffffff 0%, #fffefc 100%) !important;
+  border-color: var(--border) !important;
+  box-shadow: var(--shadow) !important;
+  color: var(--text) !important;
+}
+
+/* dashed/empty boxes */
+.cart-empty,
+.empty-state{
+  background: linear-gradient(180deg, #ffffff 0%, #fffefc 100%) !important;
+  border-color: rgba(15,23,42,0.14) !important;
+  box-shadow: var(--shadow) !important;
+}
+
+/* subtle separators */
+.site-header,
+.drawer-header,
+.modal-header,
+.cart-summary,
+.footer-bottom,
+.announce,
+.cart-header,
+.cart-footer{
+  border-color: rgba(15,23,42,0.06) !important;
+}
+
+/* -------------------------
+   4) Header + nav
+------------------------- */
+.site-header{
+  background: linear-gradient(180deg, rgba(255,255,255,0.92), rgba(255,255,255,0.75)) !important;
+  border-bottom-color: rgba(15,23,42,0.06) !important;
+  box-shadow: 0 6px 18px rgba(18,24,36,0.05) !important;
+}
+
+.nav-link,
+.main-nav a{
+  color: var(--muted) !important;
+}
+.nav-link:hover,
+.main-nav a:hover,
+.main-nav a:focus{
+  color: var(--text) !important;
+  background: linear-gradient(90deg, rgba(255,107,138,0.08), rgba(255,209,102,0.06)) !important;
+}
+
+/* announcement strip */
+.announce{
+  background: rgba(255,255,255,0.75) !important;
+}
+.announce strong{ color: var(--text) !important; }
+
+/* icon buttons */
+.icon-btn{
+  background: transparent !important;
+  border-color: transparent !important;
+  color: var(--muted) !important;
+}
+.icon-btn:hover{
+  color: var(--text) !important;
+}
+
+/* our original icon-btn shape (if you used the earlier glass buttons) */
+.icon-btn,
+.header-actions #cart-toggle,
+#history-toggle{
+  background: rgba(255,255,255,0.85) !important;
+  border: 1px solid rgba(15,23,42,0.06) !important;
+  box-shadow: 0 8px 24px rgba(16,24,40,0.06) !important;
+}
+.icon-btn:hover,
+.header-actions #cart-toggle:hover,
+#history-toggle:hover{
+  background: rgba(255,255,255,0.95) !important;
+}
+
+/* badges */
+.badge,
+#cart-badge,
+#history-badge{
+  background: var(--brand-1) !important;
+  color: #fff !important;
+  box-shadow: 0 10px 24px rgba(255,107,138,0.18) !important;
+}
+
+/* hamburger */
+.hamburger{
+  background: rgba(255,255,255,0.92) !important;
+  border-color: rgba(15,23,42,0.06) !important;
+  box-shadow: 0 8px 24px rgba(16,24,40,0.06) !important;
+  color: var(--text) !important;
+}
+
+/* mobile nav */
+.mobile-nav{
+  background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,255,255,0.92)) !important;
+  border-top-color: rgba(15,23,42,0.06) !important;
+}
+.mobile-nav a{
+  color: var(--text) !important;
+}
+.mobile-nav a:hover{
+  background: linear-gradient(90deg, rgba(255,107,138,0.10), rgba(255,209,102,0.08)) !important;
+}
+
+/* -------------------------
+   5) Hero coloring
+------------------------- */
+.hero-slides{
+  background: linear-gradient(180deg, #ffffff 0%, #fffaf6 100%) !important;
+  box-shadow: var(--elev) !important;
+}
+
+.hero-overlay{
+  /* light overlay (keeps text readable but preserves image) */
+  background:
+    linear-gradient(to top, rgba(255,250,246,0.92), rgba(255,250,246,0.55) 55%, rgba(255,250,246,0.18)),
+    radial-gradient(900px 600px at 25% 65%, rgba(255,107,138,0.18), transparent 58%),
+    radial-gradient(900px 700px at 80% 20%, rgba(255,209,102,0.16), transparent 60%) !important;
+}
+
+.hero-kicker{
+  background: rgba(255,255,255,0.72) !important;
+  border-color: rgba(15,23,42,0.08) !important;
+  color: var(--text) !important;
+}
+
+.hero-badges li{
+  background: rgba(255,255,255,0.72) !important;
+  border-color: rgba(15,23,42,0.08) !important;
+  color: var(--text) !important;
+}
+
+.hero-caption{
+  background: linear-gradient(90deg, rgba(255,255,255,0.94), rgba(255,255,255,0.78)) !important;
+  box-shadow: var(--shadow) !important;
+  border: 1px solid rgba(15,23,42,0.06) !important;
+}
+
+.hero-prev, .hero-next{
+  background: rgba(255,255,255,0.92) !important;
+  color: var(--text) !important;
+  box-shadow: 0 6px 18px rgba(12,18,28,0.06) !important;
+}
+.hero-dots .dot{ background: rgba(15,23,42,0.16) !important; }
+.hero-dots .dot.active{
+  background: linear-gradient(90deg, var(--brand-1), var(--brand-2)) !important;
+}
+
+/* hero stats */
+.stat{
+  background: rgba(255,255,255,0.82) !important;
+  border-color: rgba(15,23,42,0.08) !important;
+  box-shadow: var(--shadow) !important;
+}
+.stat-number{ color: var(--text) !important; }
+.stat-label{ color: var(--muted) !important; }
+
+/* -------------------------
+   6) Chips / filters / search
+------------------------- */
+.chip{
+  background: linear-gradient(180deg, #fff 0%, rgba(255,255,255,0.92) 100%) !important;
+  border-color: rgba(15,23,42,0.08) !important;
+  color: var(--text) !important;
+}
+.chip:hover{
+  box-shadow: var(--shadow) !important;
+}
+.chip.is-active,
+.chip.active{
+  background: linear-gradient(90deg, var(--brand-1), var(--brand-2)) !important;
+  color: #fff !important;
+  border-color: rgba(255,107,138,0.25) !important;
+  box-shadow: 0 10px 30px rgba(255,107,138,0.14) !important;
+}
+
+.search-wrap,
+.search-box,
+.history-search{
+  background: rgba(255,255,255,0.92) !important;
+  border-color: rgba(15,23,42,0.06) !important;
+  box-shadow: var(--shadow) !important;
+}
+.search-box i,
+.history-search i{ color: rgba(107,114,128,0.9) !important; }
+
+/* -------------------------
+   7) Product cards
+------------------------- */
+.product-card{
+  background: linear-gradient(180deg, #ffffff 0%, #fffefc 100%) !important;
+  border-color: rgba(15,23,42,0.06) !important;
+  box-shadow: var(--shadow) !important;
+}
+.product-card:hover{
+  box-shadow: 0 18px 50px rgba(16,24,40,0.08) !important;
+}
+
+.product-media{
+  background: linear-gradient(180deg, rgba(255,246,245,1), rgba(255,250,245,0.6)) !important;
+}
+
+/* product badge/tag */
+.product-tag,
+.badge-pill,
+.receipt-badge{
+  background: linear-gradient(90deg, var(--brand-1), var(--brand-2)) !important;
+  color: #fff !important;
+}
+
+/* quickview button */
+.product-media .quickview,
+.pc-icon{
+  background: rgba(255,255,255,0.92) !important;
+  border-color: rgba(15,23,42,0.06) !important;
+  color: var(--text) !important;
+  box-shadow: 0 6px 18px rgba(12,18,28,0.06) !important;
+}
+
+/* prices */
+.price,
+.pc-price,
+.modal-price,
+.si-price,
+.ci-price,
+.total strong,
+.line.total strong,
+.receipt-totals .total{
+  color: var(--brand-1) !important;
+}
+
+/* product secondary meta */
+.product-meta{ color: var(--muted) !important; }
+
+/* sold out */
+.product-card.sold-out,
+.product-card.is-sold{
+  opacity: 0.65 !important;
+  filter: grayscale(0.15) !important;
+}
+
+/* -------------------------
+   8) Buttons (ALL)
+------------------------- */
+.btn,
+.btn-primary,
+.load-more-wrap .btn,
+.hero-cta .btn,
+.checkout-actions .btn,
+.receipt-actions .btn,
+.hc-actions .btn{
+  background: linear-gradient(90deg, var(--brand-1), var(--brand-2)) !important;
+  color: #fff !important;
+  border: 0 !important;
+  box-shadow: var(--elev) !important;
+}
+.btn:hover,
+.btn-primary:hover{
+  box-shadow: 0 18px 50px rgba(255,107,138,0.14) !important;
+}
+
+.btn.outline,
+.btn-ghost,
+.btn-ghost:hover{
+  background: transparent !important;
+  border: 1px solid rgba(15,23,42,0.10) !important;
+  color: var(--text) !important;
+  box-shadow: none !important;
+}
+
+/* mint accent */
+.btn.accent{
+  background: linear-gradient(90deg, var(--accent), #34d399) !important;
+  color: #083325 !important;
+  box-shadow: var(--elev) !important;
+}
+
+/* small pills */
+.contact-action,
+.tag,
+.badge-pill{
+  border-color: rgba(15,23,42,0.08) !important;
+}
+
+/* -------------------------
+   9) Cart + Drawer
+------------------------- */
+.cart-drawer .drawer-overlay,
+.modal-overlay{
+  background: rgba(8,15,24,0.42) !important;
+}
+
+.drawer-panel{
+  background: linear-gradient(180deg, #ffffff 0%, #fffefc 100%) !important;
+  border-left-color: rgba(15,23,42,0.08) !important;
+}
+
+.cart-perks .perk,
+.cart-progress,
+.summary-notes,
+.cart-item,
+.summary-item,
+.checkout-item,
+.history-item,
+.saved-item,
+.receipt-item{
+  background: linear-gradient(180deg,#fff,#fffefc) !important;
+  border-color: rgba(15,23,42,0.06) !important;
+  box-shadow: var(--shadow) !important;
+}
+
+.progress-bar{
+  background: rgba(15,23,42,0.08) !important;
+  border-color: rgba(15,23,42,0.08) !important;
+}
+.progress-fill{
+  background: linear-gradient(90deg, var(--accent), var(--brand-1)) !important;
+}
+
+.cart-summary{
+  background: linear-gradient(180deg, rgba(255,255,255,0.92), rgba(255,255,255,0.98)) !important;
+}
+
+.select{
+  background: rgba(255,255,255,0.92) !important;
+  border-color: rgba(15,23,42,0.08) !important;
+  color: var(--text) !important;
+}
+
+/* remove/danger */
+.mini-icon.danger,
+.tag.danger,
+.badge-pill.danger{
+  background: rgba(239,68,68,0.10) !important;
+  border-color: rgba(239,68,68,0.20) !important;
+  color: var(--danger) !important;
+}
+
+/* success */
+.tag.success,
+.pill.success,
+.badge-pill.success{
+  background: rgba(16,185,129,0.12) !important;
+  border-color: rgba(16,185,129,0.22) !important;
+  color: var(--success) !important;
+}
+
+/* -------------------------
+   10) Modals (all types)
+------------------------- */
+.modal{
+  background: rgba(8,15,24,0.45) !important;
+}
+.modal-inner,
+.modal-card{
+  background: linear-gradient(180deg, #fff 0%, #fffefc 100%) !important;
+  border-color: rgba(15,23,42,0.06) !important;
+  box-shadow: 0 30px 60px rgba(10,20,30,0.18) !important;
+}
+.modal-close{
+  color: var(--muted) !important;
+}
+.modal-close:hover{ color: var(--text) !important; }
+
+/* quickview thumbs */
+.thumb{
+  border-color: rgba(15,23,42,0.10) !important;
+  background: rgba(255,255,255,0.92) !important;
+}
+.thumb.is-active{
+  border-color: rgba(255,107,138,0.35) !important;
+}
+
+/* stickers (if you used them) */
+.checkout-modal .sticker--left,
+.receipt-modal .sticker.left{
+  background: linear-gradient(135deg, var(--brand-1), var(--brand-2)) !important;
+}
+.checkout-modal .sticker--right,
+.receipt-modal .sticker.right{
+  background: linear-gradient(135deg, var(--accent), #34d399) !important;
+}
+
+/* -------------------------
+   11) Contact section
+------------------------- */
+.contact-card i,
+.quick-btn i,
+.tick-list i{
+  background: linear-gradient(135deg, rgba(255,107,138,0.12), rgba(255,209,102,0.10)) !important;
+  border-color: rgba(15,23,42,0.06) !important;
+  color: var(--text) !important;
+}
+
+/* -------------------------
+   12) Footer
+------------------------- */
+.site-footer{
+  background: linear-gradient(180deg, #fffefc 0%, #fff7f0 100%) !important;
+  border-top-color: rgba(15,23,42,0.06) !important;
+}
+.footer-social a,
+.pay-icons li{
+  background: rgba(255,255,255,0.92) !important;
+  border-color: rgba(15,23,42,0.06) !important;
+  box-shadow: var(--shadow) !important;
+}
+.footer-col a,
+.footer-col .linkish{
+  color: var(--ink-2) !important;
+}
+.footer-col a:hover,
+.footer-col .linkish:hover{
+  color: var(--text) !important;
+}
+
+/* -------------------------
+   13) Back to top
+------------------------- */
+.back-to-top{
+  background: linear-gradient(135deg, var(--brand-1), var(--accent)) !important;
+  color: #fff !important;
+  border-color: rgba(255,255,255,0.45) !important;
+  box-shadow: 0 20px 60px rgba(16,24,40,0.14) !important;
+}
+
+/* -------------------------
+   14) Toasts
+------------------------- */
+.toast{
+  background: linear-gradient(180deg, rgba(255,255,255,0.95), rgba(255,255,255,0.88)) !important;
+  border-color: rgba(15,23,42,0.08) !important;
+  color: var(--text) !important;
+  box-shadow: var(--shadow) !important;
+}
+.toast-icon{
+  background: rgba(255,255,255,0.92) !important;
+  border-color: rgba(15,23,42,0.06) !important;
+}
+.toast.success .toast-icon{
+  background: rgba(16,185,129,0.12) !important;
+  border-color: rgba(16,185,129,0.22) !important;
+}
+.toast.error .toast-icon{
+  background: rgba(239,68,68,0.10) !important;
+  border-color: rgba(239,68,68,0.20) !important;
+}
+.toast-x{
+  background: rgba(255,255,255,0.92) !important;
+  border-color: rgba(15,23,42,0.06) !important;
+}
+
+/* -------------------------
+   15) Scrollbar (light)
+------------------------- */
+::-webkit-scrollbar{ width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb{
+  background: rgba(15,23,42,0.16) !important;
+  border-radius: 999px !important;
+  border: 2px solid rgba(255,255,255,0.75) !important;
+}
+::-webkit-scrollbar-track{
+  background: rgba(255,255,255,0.65) !important;
+}
+
+/* -------------------------
+   16) Safety overrides for any remaining dark tokens
+------------------------- */
+.hero-title,
+.section-head h2,
+.product-title,
+.pc-title,
+.modal-title,
+.receipt-name,
+.footer-title,
+.brand-name{
+  color: var(--text) !important;
+}
 
 
 </style>
