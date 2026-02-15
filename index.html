@@ -3820,6 +3820,153 @@ a:focus, button:focus, input:focus, select:focus, textarea:focus {
 .cart-list::-webkit-scrollbar { width: 10px; }
 .cart-list::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); border-radius: 999px; }
 .cart-list::-webkit-scrollbar-track { background: rgba(0,0,0,0.03); border-radius: 999px; }
+/* =========================
+   Task 8 — Mobile-friendly Receipt Modal
+   Paste at the VERY END of your stylesheet.
+   ========================= */
+
+/* Make the receipt modal use more of the viewport on small screens and be vertically scrollable */
+#receiptModal .modal-card {
+  width: min(96vw, 760px);
+  max-height: 92vh;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  padding: 0;
+  overflow: hidden; /* body will scroll */
+}
+
+/* Ensure the modal-body is the scroll container and is touch-friendly */
+#receiptModal .modal-body {
+  padding: 14px;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Visible scrollbar hint for modal body */
+#receiptModal .modal-body::-webkit-scrollbar { width: 10px; height: 10px; }
+#receiptModal .modal-body::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); border-radius: 999px; }
+#receiptModal .modal-body::-webkit-scrollbar-track { background: rgba(0,0,0,0.02); border-radius: 999px; }
+
+/* Base receipt card adjustments (keeps desktop styling but more compact) */
+#receiptRoot.receipt {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px;
+  background: transparent;
+  border: none;
+}
+
+/* Stack top area and make logo responsive */
+.receipt-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+.receipt-brand { display:flex; gap:12px; align-items:center; }
+.receipt-logo {
+  width: 64px;
+  height: 64px;
+  border-radius: 12px;
+  object-fit: cover;
+}
+
+/* Make metadata more legible */
+.receipt-name { font-size: 18px; }
+.receipt-meta { font-size: 13px; color: rgba(0,0,0,0.56); }
+
+/* Customer & Items — use single column grid always on mobile */
+.receipt-customer,
+.receipt-items,
+.receipt-totals {
+  margin-top: 12px;
+}
+
+/* receipt-grid: default to two columns on wide screens, stack on small screens */
+.receipt-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.receipt-grid > div { padding: 10px; border-radius: 12px; background: rgba(255,255,255,0.98); border: 1px solid rgba(0,0,0,0.04); }
+
+/* Receipt items list: stacked, roomy touch targets */
+.receipt-list { display: grid; gap: 8px; margin-top: 8px; }
+.receipt-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.98);
+  border: 1px solid rgba(0,0,0,0.04);
+}
+
+/* Totals: compact but readable */
+.receipt-totals .line { display:flex; justify-content:space-between; padding:8px 0; color: rgba(0,0,0,0.6); }
+.receipt-totals .line.total { font-weight: 800; color: rgba(0,0,0,0.92); font-size: 16px; }
+
+/* Action buttons: stack and fill width on small screens */
+.receipt-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+.receipt-actions .btn {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 12px 14px;
+  font-size: 15px;
+}
+@media (max-width: 520px) {
+  /* Modal uses most of viewport height; content stacks vertically */
+  #receiptModal .modal-card { width: 96vw; max-height: 96vh; border-radius: 12px; }
+  #receiptModal .modal-body { padding: 12px; }
+  .receipt-top { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .receipt-logo { width: 56px; height: 56px; }
+  .receipt-grid { grid-template-columns: 1fr; }
+  .receipt-list { gap: 10px; }
+  .receipt-item { padding: 10px; }
+  .receipt-customer h3, .receipt-items h3 { margin-top: 6px; font-size: 15px; }
+  .receipt-name { font-size: 17px; }
+  .receipt-meta { font-size: 12px; color: rgba(0,0,0,0.56); }
+  .receipt-actions { flex-direction: column; }
+  .receipt-actions .btn { width: 100%; }
+  /* slightly increase body text for legibility on phones */
+  #receiptRoot, #receiptRoot * { font-size: 15px; line-height: 1.35; }
+  .mini-muted { font-size: 13px; color: rgba(0,0,0,0.56) !important; }
+  .label { font-size: 12px; color: rgba(0,0,0,0.6); }
+  .value { font-size: 15px; font-weight: 700; }
+}
+
+/* Make sure the receipt modal content never appears tiny due to transforms */
+#receiptModal .modal-card .modal-body img { max-width: 100%; height: auto; }
+
+/* Accessibility: ensure contrast in light theme (if your theme overrides) */
+#receiptModal, #receiptModal .modal-card, #receiptRoot.receipt, #receiptRoot .receipt-item, #receiptRoot .receipt-grid > div {
+  color: var(--text, #0f172a) !important;
+  background: var(--card, #fff) !important;
+}
+
+/* Extra: if the receipt modal opens inside small viewport, make it visually obvious it is scrollable */
+#receiptModal .modal-body::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 18px;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(255,255,255,0), rgba(0,0,0,0.03));
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
+}
+#receiptModal .modal-card { position: relative; }
 
 </style>
 </head>
