@@ -6791,6 +6791,9 @@ async function startPaystackPayment() {
   const feedback = $("#checkoutFeedback");
   const btn = $("#payNowBtn");
 
+  // Ensure checkout totals & UI are up-to-date (fixes processing fee showing 0)
+  try { renderCheckoutContext && renderCheckoutContext(); } catch (e) { console.warn("renderCheckoutContext failed before payment", e); }
+
   const val = validateCheckoutForm();
   if (!val.ok) { feedback && (feedback.textContent = val.msg); toast(val.msg, "error"); return; }
 
@@ -6830,7 +6833,7 @@ async function startPaystackPayment() {
     orderId,
     paystackRef,
     currency: STORE_CURRENCY,
-    subtotal: ctx.subtotal,
+   subtotal: ctx.subtotal,
     processingFee: ctx.processingFee,
     deliveryFee: ctx.deliveryFee,
     discount: ctx.discount,
@@ -6857,7 +6860,19 @@ async function startPaystackPayment() {
       order: orderPayload
     },
     callback: function (response) {
-      onPaymentSuccess(orderPayload, response.reference || paystackRef);
+      // The Paystack callback should run in the same window (inline). If it does,
+      // use the robust handler below to persist and reload/open confirmation.
+      try {
+        onPaymentSuccess(orderPayload, response.reference || paystackRef);
+      } catch (e) {
+        console.error("Paystack callback -> onPaymentSuccess failed:", e);
+        // As a fallback, attempt to notify the parent via postMessage (useful if Paystack used a popup)
+        try {
+          if (window.opener && !window.opener.closed) {
+            window.opener.postMessage({ type: "ab_payment_success", order: Object.assign({}, orderPayload, { paystackRef: response.reference || paystackRef, paidAt: nowISO() }) }, "*");
+          }
+        } catch (er) { console.warn("Fallback postMessage failed", er); }
+      }
     },
     onClose: function () {
       btn && (btn.disabled = false);
@@ -6866,21 +6881,21 @@ async function startPaystackPayment() {
     }
   });
 
-  try { handler.openIframe(); } catch {
+  try { handler.openIframe(); } catch (err) {
     btn && (btn.disabled = false);
-    feedback && (feedback.textContent = "Could not open Paystack checkout.");
+   feedback && (feedback.textContent = "Could not open Paystack checkout.");
+   console.error("handler.openIframe failed", err);
     toast("Could not open Paystack checkout.", "error");
   }
 }
 
 function onPaymentSuccess(orderPayload, reference) {
   try {
-    console.info("onPaymentSuccess called", orderPayload, reference);
-
+    console.info("onPaymentSuccess called", { orderPayload, reference });
     const feedback = $("#checkoutFeedback");
     const btn = $("#payNowBtn");
 
-    // final availability check
+    // Final availability check (defensive)
     const lock = lockCartItemsOrFail();
     if (!lock.ok) {
       btn && (btn.disabled = false);
@@ -6889,71 +6904,70 @@ function onPaymentSuccess(orderPayload, reference) {
       return;
     }
 
-    // mark sold ids from payload items (defensive: falling back to state.cart)
+    // Use passed payload items (fallback to cart)
     const purchasedItems = (orderPayload && orderPayload.items && orderPayload.items.length)
       ? orderPayload.items
       : state.cart.map(it => ({ id: it.id }));
 
-    purchasedItems.forEach(it => {
-      if (it && it.id) state.soldIds.add(it.id);
-    });
+    purchasedItems.forEach(it => { if (it && it.id) state.soldIds.add(it.id); });
 
-    // stamp paid time and reference
+    // finalize order object
     const paidAt = nowISO();
     const order = Object.assign({}, orderPayload, { paystackRef: reference || orderPayload.paystackRef, paidAt });
 
-    // store order in history (will be persisted through reload)
+    // push to history and persist BEFORE reload
+    state.history = state.history || [];
     state.history.push(order);
 
-    // clear cart + one-time context
+    // Clear cart and one-time context
     state.cart = [];
     state.appliedPromo = null;
     state.oneTimePurchase = null;
-
-    // persist immediately so reload sees latest data
     persist();
 
-    // update UI as best as we can before reload
-    renderBadges();
-    renderProducts();
-    renderCart();
-    renderSaved();
-    renderHistory();
+    // Update UI as best as possible before reload
+    try { renderBadges(); renderProducts(); renderCart(); renderSaved(); renderHistory(); } catch (e) { console.warn("UI update after payment failed", e); }
 
-    // close checkout modal now (so the reload feels clean)
+    // Close checkout modal cleanly
     try { closeModal("checkoutModal"); } catch (e) { /* ignore */ }
 
-    // place order into sessionStorage so the next page load can open confirmation modal
+    // Persist a marker so the page on reload will show confirmation modal
+    try { sessionStorage.setItem("ab_pending_confirmation", JSON.stringify(order)); } catch (e) { console.warn("sessionStorage set failed", e); }
+
+    // If this script is running in a popup window, notify the opener and then close:
     try {
-      sessionStorage.setItem("ab_pending_confirmation", JSON.stringify(order));
-    } catch (e) { console.warn("Could not write sessionStorage pending confirmation", e); }
-
-    // ensure Pay button re-enabled in case anything blocks reload
-    btn && (btn.disabled = false);
-
-    // reload to ensure history/sold flags are applied everywhere.
-    // small timeout lets UI settle / modal close animate for better UX
-    setTimeout(() => {
-      try { location.reload(); } catch (e) {
-        // if reload fails (rare), fallback to opening confirmation immediately
-        console.warn("Reload failed — opening confirmation immediately", e);
-        try {
-          // populate and open confirmation right away as fallback
-          populateAndOpenPaymentSuccessModal(order);
-        } catch (err) { console.error("Fallback confirmation open failed", err); }
+      if (window.opener && !window.opener.closed) {
+        window.opener.postMessage({ type: "ab_payment_success", order }, "*");
+        // give the opener a short moment to receive the message
+        setTimeout(() => { try { window.close(); } catch (e) { /* ignore */ } }, 220);
+        return;
       }
-    }, 180);
+    } catch (e) { console.warn("postMessage to opener failed", e); }
 
-    // send to Formspree asynchronously (fire & forget)
-    sendOrderToFormspree(order).catch(() => {});
+    // Otherwise attempt to reload the topmost window so state and UI refresh (best-effort)
+    setTimeout(() => {
+      try {
+        // prefer top-level reload (in case Paystack callback ran inside an iframe)
+        if (window.top && window.top !== window && typeof window.top.location !== "undefined") {
+          try { window.top.location.reload(); return; } catch (errTop) { console.warn("top reload failed", errTop); }
+        }
+        // fallback to normal reload
+        location.reload();
+      } catch (e) {
+        console.warn("Reload failed; opening confirmation without reload", e);
+        try { populateAndOpenPaymentSuccessModal(order); } catch (ee) { console.error("Fallback open failed", ee); }
+      }
+    }, 350);
 
-    // a small toast telling the user the next step
-    toast("Payment confirmed — finishing up…", "success", 3000);
+    // persist & notify external analytics / Formspree asynchronously (fire & forget)
+    try { sendOrderToFormspree(order).catch(()=>{}); } catch (_) {}
+
+    toast("Payment confirmed — finalizing…", "success", 3000);
     setA11yLive("Payment successful. Finalizing your order.");
   } catch (ex) {
     console.error("onPaymentSuccess error", ex);
     toast("An error occurred after payment. If you were charged, contact support.", "error", 7000);
-    btn && (btn.disabled = false);
+    const btn = $("#payNowBtn"); if (btn) btn.disabled = false;
   }
 }
 
@@ -7066,7 +7080,24 @@ function populateAndOpenPaymentSuccessModal(order) {
   }
 })();
 
-  
+window.addEventListener("message", function (ev) {
+  try {
+    const data = ev && ev.data;
+    if (!data || data.type !== "ab_payment_success") return;
+    const order = data.order;
+    if (!order) return;
+    // store a marker so the normal reload-flow can pick it up; also open immediately
+    try { sessionStorage.setItem("ab_pending_confirmation", JSON.stringify(order)); } catch (e) { console.warn("Could not set pending confirmation via postMessage", e); }
+    // render history & open modal immediately (if app booted)
+    try {
+      renderHistory && renderHistory();
+      populateAndOpenPaymentSuccessModal && populateAndOpenPaymentSuccessModal(order);
+    } catch (err) { console.warn("postMessage immediate open failed", err); }
+  } catch (e) {
+    console.warn("ab_payment_success message handler error", e);
+  }
+});
+
 
 /* Ensure clicking "View Receipt" inside the History closes history modal first */
 document.addEventListener("click", (e) => {
