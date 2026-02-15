@@ -3371,6 +3371,107 @@ body.drawer-open {
   .drawer-panel { padding-left: 10px; padding-right: 10px; }
   .drawer-header { padding-left: 10px; padding-right: 10px; }
 }
+
+
+/* Give modals and cart very high stacking context so they are always above header/back-to-top */
+.modal,
+.cart-drawer,
+.cart-drawer .drawer-overlay,
+.modal-overlay,
+.drawer-overlay {
+  z-index: 4000 !important; /* very high so they overlay header & back-to-top */
+}
+
+/* Make sure the drawer panel itself is above the overlay (panel on top) */
+.drawer-panel,
+.modal-card,
+.modal .modal-card,
+.cart-drawer .drawer-panel {
+  z-index: 4100 !important;
+}
+
+/* Toasts should also be visible above header but slightly under modals (so notifications never hide header actions) */
+.toasts,
+.toast {
+  z-index: 3950 !important;
+}
+
+/* Back-to-top button should remain clickable when no modal is open, but never overlap an open modal/drawer */
+.back-to-top {
+  z-index: 1200 !important;
+}
+
+/* Header should stay below modals/drawers (but above normal page content) */
+.site-header {
+  z-index: 1300 !important;
+}
+
+/* History / receipt / checkout modals may need extra stacking if nested — make their card highest within modals */
+.modal .modal-card,
+.modal-card {
+  z-index: 4200 !important;
+}
+
+/* For safety: ensure any element inside modals with position:fixed/absolute inherits stacking above header */
+.modal *[style],
+.cart-drawer *[style] {
+  z-index: inherit;
+}
+
+/* Clean up any other known drawer-like elements (in case they are created dynamically) */
+[role="dialog"], .drawer-panel[role="dialog"], .cart-drawer[role="dialog"] {
+  z-index: 4100 !important;
+}
+
+
+@media (max-width: 920px) {
+  /* Hide textual badge pills (DRESS-..., AGE ...) visually on phones */
+  .product-card .pc-badges {
+    display: none !important;
+  }
+
+  /* Move the SAVE and EYE icons to the left-top area where badges were */
+  .product-card .pc-save,
+  .product-card .pc-quick {
+    right: auto !important;     /* remove right alignment */
+    left: 10px !important;      /* position at the same left inset as the badges */
+    border-radius: 12px !important;
+    width: 40px !important;
+    height: 40px !important;
+    display: grid !important;
+    place-items: center !important;
+    box-shadow: 0 12px 30px rgba(2,6,23,0.06) !important;
+    z-index: 6 !important; /* make sure it's above the image */
+    background: rgba(255,255,255,0.92) !important; /* readable on any image */
+    border: 1px solid rgba(0,0,0,0.06) !important;
+    color: var(--text) !important;
+  }
+
+  /* SAVE icon: first badge position (top-most) */
+  .product-card .pc-save {
+    top: 10px !important;
+  }
+
+  /* EYE / QUICK icon: below the save icon (second badge position) */
+  .product-card .pc-quick {
+    top: 54px !important; /* adjust spacing so it sits where the 2nd badge was */
+  }
+
+  /* Slightly increase icon visibility */
+  .product-card .pc-save i,
+  .product-card .pc-quick i {
+    font-size: 16px !important;
+    opacity: 0.95 !important;
+  }
+
+  /* Ensure original right-side pc-icon positions do not interfere (desktop preserved) */
+  .product-card .pc-icon { right: auto; }
+
+  /* Make sure product-image area has room (prevent icons from being cut) */
+  .product-card .pc-media { padding-left: 8px; padding-top: 6px; }
+
+ }
+
 </style>
 </head>
 
@@ -6132,6 +6233,53 @@ function clearCart() {
 
   // initial run
   setVhVar();
+})();
+</script>
+<script>
+/* Task 2: add aria-labels and keep icons usable when badges hidden on mobile */
+(function () {
+  function annotateProductIcons(root = document) {
+    const cards = Array.from(root.querySelectorAll('.product-card'));
+    cards.forEach(card => {
+      try {
+        // Find textual badges if present (first badge = id, second = age)
+        const badgeEls = card.querySelectorAll('.pc-badges .badge-pill');
+        const idText = badgeEls[0] ? badgeEls[0].textContent.trim() : (card.getAttribute('data-product-id') || '');
+        let ageText = '';
+        if (badgeEls[1]) ageText = badgeEls[1].textContent.trim();
+        // Save & quick buttons
+        const saveBtn = card.querySelector('.pc-save');
+        const quickBtn = card.querySelector('.pc-quick');
+
+        if (saveBtn) {
+          const label = idText ? `Save ${idText}` : 'Save item';
+          saveBtn.setAttribute('aria-label', label);
+          saveBtn.setAttribute('title', label);
+        }
+        if (quickBtn) {
+          // quick view should announce the age as secondary context
+          const label = ageText ? `Quick view • ${ageText}` : 'Quick view';
+          quickBtn.setAttribute('aria-label', label);
+          quickBtn.setAttribute('title', label);
+        }
+      } catch (e) {
+        // ignore per-card errors
+      }
+    });
+  }
+
+  // Run once after initial load
+  document.addEventListener('DOMContentLoaded', () => annotateProductIcons(document));
+  // Run after initial script renderProducts() call if your page renders products dynamically,
+  // so schedule a small run after 200ms just in case
+  setTimeout(() => annotateProductIcons(document), 250);
+
+  // Observe product grid for changes (re-annotate when new product cards are inserted)
+  const productsGrid = document.getElementById('productsGrid');
+  if (productsGrid) {
+    const obs = new MutationObserver(() => annotateProductIcons(productsGrid));
+    obs.observe(productsGrid, { childList: true, subtree: true });
+  }
 })();
 </script>
 
