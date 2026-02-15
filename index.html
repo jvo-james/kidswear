@@ -3968,82 +3968,65 @@ a:focus, button:focus, input:focus, select:focus, textarea:focus {
 }
 #receiptModal .modal-card { position: relative; }
 
-  @media (max-width: 920px) {
-  /* Make checkout-left a column flex container so we can accept moved summary */
-  #checkoutModal .checkout-left {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    box-sizing: border-box;
-  }
 
-  /* When the summary is moved into .checkout-left, ensure it looks like a card */
-  #checkoutModal .checkout-left > .checkout-right {
-    /* full width inside left column */
-    width: 100% !important;
-    margin-top: 4px !important;
-    padding: 12px !important;
-    box-sizing: border-box;
-    border-radius: 12px !important;
-    background: inherit !important;
-    border: 1px solid rgba(0,0,0,0.04) !important;
-    order: 2; /* place after customer fields (order 1) and before consents/actions (order 3) */
-  }
+  /* ================================
+   Task 3 — Processing fee + cart summary layout tweaks
+   Paste at the VERY END of your CSS
+   ================================ */
 
-  /* Ensure the original left children keep a predictable order */
-  #checkoutModal .checkout-left > h3,
-  #checkoutModal .checkout-left > form,
-  #checkoutModal .checkout-left > .checkout-left__customer {
-    order: 1;
-  }
-
-  /* Move consents & actions after summary visually */
-  #checkoutModal .checkout-left .consents,
-  #checkoutModal .checkout-left .checkout-actions {
-    order: 3;
-  }
-
-  /* Make sure summary-items inside moved summary wrap well */
-  #checkoutModal .checkout-left > .checkout-right .summary-items,
-  #checkoutModal .checkout-left > .checkout-right .summary-lines {
-    margin-top: 8px;
-  }
+/* Make totals compact and close together */
+.cart-summary .summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  font-size: 14px;
 }
 
-/* Visible, friendly scrollbars for all modal bodies */
-.modal .modal-body,
-.modal .modal-body * {
-  -webkit-overflow-scrolling: touch;
-  scrollbar-gutter: stable both-edges;
-  overflow: auto;
+/* Make the price values slightly bolder and tighter */
+.cart-summary .summary-row strong,
+.checkout-right .summary-lines .line strong,
+#receiptModal .receipt-totals .line strong {
+  font-weight: 800;
+  min-width: 96px;
+  text-align: right;
 }
 
-/* WebKit browsers (Chrome, Safari, Edge) - stronger visual hint */
-.modal .modal-body::-webkit-scrollbar {
-  width: 12px;
-  height: 12px;
-}
-.modal .modal-body::-webkit-scrollbar-track {
-  background: rgba(0,0,0,0.03);
-  border-radius: 999px;
-}
-.modal .modal-body::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, rgba(0,0,0,0.12), rgba(0,0,0,0.16));
-  border-radius: 999px;
-  border: 3px solid rgba(255,255,255,0.88); /* inner stroke to create contrast on light backgrounds */
-}
-.modal .modal-body::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, rgba(0,0,0,0.18), rgba(0,0,0,0.22));
+/* Ensure the actions are visible and not clipped on small screens */
+.cart-summary {
+  flex: 0 0 auto !important;
+  padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  /* don't clip actions */
+  overflow: visible !important;
+  max-height: none !important;
 }
 
-/* Firefox (non-WebKit) */
-.modal .modal-body {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(0,0,0,0.16) rgba(0,0,0,0.03);
+/* Give the cart-list a generous bottom padding so last item doesn't hide under the summary */
+.cart-list { padding-bottom: 220px !important; }
+
+/* Keep the buttons compact so they always fit horizontally */
+.cart-summary .summary-actions { display:flex; gap:8px; align-items:center; justify-content:space-between; }
+.cart-summary .summary-actions .btn { padding: 10px 12px; white-space: nowrap; font-size: 14px; }
+
+/* Style the processing fee label specially so it stands out as a fee (not a discount) */
+.cart-summary .summary-row .fee-label,
+.checkout-right .summary-lines .line .fee-label,
+#receiptModal .receipt-totals .line .fee-label {
+  color: rgba(0,0,0,0.6);
+  font-weight: 600;
 }
 
-/* Small padding so content doesn't touch the reserved scrollbar gutter */
-.modal .modal-body { padding-right: 8px; }
+/* Small screens: shrink text slightly to fit */
+@media (max-width:520px) {
+  .cart-summary .summary-row { font-size: 13px; }
+  .cart-summary .summary-actions .btn { font-size: 13px; padding: 10px 8px; }
+  .cart-list { padding-bottom: 260px !important; } /* extra room for safe-area + action buttons */
+}
+
+/* hide delivery rows in cart summary (we'll leave the receipt delivery visible) */
+.cart-summary .summary-row[data-role="delivery-row"] { display: none !important; }
+
 </style>
 </head>
 
@@ -5708,13 +5691,7 @@ a:focus, button:focus, input:focus, select:focus, textarea:focus {
     return { discount: 0, deliveryOverride: null, label: "" };
   }
 
-  function computeTotals() {
-    const subtotal = cartSubtotal();
-    const deliveryFee = 0;
-    const discount = 0;
-    const total = Math.max(0, subtotal + deliveryFee - discount);
-    return { subtotal, deliveryKey: "to-be-confirmed", deliveryFee, discount, total, promoLabel: "" };
-  }
+
 
   function renderCheckoutSummary() {
     const box = $("#checkoutItems");
@@ -5734,74 +5711,7 @@ a:focus, button:focus, input:focus, select:focus, textarea:focus {
     });
   }
 
-  function renderCart() {
-    const listEl = $("#cartList");
-    const empty = $("#cartEmptyState");
-    if (!listEl) return;
 
-    const totals = computeTotals();
-   $("#cartSubtotal") && ($("#cartSubtotal").textContent = money(totals.subtotal));
-    $("#cartDelivery") && ($("#cartDelivery").textContent = "To be confirmed after payment");
-    $("#cartDiscount") && ($("#cartDiscount").textContent = `-${money(totals.discount)}`);
-    $("#cartTotal") && ($("#cartTotal").textContent = money(totals.total));
-    $("#checkoutSubtotal") && ($("#checkoutSubtotal").textContent = money(totals.subtotal));
-    $("#checkoutDeliveryFee") && ($("#checkoutDeliveryFee").textContent = "To be confirmed after payment");
-    $("#checkoutDiscount") && ($("#checkoutDiscount").textContent = `-${money(totals.discount)}`);
-    $("#checkoutTotal") && ($("#checkoutTotal").textContent = money(totals.total));
-    
-    const items = state.cart
-      .map(it => { const p = productById(it.id); if (!p) return null; const sold = isSold(p.id); const img = (p.images && p.images[0]) ? safeImageUrl(p.images[0]) : placeholderSVG; return { ...it, p, img, sold }; })
-      .filter(Boolean);
-
-    if (!items.length) {
-      empty && empty.classList.remove("is-hidden");
-      listEl.innerHTML = "";
-      listEl.appendChild(empty);
-    } else {
-      empty && empty.classList.add("is-hidden");
-      listEl.innerHTML = "";
-   items.forEach(({ p, img, sold }) => {
-  const row = document.createElement("div");
-  row.className = `cart-item ${sold ? "is-sold" : ""}`;
-  row.setAttribute("data-cart-id", p.id);
-
-  row.innerHTML = ''
-    + `<div class="ci-left"><img src="${escapeHTML(img)}" alt="${escapeHTML(p.title)}"></div>`
-    + `<div class="ci-mid">`
-    +   `<div class="ci-top"><p class="ci-title">${escapeHTML(p.title)}</p><span class="ci-id">${escapeHTML(p.id)}</span></div>`
-    +   `<p class="ci-desc">${escapeHTML(p.description || "")}</p>`
-    +   `<div class="ci-meta"><span class="tag">Age ${escapeHTML(p.ageCategory || "")}</span>${sold ? `<span class="tag danger">Sold</span>` : `<span class="tag success">Reserved</span>`}</div>`
-    + `</div>`
-    + `<div class="ci-right"><p class="ci-price">${money(p.price)}</p><div class="ci-actions"><button class="mini-icon" type="button" data-action="move-to-saved" data-id="${escapeHTML(p.id)}" aria-label="Save for later"><i class="fa-regular fa-bookmark" aria-hidden="true"></i></button></div></div>`;
-
-  // image fallback
-  const imgEl = row.querySelector("img");
-  if (imgEl) imgEl.addEventListener("error", () => imgEl.src = placeholderSVG);
-
-  // add prominent trash button (close to the image)
-  const trash = document.createElement("button");
-  trash.type = "button";
-  trash.className = "mini-icon ci-trash danger";
-  trash.setAttribute("aria-label", "Remove item");
-  trash.setAttribute("data-id", p.id);
-  trash.innerHTML = '<i class="fa-solid fa-trash" aria-hidden="true"></i>';
-  // attach click handler
-  trash.addEventListener("click", () => {
-    removeFromCart(p.id);
-    // update a11y + toast handled by removeFromCart path (if present)
-  });
-
-  row.appendChild(trash);
-  listEl.appendChild(row);
-});
-
-    }
-
-    renderCheckoutSummary();
-    const checkoutBtn = $("#checkoutBtn");
-    if (checkoutBtn) checkoutBtn.disabled = items.length === 0;
-    renderCartProgress();
-  }
 
   function renderCartProgress() {
     const { subtotal } = computeTotals();
@@ -6126,25 +6036,27 @@ function lockCartItemsOrFail() {
   return { ok: true };
 }
 
-/**
- * Compute totals for the standard cart (legacy function left for other uses).
- * (Keeps existing external behaviour.)
- */
+
+/* ================================
+   Task 3 — Processing fee (2.95%) support + cart/checkout/receipt updates
+   Replace the functions in your script with these versions
+   ================================ */
+
+/* helpers: round to 2 decimals consistently */
+function round2(n) { return Math.round((Number(n) || 0) * 100) / 100; }
+
+/* computeTotals for the cart context (used in many places) */
 function computeTotals() {
   const subtotal = cartSubtotal();
-  const deliveryFee = 0;
-  const discount = 0;
-  const total = Math.max(0, subtotal + deliveryFee - discount);
-  return { subtotal, deliveryKey: "to-be-confirmed", deliveryFee, discount, total, promoLabel: "" };
+  const processingFee = round2(subtotal * 0.0295); // 2.95%
+  const deliveryFee = 0; // removed from cart UI (handled separately if you later want)
+  const discount = 0; // legacy field left at 0
+  const total = round2(subtotal + processingFee + deliveryFee - discount);
+  return { subtotal, deliveryFee, processingFee, discount, total };
 }
 
-/**
- * NEW: Compute totals & item list for the current checkout context.
- * If state.oneTimePurchase exists, compute totals from that single item.
- * Otherwise compute totals from the cart.
- */
+/* compute totals for checkout context (one-time purchase OR cart) */
 function computeCheckoutContextTotals() {
-  // Build items array depending on context
   let items = [];
 
   if (state.oneTimePurchase) {
@@ -6162,17 +6074,181 @@ function computeCheckoutContextTotals() {
   }
 
   const subtotal = items.reduce((sum, it) => sum + (Number(it.price || 0) * (it.qty || 1)), 0);
-  const deliveryFee = 0; // keep existing behaviour (To be confirmed after payment)
+  const processingFee = round2(subtotal * 0.0295); // 2.95%
+  const deliveryFee = 0;
   const discount = 0;
-  const total = Math.max(0, subtotal + deliveryFee - discount);
+  const total = round2(subtotal + processingFee + deliveryFee - discount);
 
-  return { items, subtotal, deliveryFee, discount, total };
+  return { items, subtotal, processingFee, deliveryFee, discount, total };
 }
 
-/**
- * Start payment using Paystack but use the checkout modal's context totals (cart OR one-time).
- * Replaces prior startPaystackPayment(); paste into your script to override old version.
- */
+/* Render checkout context used by the checkout modal (Buy or Cart flow) */
+function renderCheckoutContext() {
+  try {
+    const items = getCheckoutItemsForModal();
+    const box = document.getElementById('checkoutItems');
+    if (!box) return;
+
+    if (!items.length) {
+      box.innerHTML = `<p class="mini-muted">No items to checkout.</p>`;
+    } else {
+      box.innerHTML = "";
+      items.forEach(it => {
+        const img = (it.p.images && it.p.images[0]) ? safeImageUrl(it.p.images[0]) : placeholderSVG;
+        const el = document.createElement('div');
+        el.className = 'summary-item';
+        el.innerHTML = `<img src="${escapeHTML(img)}" alt="${escapeHTML(it.p.title)}"><div class="si-mid"><p class="si-title">${escapeHTML(it.p.title)}</p><p class="si-sub">${escapeHTML(it.p.id)} • Age ${escapeHTML(it.p.ageCategory)}</p></div><strong class="si-price">${money(it.p.price)}</strong>`;
+        const imgEl = el.querySelector('img');
+        if (imgEl) imgEl.addEventListener('error', () => imgEl.src = placeholderSVG);
+        box.appendChild(el);
+      });
+    }
+
+    // compute totals for this context
+    const ctx = computeCheckoutContextTotals();
+    if (!ctx) return;
+
+    // Populate checkout subtotal/total fields (checkout modal & cart summary mirrors)
+    const checkoutSubtotalEl = document.getElementById('checkoutSubtotal');
+    const checkoutDeliveryFeeEl = document.getElementById('checkoutDeliveryFee');
+    const checkoutDiscountEl = document.getElementById('checkoutDiscount');
+    const checkoutTotalEl = document.getElementById('checkoutTotal');
+
+    if (checkoutSubtotalEl) checkoutSubtotalEl.textContent = money(ctx.subtotal);
+    if (checkoutDeliveryFeeEl) checkoutDeliveryFeeEl.textContent = (ctx.deliveryFee === 0 ? 'To be confirmed after payment' : money(ctx.deliveryFee));
+    if (checkoutDiscountEl) {
+      // Use this element to show Processing fee (positive)
+      // Also update its label
+      const row = checkoutDiscountEl.closest('.line') || checkoutDiscountEl.parentElement;
+      if (row) {
+        const lbl = row.querySelector('span');
+        if (lbl) lbl.textContent = 'Processing fee';
+      }
+      checkoutDiscountEl.textContent = money(ctx.processingFee);
+    }
+    if (checkoutTotalEl) checkoutTotalEl.textContent = money(ctx.total);
+
+    // If one-time purchase, also reflect the subtotal/total in the cart summary (visual)
+    if (state.oneTimePurchase) {
+      const coSub = document.getElementById('cartSubtotal');
+      const coTotal = document.getElementById('cartTotal');
+      if (coSub) coSub.textContent = money(ctx.subtotal);
+      if (coTotal) coTotal.textContent = money(ctx.total);
+      // show processing fee in cart summary element
+      const cartDisc = document.getElementById('cartDiscount');
+      if (cartDisc) { 
+        const crow = cartDisc.closest('.summary-row');
+        if (crow) {
+          const lbl = crow.querySelector('span');
+          if (lbl) lbl.textContent = 'Processing fee';
+        }
+        cartDisc.textContent = money(ctx.processingFee);
+      }
+    }
+  } catch (e) {
+    console.warn("renderCheckoutContext error", e);
+  }
+}
+
+/* Render cart list + summary (cart drawer) — show processing fee, hide delivery row */
+function renderCart() {
+  const listEl = $("#cartList");
+  const empty = $("#cartEmptyState");
+  if (!listEl) return;
+
+  const totals = computeTotals();
+
+  // Subtotal
+  $("#cartSubtotal") && ($("#cartSubtotal").textContent = money(totals.subtotal));
+
+  // Hide the delivery row entirely in the cart summary (you asked to remove delivery)
+  const cartDeliveryEl = $("#cartDelivery");
+  if (cartDeliveryEl) {
+    const row = cartDeliveryEl.closest('.summary-row');
+    if (row) row.setAttribute('data-role', 'delivery-row'); // CSS hides this
+  }
+
+  // Processing fee (replace Discount)
+  const cartDiscountEl = $("#cartDiscount");
+  if (cartDiscountEl) {
+    const row = cartDiscountEl.closest('.summary-row');
+    if (row) {
+      const lbl = row.querySelector('span');
+      if (lbl) lbl.textContent = 'Processing fee';
+    }
+    cartDiscountEl.textContent = money(totals.processingFee);
+  }
+
+  // Total
+  $("#cartTotal") && ($("#cartTotal").textContent = money(totals.total));
+
+  // Mirror into checkout modal fields (so checkout modal shows same processing fee)
+  $("#checkoutSubtotal") && ($("#checkoutSubtotal").textContent = money(totals.subtotal));
+  $("#checkoutDeliveryFee") && ($("#checkoutDeliveryFee").textContent = "To be confirmed after payment");
+  const checkoutDiscountEl = $("#checkoutDiscount");
+  if (checkoutDiscountEl) {
+    const crow = checkoutDiscountEl.closest('.line');
+    if (crow) {
+      const lbl = crow.querySelector('span');
+      if (lbl) lbl.textContent = 'Processing fee';
+    }
+    checkoutDiscountEl.textContent = money(totals.processingFee);
+  }
+  $("#checkoutTotal") && ($("#checkoutTotal").textContent = money(totals.total));
+
+  // Render cart items list (unchanged logic - kept for continuity)
+  const items = state.cart
+    .map(it => { const p = productById(it.id); if (!p) return null; const sold = isSold(p.id); const img = (p.images && p.images[0]) ? safeImageUrl(p.images[0]) : placeholderSVG; return { ...it, p, img, sold }; })
+    .filter(Boolean);
+
+  if (!items.length) {
+    empty && empty.classList.remove("is-hidden");
+    listEl.innerHTML = "";
+    listEl.appendChild(empty);
+  } else {
+    empty && empty.classList.add("is-hidden");
+    listEl.innerHTML = "";
+    items.forEach(({ p, img, sold }) => {
+      const row = document.createElement("div");
+      row.className = `cart-item ${sold ? "is-sold" : ""}`;
+      row.setAttribute("data-cart-id", p.id);
+      row.innerHTML = ''
+        + `<div class="ci-left"><img src="${escapeHTML(img)}" alt="${escapeHTML(p.title)}"></div>`
+        + `<div class="ci-mid">`
+        +   `<div class="ci-top"><p class="ci-title">${escapeHTML(p.title)}</p><span class="ci-id">${escapeHTML(p.id)}</span></div>`
+        +   `<p class="ci-desc">${escapeHTML(p.description || "")}</p>`
+        +   `<div class="ci-meta"><span class="tag">Age ${escapeHTML(p.ageCategory || "")}</span>${sold ? `<span class="tag danger">Sold</span>` : `<span class="tag success">Reserved</span>`}</div>`
+        + `</div>`
+        + `<div class="ci-right"><p class="ci-price">${money(p.price)}</p><div class="ci-actions"><button class="mini-icon" type="button" data-action="move-to-saved" data-id="${escapeHTML(p.id)}" aria-label="Save for later"><i class="fa-regular fa-bookmark" aria-hidden="true"></i></button></div></div>`;
+
+      const imgEl = row.querySelector("img");
+      if (imgEl) imgEl.addEventListener("error", () => imgEl.src = placeholderSVG);
+
+      // prominent trash
+      const trash = document.createElement("button");
+      trash.type = "button";
+      trash.className = "mini-icon ci-trash danger";
+      trash.setAttribute("aria-label", "Remove item");
+      trash.setAttribute("data-id", p.id);
+      trash.innerHTML = '<i class="fa-solid fa-trash" aria-hidden="true"></i>';
+      trash.addEventListener("click", () => {
+        removeFromCart(p.id);
+      });
+
+      row.appendChild(trash);
+      listEl.appendChild(row);
+    });
+  }
+
+  renderCheckoutSummary();
+  const checkoutBtn = $("#checkoutBtn");
+  if (checkoutBtn) checkoutBtn.disabled = items.length === 0;
+  renderCartProgress();
+}
+
+/* Update startPaystackPayment / onPaymentSuccess (ensure processingFee is included in orderPayload)
+   Replace whatever version you have with the following (compatible with Task 2's changes). */
+
 async function startPaystackPayment() {
   const feedback = $("#checkoutFeedback");
   const btn = $("#payNowBtn");
@@ -6180,11 +6256,9 @@ async function startPaystackPayment() {
   const val = validateCheckoutForm();
   if (!val.ok) { feedback && (feedback.textContent = val.msg); toast(val.msg, "error"); return; }
 
-  // Validate the specific checkout context (handles one-time and cart)
   const lock = lockCartItemsOrFail();
   if (!lock.ok) { feedback && (feedback.textContent = lock.msg); toast(lock.msg, "error"); renderCart(); renderProducts(); return; }
 
-  // Compute totals for the checkout context (either one-time product or full cart)
   const ctx = computeCheckoutContextTotals();
   if (!ctx) { feedback && (feedback.textContent = "Could not compute checkout totals."); toast("Checkout totals error.", "error"); return; }
 
@@ -6196,7 +6270,6 @@ async function startPaystackPayment() {
     return;
   }
 
-  // Persist saved customer details if user asked
   if ($("#saveDetails")?.checked) { state.customer = val.customer; }
   persist();
 
@@ -6213,19 +6286,19 @@ async function startPaystackPayment() {
   const orderId = uid();
   const paystackRef = `${orderId}-${Math.random().toString(16).slice(2).toUpperCase()}`;
 
-  // Build items payload from the checkout context
-  const itemsPayload = ctx.items.map(it => ({ id: it.id, title: it.title, price: it.price, qty: it.qty, ageCategory: it.ageCategory }));
+  const items = ctx.items.map(it => ({ id: it.id, title: it.title, price: it.price, qty: it.qty, ageCategory: it.ageCategory }));
 
   const orderPayload = {
     orderId,
     paystackRef,
     currency: STORE_CURRENCY,
     subtotal: ctx.subtotal,
+    processingFee: ctx.processingFee,
     deliveryFee: ctx.deliveryFee,
     discount: ctx.discount,
     total: ctx.total,
     customer: val.customer,
-    items: itemsPayload,
+    items,
     paidAt: null,
   };
 
@@ -6262,21 +6335,13 @@ async function startPaystackPayment() {
   }
 }
 
-/**
- * Handle successful payment.
- * Marks purchased items as sold and clears only the proper context:
- * - if it was a one-time purchase, clear state.oneTimePurchase (do not clear cart)
- * - if it was a cart checkout, clear state.cart
- */
 function onPaymentSuccess(orderPayload, reference) {
   const feedback = $("#checkoutFeedback");
   const btn = $("#payNowBtn");
 
-  // Re-check availability (defensive)
   const lock = lockCartItemsOrFail();
   if (!lock.ok) { btn && (btn.disabled = false); feedback && (feedback.textContent = lock.msg); toast(lock.msg, "error"); return; }
 
-  // Mark sold items (use the items array from orderPayload to be exact)
   const purchasedItems = (orderPayload && orderPayload.items) ? orderPayload.items : [];
   purchasedItems.forEach(it => {
     try { state.soldIds.add(it.id); } catch (e) { /* ignore */ }
@@ -6285,12 +6350,10 @@ function onPaymentSuccess(orderPayload, reference) {
   const paidAt = nowISO();
   const order = { ...orderPayload, paystackRef: reference, paidAt };
 
-  // If this was a cart checkout (no oneTimePurchase context) clear the cart
   if (!state.oneTimePurchase) {
     state.cart = [];
     state.appliedPromo = null;
   } else {
-    // One-time purchase flow: clear only the one-time context
     state.oneTimePurchase = null;
   }
 
@@ -6301,8 +6364,8 @@ function onPaymentSuccess(orderPayload, reference) {
   renderSaved();
   renderHistory();
 
+  // Fill receipt (now expecting processingFee)
   fillReceipt(order);
-  // Keep legacy behavior: close checkout modal and open receipt modal
   closeModal("checkoutModal");
   openModal("receiptModal");
 
@@ -6310,8 +6373,64 @@ function onPaymentSuccess(orderPayload, reference) {
   setA11yLive("Payment successful. Receipt opened.");
   btn && (btn.disabled = false);
 
-  // Fire-and-forget: send order to Formspree if configured
   sendOrderToFormspree(order).catch(() => {});
+}
+
+/* Update fillReceipt to show 'Processing fee' rather than 'Discount' and show positive fee */
+function fillReceipt(order) {
+  if (!order) return;
+  $("#receiptDate") && ($("#receiptDate").textContent = new Date(order.paidAt).toLocaleString());
+  $("#receiptOrderId") && ($("#receiptOrderId").textContent = `Order ${order.orderId}`);
+  $("#receiptCustomerName") && ($("#receiptCustomerName").textContent = order.customer.fullName || "—");
+  $("#receiptCustomerEmail") && ($("#receiptCustomerEmail").textContent = order.customer.email || "—");
+  $("#receiptCustomerPhone") && ($("#receiptCustomerPhone").textContent = order.customer.phone || "—");
+  $("#receiptDelivery") && ($("#receiptDelivery").textContent = order.customer.delivery || "—");
+  $("#receiptAddress") && ($("#receiptAddress").textContent = `${order.customer.address || "—"}, ${order.customer.city || ""} ${order.customer.region || ""}`.trim());
+  $("#receiptSubtotal") && ($("#receiptSubtotal").textContent = money(order.subtotal));
+  $("#receiptDeliveryFee") && ($("#receiptDeliveryFee").textContent = "To be confirmed after payment");
+
+  // Change label from "Discount" to "Processing fee" in receipt DOM
+  const receiptDiscountEl = $("#receiptDiscount");
+  if (receiptDiscountEl) {
+    const row = receiptDiscountEl.closest('.line');
+    if (row) {
+      const lbl = row.querySelector('span');
+      if (lbl) lbl.textContent = 'Processing fee';
+    }
+    receiptDiscountEl.textContent = money(order.processingFee || 0);
+  }
+
+  $("#receiptTotal") && ($("#receiptTotal").textContent = money(order.total));
+
+  const itemsBox = $("#receiptItems");
+  if (itemsBox) {
+    itemsBox.innerHTML = order.items.map(it => `<div class="receipt-item"><span>${escapeHTML(it.title)} <span class="mini-muted">(${escapeHTML(it.id)})</span></span><strong>${money(it.price)}</strong></div>`).join("");
+  }
+
+  $("#copyReceiptBtn") && ($("#copyReceiptBtn").onclick = async () => {
+    const text = [
+      `April Blossoms Receipt`,
+      `Order: ${order.orderId}`,
+      `Date: ${new Date(order.paidAt).toLocaleString()}`,
+      `Customer: ${order.customer.fullName} • ${order.customer.phone} • ${order.customer.email}`,
+      `Delivery: ${order.customer.delivery} • ${order.customer.address}, ${order.customer.city}, ${order.customer.region}`,
+      `Items:`,
+      ...order.items.map(it => `- ${it.title} (${it.id}) — ${money(it.price)}`),
+      `Subtotal: ${money(order.subtotal)}`,
+      `Processing fee: ${money(order.processingFee || 0)}`,
+      `Total: ${money(order.total)}`,
+      `Paystack Ref: ${order.paystackRef || "—"}`
+    ].join("\n");
+    try { await navigator.clipboard.writeText(text); toast("Receipt copied.", "success"); } catch { toast("Could not copy. Your browser may block clipboard access.", "error"); }
+  });
+
+  $("#downloadReceiptBtn") && ($("#downloadReceiptBtn").onclick = () => downloadReceiptPDF(order));
+}
+
+/* Update receiptHTML used for download to include processingFee (replace function) */
+function receiptHTML(order) {
+  const items = order.items.map(it => `<tr><td style="padding:8px 0; border-bottom:1px solid #eee;"><div style="font-weight:600;">${escapeHTML(it.title)}</div><div style="color:#666; font-size:12px;">${escapeHTML(it.id)} • Age ${escapeHTML(it.ageCategory || "")}</div></td><td style="padding:8px 0; border-bottom:1px solid #eee; text-align:right; font-weight:600;">${money(it.price)}</td></tr>`).join("");
+  return `<!doctype html><html><head><meta charset="utf-8"><title>Receipt ${escapeHTML(order.orderId)}</title><style>*{box-sizing:border-box}body{font-family:Arial, sans-serif; margin:24px; color:#111}.top{display:flex; justify-content:space-between; align-items:flex-start; gap:16px}.brand{display:flex; gap:12px; align-items:center}.logo{width:52px; height:52px; object-fit:cover; border-radius:12px}h1{font-size:18px; margin:0}.muted{color:#666; font-size:12px; margin-top:4px}.pill{display:inline-block; padding:6px 10px; border-radius:999px; background:#e8fff0; color:#0b6a2b; font-weight:700; font-size:12px}hr{border:none; border-top:1px solid #eee; margin:18px 0}.grid{display:grid; grid-template-columns:1fr 1fr; gap:14px}.box{border:1px solid #eee; border-radius:14px; padding:12px}.label{color:#666; font-size:12px}.value{font-weight:600; margin-top:2px}table{width:100%; border-collapse:collapse}.totals{margin-top:12px}.totals .row{display:flex; justify-content:space-between; padding:6px 0}.totals .row.total{border-top:1px solid #eee; padding-top:10px; font-size:16px; font-weight:800}.foot{margin-top:16px; color:#666; font-size:12px}@media print { body{margin:0; padding:18px} .no-print{display:none} }</style></head><body><div class="top"><div class="brand"><img src="logo.jpg" class="logo" alt="April Blossoms"><div><h1>April Blossoms — Receipt</h1><div class="muted">Order ${escapeHTML(order.orderId)} • ${new Date(order.paidAt).toLocaleString()}</div></div></div><div style="text-align:right"><div class="pill">PAID</div><div class="muted" style="margin-top:8px">Paystack Ref: ${escapeHTML(order.paystackRef || "—")}</div></div></div><hr><div class="grid"><div class="box"><div class="label">Customer</div><div class="value">${escapeHTML(order.customer.fullName || "—")}</div><div class="muted">${escapeHTML(order.customer.email || "—")} • ${escapeHTML(order.customer.phone || "—")}</div></div><div class="box"><div class="label">Delivery</div><div class="value">${escapeHTML(order.customer.delivery || "—")}</div><div class="muted">${escapeHTML(order.customer.address || "—")}, ${escapeHTML(order.customer.city || "")} ${escapeHTML(order.customer.region || "")}</div></div></div><hr><table><thead><tr><th style="text-align:left; padding-bottom:10px; color:#666; font-size:12px;">Item</th><th style="text-align:right; padding-bottom:10px; color:#666; font-size:12px;">Price</th></tr></thead><tbody>${items}</tbody></table><div class="totals"><div class="row"><span class="muted">Subtotal</span><strong>${money(order.subtotal)}</strong></div><div class="row"><span class="muted">Processing fee</span><strong>${money(order.processingFee)}</strong></div><div class="row"><span class="muted">Delivery</span><strong>${money(order.deliveryFee)}</strong></div><div class="row total"><span>Total</span><span>${money(order.total)}</span></div></div><div class="foot">Need help? WhatsApp ${CONTACT.whatsapp} • Email ${CONTACT.email}</div><button class="no-print" onclick="window.print()" style="margin-top:18px; padding:10px 14px; border-radius:10px; border:1px solid #ddd; cursor:pointer;">Print / Save as PDF</button></body></html>`;
 }
 
   async function sendOrderToFormspree(order) {
@@ -6738,73 +6857,7 @@ function onPaymentSuccess(orderPayload, reference) {
     console.error("Global script error:", e.message, e.filename, e.lineno, e.colno);
   });
 
-  (function setupCheckoutMobileReorder() {
-  const BREAKPOINT = 920;
 
-  function reorderCheckoutForMobile() {
-    const modal = document.getElementById('checkoutModal');
-    if (!modal) return;
-
-    const left = modal.querySelector('.checkout-left');
-    const right = modal.querySelector('.checkout-right');
-    if (!left || !right) return;
-
-    const isMobile = window.matchMedia(`(max-width: ${BREAKPOINT}px)`).matches;
-
-    if (isMobile) {
-      // Insert summary (right) into left, before consents if present
-      const consents = left.querySelector('.consents');
-      // if already moved, do nothing
-      if (right.parentElement === left) return;
-      try {
-        left.insertBefore(right, consents || null);
-        right.classList.add('moved-to-left');
-      } catch (e) {
-        console.warn('Could not move checkout summary into left column', e);
-      }
-    } else {
-      // restore: put .checkout-right back after left inside the modal body
-      const modalBody = modal.querySelector('.checkout-body');
-      if (!modalBody) return;
-      // if it's currently moved inside left, move it back
-      if (right.parentElement === left) {
-        try {
-          // append as sibling after left
-          modalBody.appendChild(right);
-          right.classList.remove('moved-to-left');
-        } catch (e) {
-          console.warn('Could not restore checkout summary position', e);
-        }
-      }
-    }
-  }
-
-  // Run when modal opens/closes: MutationObserver watches aria-hidden/class changes
-  const coModal = document.getElementById('checkoutModal');
-  if (coModal) {
-    const mo = new MutationObserver(() => {
-      const isOpen = coModal.classList.contains('open') || coModal.getAttribute('aria-hidden') === 'false';
-      if (isOpen) {
-        // delay slightly to ensure layout/CSS applied
-        setTimeout(reorderCheckoutForMobile, 12);
-      } else {
-        // restore layout on close
-        setTimeout(reorderCheckoutForMobile, 12);
-      }
-    });
-    mo.observe(coModal, { attributes: true, attributeFilter: ['class', 'aria-hidden'] });
-  }
-
-  // Also react to viewport resizes (user rotates or resizes)
-  window.addEventListener('resize', () => {
-    // small throttle
-    clearTimeout(window.__ab_checkout_reorder_t);
-    window.__ab_checkout_reorder_t = setTimeout(reorderCheckoutForMobile, 120);
-  }, { passive: true });
-
-  // If checkout is already open when this script runs, ensure it is reordered correctly once:
-  setTimeout(reorderCheckoutForMobile, 100);
-})();
   /* ==========================
    Task 5 — "Buy" = one-off checkout (does NOT add to cart)
    Insert inside your main script (IIFE) so it has access to productById, money, state, openModal, and toast.
