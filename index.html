@@ -3226,7 +3226,151 @@ a:focus, button:focus, input:focus, select:focus, textarea:focus{
   .cart-item img { width:64px; height:64px; }
   .cart-item .ci-trash { left: 10px; top: 10px; }
 }
+/* =========================
+   Header — mobile simplification & fixed behavior
+   Paste at the END of your CSS to override earlier rules.
+   ========================= */
 
+/* Make header fixed (doesn't scroll) and ensure it's on top */
+.site-header {
+  position: fixed !important;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  z-index: 1400;               /* sits above most UI but under modals/drawers (they use 1200/1300) */
+  box-shadow: 0 6px 20px rgba(16,24,40,0.06);
+}
+
+/* Prevent fixed header from covering content:
+   we add top spacing to the page equal to header + announce height.
+   On small screens the announcement will be hidden, so we reduce padding there. */
+body {
+  padding-top: calc(var(--headerH) + 46px); /* header height + announce approx */
+  transition: padding-top .18s var(--ease);
+}
+
+/* Keep header-inner centered and not stretched */
+.header-inner {
+  max-width: var(--max);
+  margin: 0 auto;
+}
+
+/* Announcement bar and brand text hidden on small screens via media query below,
+   but to be safe hide nothing by default here. */
+
+/* -----------------------------
+   Mobile (smaller screens) rules
+   ----------------------------- */
+@media (max-width: 920px) {
+  /* Keep only the logo icon in view — hide the brand text (name & tagline) */
+  .brand-text { display: none !important; }
+
+  /* Hide announcement strip on small screens (you asked not to see it) */
+  .announce { display: none !important; }
+
+  /* Make header padding tighter to save vertical space */
+  .header-inner { padding: 8px 14px; height: var(--headerH); align-items:center; }
+
+  /* Slightly reduce logo size to fit comfortably on phones */
+  .brand-logo { width: 40px; height: 40px; }
+
+  /* Ensure the primary nav is hidden (small screens already did this but keep it enforced) */
+  .nav { display: none !important; }
+
+  /* Make action icons visible and consistent */
+  .header-actions { gap: 8px; margin-left: auto; align-items: center; }
+
+  /* Remove text overflow risk for header elements */
+  .header-inner .brand { min-width: 0; }
+
+  /* Ensure badges stay visible and do not overflow */
+  .badge { transform: translate(6px, -6px); font-size: 11px; }
+}
+
+/* Desktop and larger: if announcement is visible keep the extra top spacing */
+@media (min-width: 921px) {
+  body { padding-top: calc(var(--headerH) + 46px); }
+}
+
+/* If announcement is hidden (very small screens) we only need header height */
+@media (max-width: 520px) {
+  body { padding-top: var(--headerH); } /* minimize wasted space on very small screens */
+  .header-inner { padding-left: 12px; padding-right: 12px; }
+}
+
+.icon-btn:focus { outline: 3px solid rgba(0,0,0,0.06); box-shadow: var(--focus); }
+
+.brand-text { -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; }
+
+:target { scroll-margin-top: calc(var(--headerH) + 8px); }
+
+  :root { --vh: 1vh; }
+
+/* Make drawer respect safe-area insets and viewport height */
+.drawer-panel {
+  /* use var(--vh) to compute a stable mobile viewport height */
+  max-height: calc(var(--vh, 1vh) * 100 - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+  top: env(safe-area-inset-top, 0px);
+  right: 0;
+  bottom: env(safe-area-inset-bottom, 0px);
+  height: auto;                /* allow max-height to control height */
+  box-sizing: border-box;
+  display:flex;
+  flex-direction: column;
+  /* ensure content doesn't run under browser UI */
+  padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+}
+
+/* Ensure cart header is visible (not covered by notch) */
+.drawer-header {
+  padding-top: calc(12px + env(safe-area-inset-top, 0px));
+  padding-left: 14px;
+  padding-right: 14px;
+}
+
+/* Keep the cart list scrollable and avoid being hidden under footer/summary */
+.cart-items {
+  flex: 1 1 auto;
+  min-height: 0; /* allow flex children to shrink */
+  overflow: hidden;
+  display:flex;
+  flex-direction: column;
+}
+
+/* the scrollable area that contains items */
+.cart-list {
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px)); /* ensure last item not hidden */
+}
+
+/* Keep the summary visible and sticky above the safe area */
+.cart-summary {
+  position: sticky;
+  bottom: env(safe-area-inset-bottom, 0px);
+  z-index: 3;
+  padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  background: linear-gradient(to top, rgba(255,255,255,0.98), rgba(255,255,255,0.95)); /* subtle separation */
+}
+
+/* Extra: avoid the page content being hidden when drawer is open on mobile
+   (we only add a small safe bottom to body when drawer is open via class) */
+body.drawer-open {
+  --drawer-safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Prevent overscroll chaining (keeps browser chrome from moving unintentionally
+   when scrolling inside the drawer on mobile) */
+.cart-list {
+  overscroll-behavior: contain;
+}
+
+/* Very small screens: slightly reduce cart-padding to maximize visible area */
+@media (max-width:420px) {
+  .drawer-panel { padding-left: 10px; padding-right: 10px; }
+  .drawer-header { padding-left: 10px; padding-right: 10px; }
+}
 </style>
 </head>
 
@@ -5935,6 +6079,61 @@ function clearCart() {
 })();
 </script>
 
+<script>
+/* Task 3 helper: stable vh and drawer recalculation for mobile UI */
+(function () {
+  // set --vh based on current window.innerHeight (mobile 100vh workaround)
+  function setVhVar() {
+    try {
+      const vh = window.innerHeight * 0.01;
+      document.documentElement.style.setProperty('--vh', `${vh}px`);
+    } catch (e) {
+      // ignore if not allowed
+    }
+  }
+
+  // When drawer opens, make sure its max-height is recalculated (some browsers need a nudge)
+  function refreshDrawerSizing() {
+    setVhVar();
+    const panel = document.querySelector('.drawer-panel');
+    if (!panel) return;
+    // force recompute by toggling a paint-friendly property (no visual flicker)
+    panel.style.willChange = 'transform';
+    // small timeout lets browser apply layout with updated --vh
+    window.setTimeout(() => { panel.style.willChange = ''; }, 120);
+  }
+
+  // Run on load and on common viewport events
+  window.addEventListener('load', setVhVar, { passive: true });
+  window.addEventListener('resize', setVhVar, { passive: true });
+  window.addEventListener('orientationchange', () => { setVhVar(); refreshDrawerSizing(); }, { passive: true });
+
+  // If your site toggles .cart-drawer.open or body.drawer-open, hook into those changes.
+  // Observe attribute/class changes to body and react when drawer opens.
+  const bodyObserver = new MutationObserver((mutations) => {
+    for (const m of mutations) {
+      if (m.type === 'attributes' && m.attributeName === 'class') {
+        const isOpen = document.body.classList.contains('drawer-open') || document.querySelector('.cart-drawer.open') !== null;
+        if (isOpen) refreshDrawerSizing();
+      }
+    }
+  });
+  bodyObserver.observe(document.documentElement || document.body, { attributes: true, subtree: false });
+
+  // In case your code uses explicit drawer open events, listen to clicks on elements that open the cart,
+  // and recalc shortly after — this makes it resilient.
+  document.addEventListener('click', (ev) => {
+    const btn = ev.target.closest('[data-open-drawer="cartDrawer"], [data-open-drawer="#cartDrawer"], [data-open-drawer]');
+    if (btn) {
+      // schedule recalculation after your open routine runs
+      setTimeout(refreshDrawerSizing, 180);
+    }
+  }, { passive: true });
+
+  // initial run
+  setVhVar();
+})();
+</script>
 
 </body>
 </html>
