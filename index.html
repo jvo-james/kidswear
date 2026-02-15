@@ -3164,6 +3164,68 @@ a:focus, button:focus, input:focus, select:focus, textarea:focus{
   color: var(--text) !important;
 }
 
+/* === Minimal cart look & prominent trash button === */
+.cart-perks { display: none !important; } /* extra safety if not removed from HTML */
+.cart-progress { display: none !important; }
+
+.cart-items { padding: 12px 14px; } /* keep items section tidy */
+
+.cart-list { gap: 12px; }
+
+/* make each cart row more compact and image a bit larger */
+.cart-item {
+  position: relative;
+  display: grid;
+  grid-template-columns: 72px 1fr auto;
+  gap: 12px;
+  padding: 10px;
+  border-radius: 16px;
+  align-items: center;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(0,0,0,0.06);
+}
+
+/* product image */
+.cart-item img {
+  width: 72px;
+  height: 72px;
+  border-radius: 12px;
+  object-fit: cover;
+  display: block;
+  border: 1px solid rgba(0,0,0,0.06);
+}
+
+/* move the small 'remove' icon in ci-right out of the way (we add a clear trash) */
+.cart-item .ci-actions .mini-icon.danger { display: none !important; }
+
+/* big / obvious trash button near image */
+.cart-item .ci-trash {
+  position: absolute;
+  left: 8px;
+  top: 8px;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  background: rgba(255,81,111,0.10);
+  border: 1px solid rgba(255,81,111,0.20);
+  cursor: pointer;
+  z-index: 3;
+}
+.cart-item .ci-trash i { color: #ff516f; font-size: 14px; }
+
+/* slightly larger price + bold title */
+.ci-title { font-size: 14px; font-weight: 800; }
+.ci-price { font-weight: 900; font-size: 14px; color: inherit; }
+
+/* ensure cart scroll area has room on mobile (we'll keep drawer height full) */
+.drawer-panel { padding-bottom: 0; }
+@media (max-width:600px){
+  .cart-item { grid-template-columns: 64px 1fr auto; }
+  .cart-item img { width:64px; height:64px; }
+  .cart-item .ci-trash { left: 10px; top: 10px; }
+}
 
 </style>
 </head>
@@ -3579,34 +3641,7 @@ a:focus, button:focus, input:focus, select:focus, textarea:focus{
         </button>
       </header>
 
-      <!-- Cart: free perks + progress -->
-      <section class="cart-perks" aria-label="Cart perks">
-        <div class="perk">
-          <i class="fa-solid fa-gift" aria-hidden="true"></i>
-          <div>
-            <p class="perk-title">Gift-ready receipt</p>
-            <p class="perk-sub">Downloadable PDF after purchase.</p>
-          </div>
-        </div>
-
-        <div class="perk">
-          <i class="fa-solid fa-shield" aria-hidden="true"></i>
-          <div>
-            <p class="perk-title">Secure checkout</p>
-            <p class="perk-sub">Paystack protected payment flow.</p>
-          </div>
-        </div>
-
-        <div class="cart-progress" aria-label="Cart progress">
-          <div class="progress-top">
-            <span>Checkout readiness</span>
-            <span id="cartProgressLabel">0%</span>
-          </div>
-          <div class="progress-bar">
-            <span class="progress-fill" id="cartProgressFill" style="width:0%"></span>
-          </div>
-        </div>
-      </section>
+     
 
       <!-- Cart items -->
       <section class="cart-items" aria-label="Cart items">
@@ -4439,13 +4474,6 @@ a:focus, button:focus, input:focus, select:focus, textarea:focus{
   <div class="sr-only" aria-live="polite" id="a11yLive"></div>
 
 <script>
-/* =========================
-   April Blossoms — Robust Inline Script
-   Replace your existing <script> block with this entire block.
-   - Defensive: handles missing elements and blocked resources gracefully
-   - Image-safe: uses repository-root filenames (no folder required)
-   - Debug-friendly: logs key lifecycle events to console
-   ========================= */
 (function () {
   "use strict";
 
@@ -4455,7 +4483,7 @@ a:focus, button:focus, input:focus, select:focus, textarea:focus{
      CONFIG
      - Edit these values if needed.
      ============= */
-  const PAYSTACK_PUBLIC_KEY = window.PAYSTACK_PUBLIC_KEY || "PASTE_YOUR_PAYSTACK_PUBLIC_KEY_HERE";
+  const PAYSTACK_PUBLIC_KEY = window.PAYSTACK_PUBLIC_KEY || "pk_test_297586e51710e83d3c159bfe71ff45c7e23411fa";
   const FORMSPREE_ENDPOINT = window.FORMSPREE_ENDPOINT || "PASTE_YOUR_FORMSPREE_ENDPOINT_HERE";
   const STORE_CURRENCY = "GHS";
   const STORE_CURRENCY_SYMBOL = "₵";
@@ -4864,14 +4892,41 @@ a:focus, button:focus, input:focus, select:focus, textarea:focus{
     } else {
       empty && empty.classList.add("is-hidden");
       listEl.innerHTML = "";
-      items.forEach(({ p, img, sold }) => {
-        const row = document.createElement("div");
-        row.className = `cart-item ${sold ? "is-sold" : ""}`;
-        row.innerHTML = `<div class="ci-left"><img src="${escapeHTML(img)}" alt="${escapeHTML(p.title)}"></div><div class="ci-mid"><div class="ci-top"><p class="ci-title">${escapeHTML(p.title)}</p><span class="ci-id">${escapeHTML(p.id)}</span></div><p class="ci-desc">${escapeHTML(p.description)}</p><div class="ci-meta"><span class="tag">Age ${escapeHTML(p.ageCategory)}</span>${sold ? `<span class="tag danger">Sold</span>` : `<span class="tag success">Reserved</span>`}</div></div><div class="ci-right"><p class="ci-price">${money(p.price)}</p><div class="ci-actions"><button class="mini-icon" type="button" data-action="move-to-saved" data-id="${escapeHTML(p.id)}" aria-label="Save for later"><i class="fa-regular fa-bookmark" aria-hidden="true"></i></button><button class="mini-icon danger" type="button" data-action="remove-from-cart" data-id="${escapeHTML(p.id)}" aria-label="Remove"><i class="fa-solid fa-trash" aria-hidden="true"></i></button></div></div>`;
-        const imgEl = row.querySelector("img");
-        if (imgEl) imgEl.addEventListener("error", () => imgEl.src = placeholderSVG);
-        listEl.appendChild(row);
-      });
+   items.forEach(({ p, img, sold }) => {
+  const row = document.createElement("div");
+  row.className = `cart-item ${sold ? "is-sold" : ""}`;
+  row.setAttribute("data-cart-id", p.id);
+
+  row.innerHTML = ''
+    + `<div class="ci-left"><img src="${escapeHTML(img)}" alt="${escapeHTML(p.title)}"></div>`
+    + `<div class="ci-mid">`
+    +   `<div class="ci-top"><p class="ci-title">${escapeHTML(p.title)}</p><span class="ci-id">${escapeHTML(p.id)}</span></div>`
+    +   `<p class="ci-desc">${escapeHTML(p.description || "")}</p>`
+    +   `<div class="ci-meta"><span class="tag">Age ${escapeHTML(p.ageCategory || "")}</span>${sold ? `<span class="tag danger">Sold</span>` : `<span class="tag success">Reserved</span>`}</div>`
+    + `</div>`
+    + `<div class="ci-right"><p class="ci-price">${money(p.price)}</p><div class="ci-actions"><button class="mini-icon" type="button" data-action="move-to-saved" data-id="${escapeHTML(p.id)}" aria-label="Save for later"><i class="fa-regular fa-bookmark" aria-hidden="true"></i></button></div></div>`;
+
+  // image fallback
+  const imgEl = row.querySelector("img");
+  if (imgEl) imgEl.addEventListener("error", () => imgEl.src = placeholderSVG);
+
+  // add prominent trash button (close to the image)
+  const trash = document.createElement("button");
+  trash.type = "button";
+  trash.className = "mini-icon ci-trash danger";
+  trash.setAttribute("aria-label", "Remove item");
+  trash.setAttribute("data-id", p.id);
+  trash.innerHTML = '<i class="fa-solid fa-trash" aria-hidden="true"></i>';
+  // attach click handler
+  trash.addEventListener("click", () => {
+    removeFromCart(p.id);
+    // update a11y + toast handled by removeFromCart path (if present)
+  });
+
+  row.appendChild(trash);
+  listEl.appendChild(row);
+});
+
     }
 
     renderCheckoutSummary();
@@ -4971,7 +5026,15 @@ a:focus, button:focus, input:focus, select:focus, textarea:focus{
   }
 
   function removeFromCart(id) { state.cart = state.cart.filter(x => x.id !== id); persist(); renderBadges(); renderCart(); renderProducts(); }
-  function clearCart() { state.cart = []; state.appliedPromo = null; persist(); renderBadges(); renderCart(); toast("Cart cleared.", "info"); }
+function clearCart() {
+  state.cart = [];
+  state.appliedPromo = null;
+  persist();
+  renderBadges();
+  renderCart();
+  renderProducts(); 
+  toast("Cart cleared.", "info");
+}
 
   function toggleSave(id) {
     const i = state.saved.indexOf(id);
