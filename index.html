@@ -5528,6 +5528,53 @@ a:focus, button:focus, input:focus, select:focus, textarea:focus {
 
   <!-- Accessibility helpers -->
   <div class="sr-only" aria-live="polite" id="a11yLive"></div>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import {
+    getFirestore,
+    collection,
+    getDocs,
+    doc,
+    getDoc,
+    addDoc,
+    updateDoc
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import {
+    getAuth,
+    signInWithEmailAndPassword,
+    onAuthStateChanged
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyCY6ueoS5QRikxMd46OYJDrKcLpxg0UMmE",
+    authDomain: "april-blossoms.firebaseapp.com",
+    projectId: "april-blossoms",
+    storageBucket: "april-blossoms.firebasestorage.app",
+    messagingSenderId: "514363089189",
+    appId: "1:514363089189:web:8abdc1c01ececd99653acc",
+    measurementId: "G-7MLXN5D5ZW"
+  };
+
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const auth = getAuth(app);
+
+  window.firebaseServices = {
+    db,
+    auth,
+    collection,
+    getDocs,
+    doc,
+    getDoc,
+    addDoc,
+    updateDoc,
+    signInWithEmailAndPassword,
+    onAuthStateChanged
+  };
+
+  console.log("Firebase connected successfully");
+</script>
 
 <script>
 (function () {
