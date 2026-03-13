@@ -21,20 +21,31 @@ import {
   getDownloadURL
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
+/* =========================
+   FIREBASE CONFIG
+   Replace storageBucket and getStorage bucket with your REAL bucket
+   ========================= */
 const firebaseConfig = {
   apiKey: "AIzaSyCY6ueoS5QRikxMd46OYJDrKcLpxg0UMmE",
   authDomain: "april-blossoms.firebaseapp.com",
   projectId: "april-blossoms",
-storageBucket: "april-blossoms-admin-images",
+  storageBucket: "april-blossoms-admin-images",
   messagingSenderId: "514363089189",
   appId: "1:514363089189:web:8abdc1c01ececd99653acc"
 };
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const db = getFirestore(app);
+
+/* IMPORTANT:
+   Replace gs://YOUR_REAL_BUCKET_NAME with the exact bucket you created */
 const storage = getStorage(app, "gs://april-blossoms-admin-images");
 
+const db = getFirestore(app);
+
+/* =========================
+   DOM
+   ========================= */
 const adminEmail = document.getElementById("adminEmail");
 const adminPassword = document.getElementById("adminPassword");
 const adminLoginBtn = document.getElementById("adminLoginBtn");
@@ -84,13 +95,15 @@ const editProductImageUrl = document.getElementById("editProductImageUrl");
 const editImagePreview = document.getElementById("editImagePreview");
 const editImagePreviewText = document.getElementById("editImagePreviewText");
 
+/* =========================
+   STATE
+   ========================= */
 let allProducts = [];
 let currentEditDocId = null;
 let currentEditProduct = null;
 
 /* =========================
-   YOUR ORIGINAL 50 PRODUCTS
-   Paste/keep them here
+   ORIGINAL 50 PRODUCTS
    ========================= */
 const SEED_PRODUCTS = [
   { id: "DRESS-001", title: "Floral Ruffles", price: 40.0, description: "One-of-a-kind floral ruffle dress", ageCategory: "4-5", images: ["IMG_5700.JPG"], available: true, createdAt: new Date(Date.now()-1*86400000).toISOString() },
@@ -149,7 +162,11 @@ const SEED_PRODUCTS = [
   { id: "DRESS-050", title: "Pocket Garden", price: 40.0, description: "Playful pockets and cotton", ageCategory: "4-5", images: ["IMG_5748.JPG"], available: true, createdAt: new Date(Date.now()-50*86400000).toISOString() }
 ];
 
+/* =========================
+   HELPERS
+   ========================= */
 function setStatus(message, type = "info", target = adminStatus) {
+  if (!target) return;
   target.textContent = message;
   target.className = `status ${type}`;
 }
@@ -180,6 +197,7 @@ function withTimeout(promise, ms, message) {
 }
 
 function previewImageFromUrl(url, imgEl, textEl) {
+  if (!imgEl || !textEl) return;
   if (!url) {
     imgEl.src = "";
     imgEl.classList.add("hidden");
@@ -192,7 +210,7 @@ function previewImageFromUrl(url, imgEl, textEl) {
 }
 
 function previewImageFromFile(file, imgEl, textEl) {
-  if (!file) return;
+  if (!file || !imgEl || !textEl) return;
   const reader = new FileReader();
   reader.onload = () => {
     imgEl.src = reader.result;
@@ -202,112 +220,21 @@ function previewImageFromFile(file, imgEl, textEl) {
   reader.readAsDataURL(file);
 }
 
-productImageFile?.addEventListener("change", () => {
-  const file = productImageFile.files[0];
-  if (file) {
-    previewImageFromFile(file, imagePreview, imagePreviewText);
-    productImageUrl.value = "";
-  }
-});
-
-productImageUrl?.addEventListener("input", () => {
-  const url = productImageUrl.value.trim();
-  if (url) {
-    previewImageFromUrl(url, imagePreview, imagePreviewText);
-    productImageFile.value = "";
-  } else {
-    previewImageFromUrl("", imagePreview, imagePreviewText);
-  }
-});
-
-editProductImageFile?.addEventListener("change", () => {
-  const file = editProductImageFile.files[0];
-  if (file) {
-    previewImageFromFile(file, editImagePreview, editImagePreviewText);
-    editProductImageUrl.value = "";
-  }
-});
-
-editProductImageUrl?.addEventListener("input", () => {
-  const url = editProductImageUrl.value.trim();
-  if (url) {
-    previewImageFromUrl(url, editImagePreview, editImagePreviewText);
-    editProductImageFile.value = "";
-  } else {
-    previewImageFromUrl("", editImagePreview, editImagePreviewText);
-  }
-});
-
 function clearAddForm() {
-  productId.value = "";
-  productTitle.value = "";
-  productPrice.value = "";
-  productAge.value = "";
-  productDescription.value = "";
-  productImageFile.value = "";
-  productImageUrl.value = "";
-  imagePreview.src = "";
-  imagePreview.classList.add("hidden");
-  imagePreviewText.textContent = "Choose an image file or paste an image URL.";
-}
-
-clearFormBtn?.addEventListener("click", clearAddForm);
-
-function openEditModal(product) {
-  currentEditDocId = product.firestoreDocId;
-  currentEditProduct = product;
-
-  editProductId.value = product.id || "";
-  editProductTitle.value = product.title || "";
-  editProductPrice.value = product.price ?? "";
-  editProductAge.value = product.ageCategory || "";
-  editProductDescription.value = product.description || "";
-  editProductImageFile.value = "";
-  editProductImageUrl.value = product.images?.[0] || "";
-
-  if (product.images?.[0]) {
-    previewImageFromUrl(product.images[0], editImagePreview, editImagePreviewText);
-  } else {
-    editImagePreview.src = "";
-    editImagePreview.classList.add("hidden");
-    editImagePreviewText.textContent = "Choose a replacement image file or URL.";
+  if (productId) productId.value = "";
+  if (productTitle) productTitle.value = "";
+  if (productPrice) productPrice.value = "";
+  if (productAge) productAge.value = "";
+  if (productDescription) productDescription.value = "";
+  if (productImageFile) productImageFile.value = "";
+  if (productImageUrl) productImageUrl.value = "";
+  if (imagePreview) {
+    imagePreview.src = "";
+    imagePreview.classList.add("hidden");
   }
-
-  setStatus("", "info", editStatus);
-  editModal.classList.add("open");
-}
-
-function closeEditModal() {
-  editModal.classList.remove("open");
-  currentEditDocId = null;
-  currentEditProduct = null;
-}
-
-closeEditModalBtn?.addEventListener("click", closeEditModal);
-cancelEditBtn?.addEventListener("click", closeEditModal);
-editModal?.addEventListener("click", (e) => {
-  if (e.target === editModal) closeEditModal();
-});
-
-async function uploadImageIfNeeded(file, fallbackUrl = "") {
-  if (!file) return fallbackUrl || "";
-  const user = auth.currentUser;
-  if (!user) throw new Error("You must be logged in to upload images.");
-
-  const filePath = `products/${Date.now()}-${file.name}`;
-  const storageRef = ref(storage, filePath);
-
-  await withTimeout(
-    uploadBytes(storageRef, file),
-    15000,
-    "Image upload timed out. Check Storage setup."
-  );
-
-  return await withTimeout(
-    getDownloadURL(storageRef),
-    10000,
-    "Could not get uploaded image URL."
-  );
+  if (imagePreviewText) {
+    imagePreviewText.textContent = "Choose an image file or paste an image URL.";
+  }
 }
 
 function normalizeProducts(snapshot) {
@@ -318,8 +245,8 @@ function normalizeProducts(snapshot) {
 }
 
 function applyFilters(products) {
-  const query = searchInput.value.trim().toLowerCase();
-  const availability = filterAvailability.value;
+  const query = (searchInput?.value || "").trim().toLowerCase();
+  const availability = filterAvailability?.value || "all";
 
   return products.filter((product) => {
     const matchesQuery =
@@ -338,10 +265,13 @@ function applyFilters(products) {
 }
 
 function renderStats(products) {
+  if (!statTotal || !statAvailable || !statSold || !statValue) return;
   const total = products.length;
   const available = products.filter((p) => p.available).length;
   const sold = total - available;
-  const value = products.filter((p) => p.available).reduce((sum, p) => sum + Number(p.price || 0), 0);
+  const value = products
+    .filter((p) => p.available)
+    .reduce((sum, p) => sum + Number(p.price || 0), 0);
 
   statTotal.textContent = String(total);
   statAvailable.textContent = String(available);
@@ -350,6 +280,7 @@ function renderStats(products) {
 }
 
 function renderProductList(products) {
+  if (!adminProducts) return;
   adminProducts.innerHTML = "";
 
   if (!products.length) {
@@ -406,16 +337,97 @@ async function loadAdminProducts() {
   try {
     const snapshot = await getDocs(collection(db, "products"));
     allProducts = normalizeProducts(snapshot);
-
-    const filtered = applyFilters(allProducts);
     renderStats(allProducts);
-    renderProductList(filtered);
+    renderProductList(applyFilters(allProducts));
   } catch (error) {
     console.error("Failed to load admin products:", error);
-    adminProducts.innerHTML = `<div class="empty">Failed to load products.</div>`;
+    if (adminProducts) {
+      adminProducts.innerHTML = `<div class="empty">Failed to load products.</div>`;
+    }
   }
 }
 
+/* =========================
+   STORAGE
+   ========================= */
+async function uploadImageIfNeeded(file, fallbackUrl = "") {
+  if (!file) return fallbackUrl || "";
+
+  const user = auth.currentUser;
+  if (!user) throw new Error("You must be logged in to upload images.");
+
+  console.log("Uploading file:", file.name, "type:", file.type, "size:", file.size);
+  console.log("Using bucket:", storage.app.options.storageBucket);
+
+  const safeName = `${Date.now()}-${file.name.replace(/\s+/g, "-")}`;
+  const filePath = `products/${safeName}`;
+  const storageRef = ref(storage, filePath);
+
+  try {
+    const uploadResult = await withTimeout(
+      uploadBytes(storageRef, file, {
+        contentType: file.type || "image/jpeg"
+      }),
+      20000,
+      "Image upload timed out. Check Storage setup."
+    );
+
+    console.log("Upload success:", uploadResult);
+
+    const downloadUrl = await withTimeout(
+      getDownloadURL(storageRef),
+      10000,
+      "Could not get uploaded image URL."
+    );
+
+    console.log("Download URL:", downloadUrl);
+    return downloadUrl;
+  } catch (error) {
+    console.error("Storage upload failed:", error);
+    console.error("Storage error code:", error?.code);
+    console.error("Storage error message:", error?.message);
+    throw error;
+  }
+}
+
+/* =========================
+   MODAL
+   ========================= */
+function openEditModal(product) {
+  currentEditDocId = product.firestoreDocId;
+  currentEditProduct = product;
+
+  if (editProductId) editProductId.value = product.id || "";
+  if (editProductTitle) editProductTitle.value = product.title || "";
+  if (editProductPrice) editProductPrice.value = product.price ?? "";
+  if (editProductAge) editProductAge.value = product.ageCategory || "";
+  if (editProductDescription) editProductDescription.value = product.description || "";
+  if (editProductImageFile) editProductImageFile.value = "";
+  if (editProductImageUrl) editProductImageUrl.value = product.images?.[0] || "";
+
+  if (product.images?.[0]) {
+    previewImageFromUrl(product.images[0], editImagePreview, editImagePreviewText);
+  } else if (editImagePreview) {
+    editImagePreview.src = "";
+    editImagePreview.classList.add("hidden");
+    if (editImagePreviewText) {
+      editImagePreviewText.textContent = "Choose a replacement image file or URL.";
+    }
+  }
+
+  setStatus("", "info", editStatus);
+  if (editModal) editModal.classList.add("open");
+}
+
+function closeEditModal() {
+  if (editModal) editModal.classList.remove("open");
+  currentEditDocId = null;
+  currentEditProduct = null;
+}
+
+/* =========================
+   BULK IMPORT
+   ========================= */
 async function bulkImportSeedProducts() {
   const user = auth.currentUser;
   if (!user) {
@@ -464,6 +476,53 @@ async function bulkImportSeedProducts() {
   }
 }
 
+/* =========================
+   EVENTS
+   ========================= */
+productImageFile?.addEventListener("change", () => {
+  const file = productImageFile.files[0];
+  if (file) {
+    previewImageFromFile(file, imagePreview, imagePreviewText);
+    if (productImageUrl) productImageUrl.value = "";
+  }
+});
+
+productImageUrl?.addEventListener("input", () => {
+  const url = productImageUrl.value.trim();
+  if (url) {
+    previewImageFromUrl(url, imagePreview, imagePreviewText);
+    if (productImageFile) productImageFile.value = "";
+  } else {
+    previewImageFromUrl("", imagePreview, imagePreviewText);
+  }
+});
+
+editProductImageFile?.addEventListener("change", () => {
+  const file = editProductImageFile.files[0];
+  if (file) {
+    previewImageFromFile(file, editImagePreview, editImagePreviewText);
+    if (editProductImageUrl) editProductImageUrl.value = "";
+  }
+});
+
+editProductImageUrl?.addEventListener("input", () => {
+  const url = editProductImageUrl.value.trim();
+  if (url) {
+    previewImageFromUrl(url, editImagePreview, editImagePreviewText);
+    if (editProductImageFile) editProductImageFile.value = "";
+  } else {
+    previewImageFromUrl("", editImagePreview, editImagePreviewText);
+  }
+});
+
+clearFormBtn?.addEventListener("click", clearAddForm);
+closeEditModalBtn?.addEventListener("click", closeEditModal);
+cancelEditBtn?.addEventListener("click", closeEditModal);
+
+editModal?.addEventListener("click", (e) => {
+  if (e.target === editModal) closeEditModal();
+});
+
 searchInput?.addEventListener("input", () => {
   renderProductList(applyFilters(allProducts));
 });
@@ -484,14 +543,14 @@ refreshBtn?.addEventListener("click", async () => {
 
 openAddModalBtn?.addEventListener("click", () => {
   window.scrollTo({ top: 0, behavior: "smooth" });
-  productTitle.focus();
+  productTitle?.focus();
 });
 
 bulkImportBtn?.addEventListener("click", bulkImportSeedProducts);
 
 adminLoginBtn?.addEventListener("click", async () => {
-  const email = adminEmail.value.trim();
-  const password = adminPassword.value.trim();
+  const email = adminEmail?.value.trim();
+  const password = adminPassword?.value.trim();
 
   if (!email || !password) {
     setStatus("Enter email and password", "error");
@@ -524,15 +583,15 @@ logoutBtn?.addEventListener("click", async () => {
 
 onAuthStateChanged(auth, async (user) => {
   if (user) {
-    authBadge.textContent = `Logged in: ${user.email}`;
-    logoutBtn.classList.remove("hidden");
+    if (authBadge) authBadge.textContent = `Logged in: ${user.email}`;
+    logoutBtn?.classList.remove("hidden");
     setStatus(`Logged in as ${user.email}`, "success");
     await loadAdminProducts();
   } else {
-    authBadge.textContent = "Not logged in";
-    logoutBtn.classList.add("hidden");
+    if (authBadge) authBadge.textContent = "Not logged in";
+    logoutBtn?.classList.add("hidden");
     setStatus("Not logged in", "info");
-    adminProducts.innerHTML = `<div class="empty">Log in to manage products.</div>`;
+    if (adminProducts) adminProducts.innerHTML = `<div class="empty">Log in to manage products.</div>`;
     allProducts = [];
     renderStats([]);
   }
@@ -545,13 +604,13 @@ addProductBtn?.addEventListener("click", async () => {
     return;
   }
 
-  const id = productId.value.trim();
-  const title = productTitle.value.trim();
-  const price = Number(productPrice.value);
-  const ageCategory = productAge.value.trim();
-  const description = productDescription.value.trim();
-  const file = productImageFile.files[0];
-  const imageUrlInput = productImageUrl.value.trim();
+  const id = productId?.value.trim();
+  const title = productTitle?.value.trim();
+  const price = Number(productPrice?.value);
+  const ageCategory = productAge?.value.trim();
+  const description = productDescription?.value.trim();
+  const file = productImageFile?.files[0];
+  const imageUrlInput = productImageUrl?.value.trim();
 
   if (!id || !title || Number.isNaN(price) || price < 0 || !ageCategory) {
     setStatus("Fill in Product ID, Title, Price, and Age Category", "error");
@@ -590,6 +649,7 @@ addProductBtn?.addEventListener("click", async () => {
     setStatus("Product added successfully", "success");
   } catch (error) {
     console.error("Failed to add product:", error);
+    console.error("Add product storage bucket:", storage.app.options.storageBucket);
     setStatus(error.message || "Failed to add product.", "error");
   } finally {
     setButtonLoading(addProductBtn, false);
@@ -652,13 +712,13 @@ saveEditBtn?.addEventListener("click", async () => {
     return;
   }
 
-  const id = editProductId.value.trim();
-  const title = editProductTitle.value.trim();
-  const price = Number(editProductPrice.value);
-  const ageCategory = editProductAge.value.trim();
-  const description = editProductDescription.value.trim();
-  const file = editProductImageFile.files[0];
-  const imageUrlInput = editProductImageUrl.value.trim();
+  const id = editProductId?.value.trim();
+  const title = editProductTitle?.value.trim();
+  const price = Number(editProductPrice?.value);
+  const ageCategory = editProductAge?.value.trim();
+  const description = editProductDescription?.value.trim();
+  const file = editProductImageFile?.files[0];
+  const imageUrlInput = editProductImageUrl?.value.trim();
 
   if (!id || !title || Number.isNaN(price) || price < 0 || !ageCategory) {
     setStatus("Fill in Product ID, Title, Price, and Age Category", "error", editStatus);
