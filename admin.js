@@ -8,7 +8,8 @@ import {
 import {
   getFirestore,
   collection,
-  addDoc
+  addDoc,
+  getDocs
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -37,6 +38,41 @@ const productDescription = document.getElementById("productDescription");
 const productImage = document.getElementById("productImage");
 const addProductBtn = document.getElementById("addProductBtn");
 
+const adminProducts = document.getElementById("adminProducts");
+
+async function loadAdminProducts() {
+  try {
+    const snapshot = await getDocs(collection(db, "products"));
+    adminProducts.innerHTML = "";
+
+    if (snapshot.empty) {
+      adminProducts.innerHTML = "<p class='muted'>No products found.</p>";
+      return;
+    }
+
+    snapshot.forEach((docSnap) => {
+      const product = docSnap.data();
+
+      const row = document.createElement("div");
+      row.className = "product-row";
+
+      row.innerHTML = `
+        <h3>${product.title}</h3>
+        <p><strong>ID:</strong> ${product.id}</p>
+        <p><strong>Price:</strong> ₵${product.price}</p>
+        <p><strong>Age:</strong> ${product.ageCategory}</p>
+        <p><strong>Available:</strong> ${product.available ? "Yes" : "No"}</p>
+        <p><strong>Image:</strong> ${product.images?.[0] || "No image"}</p>
+      `;
+
+      adminProducts.appendChild(row);
+    });
+  } catch (error) {
+    console.error("Failed to load admin products:", error);
+    adminProducts.innerHTML = "<p class='muted'>Failed to load products.</p>";
+  }
+}
+
 adminLoginBtn.addEventListener("click", async () => {
   const email = adminEmail.value.trim();
   const password = adminPassword.value.trim();
@@ -60,8 +96,10 @@ adminLoginBtn.addEventListener("click", async () => {
 onAuthStateChanged(auth, (user) => {
   if (user) {
     adminStatus.textContent = `Logged in as ${user.email}`;
+    loadAdminProducts();
   } else {
     adminStatus.textContent = "Not logged in";
+    adminProducts.innerHTML = "";
   }
 });
 
@@ -104,6 +142,7 @@ addProductBtn.addEventListener("click", async () => {
     });
 
     adminStatus.textContent = "Product added successfully";
+    await loadAdminProducts();
 
     productId.value = "";
     productTitle.value = "";
