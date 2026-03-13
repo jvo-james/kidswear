@@ -7004,7 +7004,7 @@ async function onPaymentSuccess(orderPayload, reference) {
       ? orderPayload.items
       : state.cart.map(it => ({ id: it.id }));
 
-    purchasedItems.forEach(it => { if (it && it.id) state.soldIds.add(it.id); });
+    // purchasedItems.forEach(it => { if (it && it.id) state.soldIds.add(it.id); });
 
     // finalize order object
     const paidAt = nowISO();
