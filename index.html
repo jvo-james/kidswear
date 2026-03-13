@@ -7071,6 +7071,7 @@ await loadProductsFromFirebase();
     const btn = $("#payNowBtn"); if (btn) btn.disabled = false;
   }
 }
+window.onPaymentSuccess = onPaymentSuccess;
 
 
 function populateAndOpenPaymentSuccessModal(order) {
