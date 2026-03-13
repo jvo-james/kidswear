@@ -5717,7 +5717,7 @@ let PRODUCTS = [
     history: JSON.parse(localStorage.getItem(LS.history) || "[]"),
     appliedPromo: JSON.parse(localStorage.getItem(LS.promo) || "null"),
     customer: JSON.parse(localStorage.getItem(LS.customer) || "null"),
-    soldIds: new Set(JSON.parse(localStorage.getItem(LS.sold) || "[]"))
+   soldIds: new Set()
   };
 
   function persist() {
@@ -5746,11 +5746,15 @@ let PRODUCTS = [
   /* =============
      HELPERS: PRODUCTS & FILTERS
      ============= */
-  function isSold(id) { return state.soldIds.has(id); }
+ function isSold(id) {
+  const product = PRODUCTS.find(p => p.id === id);
+  return !product || product.available === false;
+}
+
   function productById(id) { return PRODUCTS.find(p => p.id === id); }
 
   function getFilteredProducts() {
-    let list = PRODUCTS.map(p => ({ ...p, available: p.available && !isSold(p.id) }));
+   let list = PRODUCTS.map(p => ({ ...p }));
     const f = state.filter;
 
     // quick chips
