@@ -12,15 +12,13 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
-    apiKey: "AIzaSyCY6ueoS5QRikxMd46OYJDrKcLpxg0UMmE",
-    authDomain: "april-blossoms.firebaseapp.com",
-    projectId: "april-blossoms",
-    storageBucket: "april-blossoms.firebasestorage.app",
-    messagingSenderId: "514363089189",
-    appId: "1:514363089189:web:8abdc1c01ececd99653acc",
-    measurementId: "G-7MLXN5D5ZW"
-  };
-
+  apiKey: "AIzaSyCY6ueoS5QRikxMd46OYJDrKcLpxg0UMmE",
+  authDomain: "april-blossoms.firebaseapp.com",
+  projectId: "april-blossoms",
+  storageBucket: "april-blossoms.firebasestorage.app",
+  messagingSenderId: "514363089189",
+  appId: "1:514363089189:web:8abdc1c01ececd99653acc"
+};
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
@@ -30,6 +28,7 @@ const adminEmail = document.getElementById("adminEmail");
 const adminPassword = document.getElementById("adminPassword");
 const adminLoginBtn = document.getElementById("adminLoginBtn");
 const adminStatus = document.getElementById("adminStatus");
+
 const productId = document.getElementById("productId");
 const productTitle = document.getElementById("productTitle");
 const productPrice = document.getElementById("productPrice");
@@ -69,6 +68,7 @@ onAuthStateChanged(auth, (user) => {
 window.adminSignOut = async function () {
   await signOut(auth);
 };
+
 addProductBtn.addEventListener("click", async () => {
   const user = auth.currentUser;
 
