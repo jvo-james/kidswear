@@ -52,6 +52,7 @@ const productImageFile = document.getElementById("productImageFile");
 const productImageUrl = document.getElementById("productImageUrl");
 const addProductBtn = document.getElementById("addProductBtn");
 const clearFormBtn = document.getElementById("clearFormBtn");
+const bulkImportBtn = document.getElementById("bulkImportBtn");
 
 const imagePreview = document.getElementById("imagePreview");
 const imagePreviewText = document.getElementById("imagePreviewText");
@@ -86,6 +87,67 @@ const editImagePreviewText = document.getElementById("editImagePreviewText");
 let allProducts = [];
 let currentEditDocId = null;
 let currentEditProduct = null;
+
+/* =========================
+   YOUR ORIGINAL 50 PRODUCTS
+   Paste/keep them here
+   ========================= */
+const SEED_PRODUCTS = [
+  { id: "DRESS-001", title: "Floral Ruffles", price: 40.0, description: "One-of-a-kind floral ruffle dress", ageCategory: "4-5", images: ["IMG_5700.JPG"], available: true, createdAt: new Date(Date.now()-1*86400000).toISOString() },
+  { id: "DRESS-002", title: "Sunshine Dress", price: 30.0, description: "Bright yellow play dress", ageCategory: "4-5", images: ["IMG_5701.JPG"], available: true, createdAt: new Date(Date.now()-2*86400000).toISOString() },
+  { id: "DRESS-003", title: "Party Bow Dress", price: 35.0, description: "Elegant dress for special occasions", ageCategory: "4-5", images: ["IMG_5702.JPG"], available: true, createdAt: new Date(Date.now()-3*86400000).toISOString() },
+  { id: "DRESS-004", title: "Polka Play", price: 35.0, description: "Polka-dot twirl dress", ageCategory: "4-5", images: ["IMG_5703.JPG"], available: true, createdAt: new Date(Date.now()-4*86400000).toISOString() },
+  { id: "DRESS-005", title: "Candy Stripes", price: 35.0, description: "Soft striped cotton dress", ageCategory: "4-5", images: ["IMG_5704.JPG"], available: true, createdAt: new Date(Date.now()-5*86400000).toISOString() },
+  { id: "DRESS-006", title: "Meadow Tiny", price: 35.0, description: "Hand-stitched meadow pattern", ageCategory: "4-5", images: ["IMG_5705.JPG"], available: true, createdAt: new Date(Date.now()-6*86400000).toISOString() },
+  { id: "DRESS-007", title: "Lace Halo", price: 40.0, description: "Lace-trim party dress", ageCategory: "4-5", images: ["IMG_5706.JPG"], available: true, createdAt: new Date(Date.now()-7*86400000).toISOString() },
+  { id: "DRESS-008", title: "Seaside Sundress", price: 35.0, description: "Cool and breezy sun dress", ageCategory: "4-5", images: ["IMG_5707.JPG"], available: true, createdAt: new Date(Date.now()-8*86400000).toISOString() },
+  { id: "DRESS-009", title: "Minty Bow", price: 100.0, description: "White Shirt with skirt", ageCategory: "4-5", images: ["IMG_5708.JPG"], available: true, createdAt: new Date(Date.now()-9*86400000).toISOString() },
+  { id: "DRESS-010", title: "Rosette Charm", price: 35.0, description: "Rosette detailing, comfy fit", ageCategory: "4-5", images: ["IMG_5709.JPG"], available: true, createdAt: new Date(Date.now()-10*86400000).toISOString() },
+
+  { id: "DRESS-011", title: "Blossom Day", price: 30.0, description: "Lightweight blossom print dress", ageCategory: "4-5", images: ["IMG_5710.JPG"], available: true, createdAt: new Date(Date.now()-11*86400000).toISOString() },
+  { id: "DRESS-012", title: "Vintage Coral", price: 40.0, description: "Retro coral dress with pockets", ageCategory: "4-5", images: ["IMG_5711.JPG"], available: true, createdAt: new Date(Date.now()-12*86400000).toISOString() },
+  { id: "DRESS-013", title: "Petal Puff", price: 30.0, description: "Petal-pattern puff sleeve dress", ageCategory: "4-5", images: ["IMG_5712.JPG"], available: true, createdAt: new Date(Date.now()-13*86400000).toISOString() },
+  { id: "DRESS-014", title: "Lemon Drop", price: 65.0, description: "Blue jeans trousers", ageCategory: "4-5", images: ["IMG_5713.JPG"], available: true, createdAt: new Date(Date.now()-14*86400000).toISOString() },
+  { id: "DRESS-015", title: "Bluebell Classic", price: 65.0, description: "Black jeans trousers", ageCategory: "4-5", images: ["IMG_5714.JPG"], available: true, createdAt: new Date(Date.now()-15*86400000).toISOString() },
+  { id: "DRESS-016", title: "Gingham Girl", price: 35.0, description: "Cute gingham for playdates", ageCategory: "4-5", images: ["IMG_5715.JPG"], available: true, createdAt: new Date(Date.now()-16*86400000).toISOString() },
+  { id: "DRESS-017", title: "Velvet Holiday", price: 50.0, description: "Velvet holiday edition", ageCategory: "4-5", images: ["IMG_5716.JPG"], available: true, createdAt: new Date(Date.now()-17*86400000).toISOString() },
+  { id: "DRESS-018", title: "Daisy Chain", price: 70.0, description: "Daisy print with soft lining", ageCategory: "4-5", images: ["IMG_5717.JPG"], available: true, createdAt: new Date(Date.now()-18*86400000).toISOString() },
+  { id: "DRESS-019", title: "Sunset Ombre", price: 50.0, description: "Ombre fade summer dress", ageCategory: "4-5", images: ["IMG_5718.JPG"], available: true, createdAt: new Date(Date.now()-19*86400000).toISOString() },
+  { id: "DRESS-020", title: "Coral Petals", price: 70.0, description: "Coral floral with ruffled hem", ageCategory: "4-5", images: ["IMG_5719.JPG"], available: true, createdAt: new Date(Date.now()-20*86400000).toISOString() },
+
+  { id: "DRESS-021", title: "Lavender Mist", price: 28.0, description: "Soft lavender cotton dress", ageCategory: "4-5", images: ["IMG_5720.JPG"], available: true, createdAt: new Date(Date.now()-21*86400000).toISOString() },
+  { id: "DRESS-022", title: "Plaid Picnic", price: 28.0, description: "Cute plaid button dress", ageCategory: "4-5", images: ["IMG_5720.JPG"], available: true, createdAt: new Date(Date.now()-22*86400000).toISOString() },
+  { id: "DRESS-023", title: "Rosebud Twirl", price: 120.0, description: "Lightweight twirl skirt", ageCategory: "4-5", images: ["IMG_5721.JPG"], available: true, createdAt: new Date(Date.now()-23*86400000).toISOString() },
+  { id: "DRESS-024", title: "Mint Sprig", price: 80.0, description: "Refreshingly cool mint dress", ageCategory: "4-5", images: ["IMG_5722.JPG"], available: true, createdAt: new Date(Date.now()-24*86400000).toISOString() },
+  { id: "DRESS-025", title: "Buttercup", price: 35.0, description: "Premium buttercup fabric", ageCategory: "4-5", images: ["IMG_5723.JPG"], available: true, createdAt: new Date(Date.now()-25*86400000).toISOString() },
+  { id: "DRESS-026", title: "Peach Dream", price: 60.0, description: "Soft peach party dress", ageCategory: "4-5", images: ["IMG_5724.JPG"], available: true, createdAt: new Date(Date.now()-26*86400000).toISOString() },
+  { id: "DRESS-027", title: "Ivy Garden", price: 35.0, description: "Ivy print with tiny pleats", ageCategory: "4-5", images: ["IMG_5725.JPG"], available: true, createdAt: new Date(Date.now()-27*86400000).toISOString() },
+  { id: "DRESS-028", title: "Ocean Breeze", price: 45.0, description: "Nautical details and stripes", ageCategory: "4-5", images: ["IMG_5726.JPG"], available: true, createdAt: new Date(Date.now()-28*86400000).toISOString() },
+  { id: "DRESS-029", title: "Lilac Lace", price: 35.0, description: "Delicate lilac lace overlay", ageCategory: "4-5", images: ["IMG_5727.JPG"], available: true, createdAt: new Date(Date.now()-29*86400000).toISOString() },
+  { id: "DRESS-030", title: "Maple Sweet", price: 40.0, description: "Warm tones for autumn play", ageCategory: "4-5", images: ["IMG_5728.JPG"], available: true, createdAt: new Date(Date.now()-30*86400000).toISOString() },
+
+  { id: "DRESS-031", title: "Cherry Puff", price: 40.0, description: "Cherry prints and puff sleeves", ageCategory: "4-5", images: ["IMG_5729.JPG"], available: true, createdAt: new Date(Date.now()-31*86400000).toISOString() },
+  { id: "DRESS-032", title: "Starry Night", price: 35.0, description: "Dark blue with star pattern", ageCategory: "4-5", images: ["IMG_5730.JPG"], available: true, createdAt: new Date(Date.now()-32*86400000).toISOString() },
+  { id: "DRESS-033", title: "Palm Picnic", price: 35.0, description: "Tropical print for sunny days", ageCategory: "4-5", images: ["IMG_5731.JPG"], available: true, createdAt: new Date(Date.now()-33*86400000).toISOString() },
+  { id: "DRESS-034", title: "Velvet Ribbon", price: 40.0, description: "Lux velvet with ribbon tie", ageCategory: "4-5", images: ["IMG_5732.JPG"], available: true, createdAt: new Date(Date.now()-34*86400000).toISOString() },
+  { id: "DRESS-035", title: "Rose Quartz", price: 35.0, description: "Soft pink, comfy cotton", ageCategory: "4-5", images: ["IMG_5733.JPG"], available: true, createdAt: new Date(Date.now()-35*86400000).toISOString() },
+  { id: "DRESS-036", title: "Star Bloom", price: 30.0, description: "Star bloom pattern, breezy", ageCategory: "4-5", images: ["IMG_5734.JPG"], available: true, createdAt: new Date(Date.now()-36*86400000).toISOString() },
+  { id: "DRESS-037", title: "Meadow Stitch", price: 40.0, description: "Detailed stitching, floral", ageCategory: "4-5", images: ["IMG_5735.JPG"], available: true, createdAt: new Date(Date.now()-37*86400000).toISOString() },
+  { id: "DRESS-038", title: "Denim Dolly", price: 50.0, description: "Soft denim dress with buttons", ageCategory: "4-5", images: ["IMG_5736.JPG"], available: true, createdAt: new Date(Date.now()-38*86400000).toISOString() },
+  { id: "DRESS-039", title: "Citrine Bloom", price: 65.0, description: "Sunny citrine color", ageCategory: "4-5", images: ["IMG_5737.JPG"], available: true, createdAt: new Date(Date.now()-39*86400000).toISOString() },
+  { id: "DRESS-040", title: "Cloud Puff", price: 25.0, description: "Puffy clouds print", ageCategory: "4-5", images: ["IMG_5738.JPG"], available: true, createdAt: new Date(Date.now()-40*86400000).toISOString() },
+
+  { id: "DRESS-041", title: "Mint Melody", price: 28.0, description: "Light mint with trims", ageCategory: "4-5", images: ["IMG_5739.JPG"], available: true, createdAt: new Date(Date.now()-41*86400000).toISOString() },
+  { id: "DRESS-042", title: "Petite Pearl", price: 25.0, description: "Pearl button detail", ageCategory: "4-5", images: ["IMG_5740.JPG"], available: true, createdAt: new Date(Date.now()-42*86400000).toISOString() },
+  { id: "DRESS-043", title: "Coral Breeze", price: 35.0, description: "Soft coral shade", ageCategory: "4-5", images: ["IMG_5741.JPG"], available: true, createdAt: new Date(Date.now()-43*86400000).toISOString() },
+  { id: "DRESS-044", title: "Pineapple Pop", price: 30.0, description: "Fun pineapple print", ageCategory: "4-5", images: ["IMG_5742.JPG"], available: true, createdAt: new Date(Date.now()-44*86400000).toISOString() },
+  { id: "DRESS-045", title: "Willow Whisper", price: 40.0, description: "Earthy willow tones", ageCategory: "4-5", images: ["IMG_5743.JPG"], available: true, createdAt: new Date(Date.now()-45*86400000).toISOString() },
+  { id: "DRESS-046", title: "Sunbeam Tuck", price: 35.0, description: "Tucked waist, sunny print", ageCategory: "4-5", images: ["IMG_5744.JPG"], available: true, createdAt: new Date(Date.now()-46*86400000).toISOString() },
+  { id: "DRESS-047", title: "Peppermint Twist", price: 30.0, description: "Mint stripes and soft collar", ageCategory: "4-5", images: ["IMG_5745.JPG"], available: true, createdAt: new Date(Date.now()-47*86400000).toISOString() },
+  { id: "DRESS-048", title: "Dotted Dreams", price: 60.0, description: "Subtle dotted pattern", ageCategory: "4-5", images: ["IMG_5746.JPG"], available: true, createdAt: new Date(Date.now()-48*86400000).toISOString() },
+  { id: "DRESS-049", title: "Little Luxe", price: 80.0, description: "Tiny luxe finish", ageCategory: "7-8", images: ["IMG_5747.JPG"], available: true, createdAt: new Date(Date.now()-49*86400000).toISOString() },
+  { id: "DRESS-050", title: "Pocket Garden", price: 40.0, description: "Playful pockets and cotton", ageCategory: "4-5", images: ["IMG_5748.JPG"], available: true, createdAt: new Date(Date.now()-50*86400000).toISOString() }
+];
 
 function setStatus(message, type = "info", target = adminStatus) {
   target.textContent = message;
@@ -124,7 +186,6 @@ function previewImageFromUrl(url, imgEl, textEl) {
     textEl.textContent = "Choose an image file or paste an image URL.";
     return;
   }
-
   imgEl.src = url;
   imgEl.classList.remove("hidden");
   textEl.textContent = "Preview ready.";
@@ -141,7 +202,7 @@ function previewImageFromFile(file, imgEl, textEl) {
   reader.readAsDataURL(file);
 }
 
-productImageFile.addEventListener("change", () => {
+productImageFile?.addEventListener("change", () => {
   const file = productImageFile.files[0];
   if (file) {
     previewImageFromFile(file, imagePreview, imagePreviewText);
@@ -149,7 +210,7 @@ productImageFile.addEventListener("change", () => {
   }
 });
 
-productImageUrl.addEventListener("input", () => {
+productImageUrl?.addEventListener("input", () => {
   const url = productImageUrl.value.trim();
   if (url) {
     previewImageFromUrl(url, imagePreview, imagePreviewText);
@@ -159,7 +220,7 @@ productImageUrl.addEventListener("input", () => {
   }
 });
 
-editProductImageFile.addEventListener("change", () => {
+editProductImageFile?.addEventListener("change", () => {
   const file = editProductImageFile.files[0];
   if (file) {
     previewImageFromFile(file, editImagePreview, editImagePreviewText);
@@ -167,7 +228,7 @@ editProductImageFile.addEventListener("change", () => {
   }
 });
 
-editProductImageUrl.addEventListener("input", () => {
+editProductImageUrl?.addEventListener("input", () => {
   const url = editProductImageUrl.value.trim();
   if (url) {
     previewImageFromUrl(url, editImagePreview, editImagePreviewText);
@@ -190,7 +251,7 @@ function clearAddForm() {
   imagePreviewText.textContent = "Choose an image file or paste an image URL.";
 }
 
-clearFormBtn.addEventListener("click", clearAddForm);
+clearFormBtn?.addEventListener("click", clearAddForm);
 
 function openEditModal(product) {
   currentEditDocId = product.firestoreDocId;
@@ -222,37 +283,31 @@ function closeEditModal() {
   currentEditProduct = null;
 }
 
-closeEditModalBtn.addEventListener("click", closeEditModal);
-cancelEditBtn.addEventListener("click", closeEditModal);
-editModal.addEventListener("click", (e) => {
+closeEditModalBtn?.addEventListener("click", closeEditModal);
+cancelEditBtn?.addEventListener("click", closeEditModal);
+editModal?.addEventListener("click", (e) => {
   if (e.target === editModal) closeEditModal();
 });
 
 async function uploadImageIfNeeded(file, fallbackUrl = "") {
   if (!file) return fallbackUrl || "";
-
   const user = auth.currentUser;
   if (!user) throw new Error("You must be logged in to upload images.");
 
   const filePath = `products/${Date.now()}-${file.name}`;
   const storageRef = ref(storage, filePath);
 
-  try {
-    await withTimeout(
-      uploadBytes(storageRef, file),
-      15000,
-      "Image upload timed out. Storage may not be enabled."
-    );
+  await withTimeout(
+    uploadBytes(storageRef, file),
+    15000,
+    "Image upload timed out. Check Storage setup."
+  );
 
-    return await withTimeout(
-      getDownloadURL(storageRef),
-      10000,
-      "Could not get uploaded image URL."
-    );
-  } catch (error) {
-    console.error("Storage upload failed:", error);
-    throw error;
-  }
+  return await withTimeout(
+    getDownloadURL(storageRef),
+    10000,
+    "Could not get uploaded image URL."
+  );
 }
 
 function normalizeProducts(snapshot) {
@@ -361,30 +416,80 @@ async function loadAdminProducts() {
   }
 }
 
-searchInput.addEventListener("input", () => {
+async function bulkImportSeedProducts() {
+  const user = auth.currentUser;
+  if (!user) {
+    setStatus("Log in first before bulk import.", "error");
+    return;
+  }
+
+  if (!confirm("Import all missing products from the original 50 into Firestore?")) return;
+
+  setButtonLoading(bulkImportBtn, true, "Importing...");
+  setStatus("Checking existing products...", "info");
+
+  try {
+    const snapshot = await getDocs(collection(db, "products"));
+    const existing = normalizeProducts(snapshot);
+    const existingIds = new Set(existing.map((p) => p.id));
+
+    const missingProducts = SEED_PRODUCTS.filter((p) => !existingIds.has(p.id));
+
+    if (!missingProducts.length) {
+      setStatus("All 50 products are already in Firestore.", "success");
+      await loadAdminProducts();
+      return;
+    }
+
+    for (const product of missingProducts) {
+      await addDoc(collection(db, "products"), {
+        id: product.id,
+        title: product.title,
+        price: product.price,
+        description: product.description || "",
+        ageCategory: product.ageCategory || "",
+        available: product.available !== false,
+        images: Array.isArray(product.images) ? product.images : [],
+        createdAt: product.createdAt || new Date().toISOString()
+      });
+    }
+
+    await loadAdminProducts();
+    setStatus(`${missingProducts.length} missing products imported successfully.`, "success");
+  } catch (error) {
+    console.error("Bulk import failed:", error);
+    setStatus(error.message || "Bulk import failed.", "error");
+  } finally {
+    setButtonLoading(bulkImportBtn, false);
+  }
+}
+
+searchInput?.addEventListener("input", () => {
   renderProductList(applyFilters(allProducts));
 });
 
-filterAvailability.addEventListener("change", () => {
+filterAvailability?.addEventListener("change", () => {
   renderProductList(applyFilters(allProducts));
 });
 
-reloadProductsBtn.addEventListener("click", async () => {
+reloadProductsBtn?.addEventListener("click", async () => {
   await loadAdminProducts();
   setStatus("Products reloaded", "success");
 });
 
-refreshBtn.addEventListener("click", async () => {
+refreshBtn?.addEventListener("click", async () => {
   await loadAdminProducts();
   setStatus("Products refreshed", "success");
 });
 
-openAddModalBtn.addEventListener("click", () => {
+openAddModalBtn?.addEventListener("click", () => {
   window.scrollTo({ top: 0, behavior: "smooth" });
   productTitle.focus();
 });
 
-adminLoginBtn.addEventListener("click", async () => {
+bulkImportBtn?.addEventListener("click", bulkImportSeedProducts);
+
+adminLoginBtn?.addEventListener("click", async () => {
   const email = adminEmail.value.trim();
   const password = adminPassword.value.trim();
 
@@ -407,7 +512,7 @@ adminLoginBtn.addEventListener("click", async () => {
   }
 });
 
-logoutBtn.addEventListener("click", async () => {
+logoutBtn?.addEventListener("click", async () => {
   try {
     await signOut(auth);
     setStatus("Logged out", "success");
@@ -433,9 +538,8 @@ onAuthStateChanged(auth, async (user) => {
   }
 });
 
-addProductBtn.addEventListener("click", async () => {
+addProductBtn?.addEventListener("click", async () => {
   const user = auth.currentUser;
-
   if (!user) {
     setStatus("You must log in first", "error");
     return;
@@ -492,14 +596,13 @@ addProductBtn.addEventListener("click", async () => {
   }
 });
 
-adminProducts.addEventListener("click", async (e) => {
+adminProducts?.addEventListener("click", async (e) => {
   const button = e.target.closest("button[data-action]");
   if (!button) return;
 
   const action = button.dataset.action;
   const docId = button.dataset.id;
   const product = allProducts.find((p) => p.firestoreDocId === docId);
-
   if (!product) return;
 
   if (action === "toggle") {
@@ -540,7 +643,7 @@ adminProducts.addEventListener("click", async (e) => {
   }
 });
 
-saveEditBtn.addEventListener("click", async () => {
+saveEditBtn?.addEventListener("click", async () => {
   if (!currentEditDocId || !currentEditProduct) return;
 
   const user = auth.currentUser;
