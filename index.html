@@ -5810,6 +5810,25 @@ let PRODUCTS = [
     console.log("Using local PRODUCTS array as fallback.");
   }
 }
+async function markProductsAsSoldInFirebase(items) {
+  try {
+    const { db, doc, updateDoc } = window.firebaseServices;
+
+    for (const item of items) {
+      const product = PRODUCTS.find(p => p.id === item.id);
+      if (!product || !product.firestoreId) continue;
+
+      await updateDoc(doc(db, "products", product.firestoreId), {
+        available: false
+      });
+    }
+
+    console.log("Purchased products marked as sold in Firestore.");
+  } catch (error) {
+    console.error("Failed to mark products as sold in Firestore:", error);
+    throw error;
+  }
+}
 
   /* =============
      RENDER: PRODUCTS
@@ -6964,7 +6983,7 @@ async function startPaystackPayment() {
   }
 }
 
-function onPaymentSuccess(orderPayload, reference) {
+async function onPaymentSuccess(orderPayload, reference) {
   try {
     console.info("onPaymentSuccess called", { orderPayload, reference });
     const feedback = $("#checkoutFeedback");
@@ -6988,7 +7007,13 @@ function onPaymentSuccess(orderPayload, reference) {
 
     // finalize order object
     const paidAt = nowISO();
-    const order = Object.assign({}, orderPayload, { paystackRef: reference || orderPayload.paystackRef, paidAt });
+    const order = Object.assign({}, orderPayload, {
+  paystackRef: reference || orderPayload.paystackRef,
+  paidAt
+});
+
+await markProductsAsSoldInFirebase(order.items);
+await loadProductsFromFirebase();
 
     // push to history and persist BEFORE reload
     state.history = state.history || [];
