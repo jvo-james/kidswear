@@ -25,7 +25,7 @@ const firebaseConfig = {
   apiKey: "AIzaSyCY6ueoS5QRikxMd46OYJDrKcLpxg0UMmE",
   authDomain: "april-blossoms.firebaseapp.com",
   projectId: "april-blossoms",
-  storageBucket: "april-blossoms.firebasestorage.app",
+storageBucket: "april-blossoms-admin-images",
   messagingSenderId: "514363089189",
   appId: "1:514363089189:web:8abdc1c01ececd99653acc"
 };
