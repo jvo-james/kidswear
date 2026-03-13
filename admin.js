@@ -107,6 +107,16 @@ function setButtonLoading(button, isLoading, loadingText = "Processing...") {
   }
 }
 
+function withTimeout(promise, ms, message) {
+  let timer;
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => {
+      timer = setTimeout(() => reject(new Error(message)), ms);
+    })
+  ]).finally(() => clearTimeout(timer));
+}
+
 function previewImageFromUrl(url, imgEl, textEl) {
   if (!url) {
     imgEl.src = "";
@@ -227,8 +237,22 @@ async function uploadImageIfNeeded(file, fallbackUrl = "") {
   const filePath = `products/${Date.now()}-${file.name}`;
   const storageRef = ref(storage, filePath);
 
-  await uploadBytes(storageRef, file);
-  return await getDownloadURL(storageRef);
+  try {
+    await withTimeout(
+      uploadBytes(storageRef, file),
+      15000,
+      "Image upload timed out. Storage may not be enabled."
+    );
+
+    return await withTimeout(
+      getDownloadURL(storageRef),
+      10000,
+      "Could not get uploaded image URL."
+    );
+  } catch (error) {
+    console.error("Storage upload failed:", error);
+    throw error;
+  }
 }
 
 function normalizeProducts(snapshot) {
@@ -442,23 +466,27 @@ addProductBtn.addEventListener("click", async () => {
       finalImage = imageUrlInput;
     }
 
-    await addDoc(collection(db, "products"), {
-      id,
-      title,
-      price,
-      description: description || "",
-      ageCategory,
-      available: true,
-      images: finalImage ? [finalImage] : [],
-      createdAt: new Date().toISOString()
-    });
+    await withTimeout(
+      addDoc(collection(db, "products"), {
+        id,
+        title,
+        price,
+        description: description || "",
+        ageCategory,
+        available: true,
+        images: finalImage ? [finalImage] : [],
+        createdAt: new Date().toISOString()
+      }),
+      10000,
+      "Adding product timed out."
+    );
 
     clearAddForm();
     await loadAdminProducts();
     setStatus("Product added successfully", "success");
   } catch (error) {
     console.error("Failed to add product:", error);
-    setStatus("Failed to add product. If you used file upload, check whether Firebase Storage is enabled.", "error");
+    setStatus(error.message || "Failed to add product.", "error");
   } finally {
     setButtonLoading(addProductBtn, false);
   }
@@ -560,7 +588,7 @@ saveEditBtn.addEventListener("click", async () => {
     closeEditModal();
   } catch (error) {
     console.error("Failed to save edit:", error);
-    setStatus("Failed to save changes. If you used file upload, check Firebase Storage.", "error", editStatus);
+    setStatus(error.message || "Failed to save changes.", "error", editStatus);
   } finally {
     setButtonLoading(saveEditBtn, false);
   }
