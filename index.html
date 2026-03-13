@@ -5604,7 +5604,7 @@ const firebaseConfig = {
   };
 
   
-  const PRODUCTS = [
+let PRODUCTS = [
     { id: "DRESS-001", title: "Floral Ruffles", price: 40.0, description: "One-of-a-kind floral ruffle dress", sizes: ["4","5"], ageCategory: "4-5", images: ["IMG_5700.JPG","IMG_5700.JPG"], available: true, createdAt: new Date(Date.now()-1*86400000).toISOString() },
     { id: "DRESS-002", title: "Sunshine Dress", price: 30.0, description: "Bright yellow play dress", sizes: ["6","7"], ageCategory: "4-5", images: ["IMG_5701.JPG"], available: true, createdAt: new Date(Date.now()-2*86400000).toISOString() },
     { id: "DRESS-003", title: "Party Bow Dress", price: 35.0, description: "Elegant dress for special occasions", sizes: ["7","8"], ageCategory: "4-5", images: ["IMG_5702.JPG","IMG_5702.JPG"], available: true, createdAt: new Date(Date.now()-3*86400000).toISOString() },
@@ -5782,6 +5782,30 @@ const firebaseConfig = {
 
     return list;
   }
+
+  async function loadProductsFromFirebase() {
+  try {
+    const { db, collection, getDocs } = window.firebaseServices;
+    const snapshot = await getDocs(collection(db, "products"));
+
+    const firebaseProducts = snapshot.docs.map((docSnap) => {
+      return {
+        firestoreId: docSnap.id,
+        ...docSnap.data()
+      };
+    });
+
+    if (firebaseProducts.length > 0) {
+      PRODUCTS = firebaseProducts;
+      console.log("Loaded products from Firestore:", PRODUCTS);
+    } else {
+      console.log("No Firestore products found, using local PRODUCTS array.");
+    }
+  } catch (error) {
+    console.error("Failed to load products from Firestore:", error);
+    console.log("Using local PRODUCTS array as fallback.");
+  }
+}
 
   /* =============
      RENDER: PRODUCTS
@@ -7562,16 +7586,24 @@ function receiptHTML(order) {
   /* =============
      BOOT
      ============= */
-  function boot() {
-    try { ensureHeroBackgrounds(); } catch (e) { /* ignore */ }
-    try { initHero(); } catch (e) { /* ignore */ }
-    try { renderProducts(); } catch (e) { console.error("renderProducts failed", e); }
-    try { renderBadges(); } catch (e) {}
-    try { renderSaved(); } catch (e) {}
-    try { renderHistory(); } catch (e) {}
-    try { initBackToTop(); } catch (e) {}
-    logScriptState();
+ async function boot() {
+  try { ensureHeroBackgrounds(); } catch (e) { /* ignore */ }
+  try { initHero(); } catch (e) { /* ignore */ }
+
+  try {
+    await loadProductsFromFirebase();
+  } catch (e) {
+    console.error("Firebase product load failed:", e);
   }
+
+  try { renderProducts(); } catch (e) { console.error("renderProducts failed", e); }
+  try { renderBadges(); } catch (e) {}
+  try { renderSaved(); } catch (e) {}
+  try { renderHistory(); } catch (e) {}
+  try { initBackToTop(); } catch (e) {}
+  logScriptState();
+}
+
 
   /* Helper: ensure hero backgrounds load or fallback */
   function ensureHeroBackgrounds() {
@@ -7630,8 +7662,12 @@ function receiptHTML(order) {
   }
 
   // boot when ready
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
-  else boot();
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", () => boot());
+} else {
+  boot();
+}
+
 
   // expose debug helpers
   window.__AB = { PRODUCTS, state, renderProducts, renderCart, renderBadges, boot };
