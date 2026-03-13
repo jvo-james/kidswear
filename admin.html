@@ -7,43 +7,88 @@
   <style>
     :root{
       --bg:#fffaf6;
+      --bg-2:#fff7f0;
       --card:#ffffff;
       --text:#0f172a;
       --muted:#6b7280;
       --border:rgba(15,23,42,.08);
       --pink:#ff6b8a;
       --yellow:#ffd166;
+      --mint:#6ee7b7;
+      --danger:#ef4444;
+      --success:#10b981;
       --shadow:0 10px 30px rgba(16,24,40,.08);
       --radius:18px;
+      --radius-sm:12px;
     }
 
     *{box-sizing:border-box}
+    html,body{margin:0;padding:0}
     body{
-      margin:0;
-      font-family:Arial, sans-serif;
-      background:linear-gradient(180deg,#fffaf6 0%,#fff7f0 100%);
-      color:var(--text);
+      font-family: Arial, sans-serif;
+      background: linear-gradient(180deg,var(--bg) 0%,var(--bg-2) 100%);
+      color: var(--text);
     }
 
     .wrap{
-      max-width:900px;
-      margin:0 auto;
-      padding:24px 16px 48px;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px 16px 48px;
     }
 
-    .hero{
-      margin-bottom:20px;
+    .topbar{
+      display:flex;
+      gap:12px;
+      justify-content:space-between;
+      align-items:flex-start;
+      flex-wrap:wrap;
+      margin-bottom:18px;
     }
 
     .hero h1{
       margin:0 0 8px;
-      font-size:32px;
+      font-size: clamp(28px, 5vw, 40px);
+      line-height:1.05;
     }
 
     .hero p{
       margin:0;
       color:var(--muted);
       line-height:1.5;
+      max-width:65ch;
+    }
+
+    .top-actions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:10px 12px;
+      border-radius:999px;
+      background:#fff;
+      border:1px solid var(--border);
+      box-shadow:var(--shadow);
+      font-size:14px;
+      font-weight:700;
+    }
+
+    .layout{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:18px;
+    }
+
+    @media (min-width: 980px){
+      .layout{
+        grid-template-columns: 380px 1fr;
+        align-items:start;
+      }
     }
 
     .card{
@@ -52,17 +97,21 @@
       border-radius:var(--radius);
       box-shadow:var(--shadow);
       padding:18px;
-      margin-top:18px;
     }
 
-    h2{
+    .card h2{
       margin:0 0 14px;
       font-size:20px;
     }
 
+    .muted{
+      color:var(--muted);
+      font-size:14px;
+    }
+
     .grid{
       display:grid;
-      grid-template-columns:1fr;
+      grid-template-columns: 1fr;
       gap:12px;
     }
 
@@ -79,22 +128,35 @@
       margin-bottom:6px;
     }
 
-    input, textarea, button{
+    input, textarea, select, button{
       width:100%;
       font:inherit;
     }
 
-    input, textarea{
+    input, textarea, select{
       border:1px solid var(--border);
       border-radius:14px;
       padding:12px;
       background:#fff;
       color:var(--text);
+      outline:none;
+    }
+
+    input:focus, textarea:focus, select:focus{
+      border-color:rgba(255,107,138,.45);
+      box-shadow:0 0 0 4px rgba(255,107,138,.08);
     }
 
     textarea{
       min-height:110px;
       resize:vertical;
+    }
+
+    .btn-row{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:12px;
     }
 
     .btn{
@@ -103,25 +165,93 @@
       padding:12px 14px;
       font-weight:700;
       cursor:pointer;
+      transition:transform .15s ease, opacity .15s ease;
+      width:auto;
+      min-width:120px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
     }
+
+    .btn:hover{ transform:translateY(-1px); }
+    .btn:disabled{ opacity:.65; cursor:not-allowed; transform:none; }
 
     .btn-primary{
       background:linear-gradient(90deg,var(--pink),var(--yellow));
       color:#fff;
     }
 
-    .muted{
-      color:var(--muted);
-      font-size:14px;
+    .btn-ghost{
+      background:#fff;
+      color:var(--text);
+      border:1px solid var(--border);
     }
 
-    #adminStatus{
+    .btn-danger{
+      background:rgba(239,68,68,.12);
+      color:var(--danger);
+      border:1px solid rgba(239,68,68,.18);
+    }
+
+    .btn-success{
+      background:rgba(16,185,129,.12);
+      color:var(--success);
+      border:1px solid rgba(16,185,129,.18);
+    }
+
+    .status{
       margin-top:10px;
+      font-size:14px;
       font-weight:700;
+      min-height:20px;
     }
 
-    #adminProducts{
-      margin-top:16px;
+    .status.success{ color:var(--success); }
+    .status.error{ color:var(--danger); }
+    .status.info{ color:var(--muted); }
+
+    .toolbar{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:10px;
+      margin-bottom:14px;
+    }
+
+    @media (min-width:760px){
+      .toolbar{
+        grid-template-columns: 1.2fr .8fr auto auto;
+        align-items:center;
+      }
+    }
+
+    .stats{
+      display:grid;
+      grid-template-columns:repeat(2,1fr);
+      gap:10px;
+      margin-bottom:14px;
+    }
+
+    @media (min-width:760px){
+      .stats{
+        grid-template-columns:repeat(4,1fr);
+      }
+    }
+
+    .stat{
+      padding:14px;
+      border:1px solid var(--border);
+      border-radius:16px;
+      background:#fff;
+    }
+
+    .stat strong{
+      display:block;
+      font-size:22px;
+      margin-bottom:4px;
+    }
+
+    .product-list{
       display:grid;
       gap:12px;
     }
@@ -131,86 +261,410 @@
       border-radius:16px;
       padding:12px;
       background:#fff;
+      display:grid;
+      grid-template-columns: 88px 1fr;
+      gap:12px;
+    }
+
+    @media (max-width:520px){
+      .product-row{
+        grid-template-columns:1fr;
+      }
+    }
+
+    .product-thumb{
+      width:88px;
+      height:88px;
+      border-radius:14px;
+      object-fit:cover;
+      border:1px solid var(--border);
+      background:#f8fafc;
+    }
+
+    @media (max-width:520px){
+      .product-thumb{
+        width:100%;
+        height:220px;
+      }
+    }
+
+    .product-head{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      align-items:flex-start;
+      flex-wrap:wrap;
     }
 
     .product-row h3{
       margin:0 0 6px;
-      font-size:16px;
+      font-size:18px;
     }
 
     .product-row p{
       margin:4px 0;
       color:var(--muted);
       font-size:14px;
+      line-height:1.45;
+    }
+
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:8px 10px;
+      border-radius:999px;
+      font-size:12px;
+      font-weight:800;
+      border:1px solid var(--border);
+      background:#fff;
+    }
+
+    .pill.success{
+      color:var(--success);
+      background:rgba(16,185,129,.10);
+      border-color:rgba(16,185,129,.18);
+    }
+
+    .pill.danger{
+      color:var(--danger);
+      background:rgba(239,68,68,.10);
+      border-color:rgba(239,68,68,.18);
+    }
+
+    .product-actions{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      margin-top:10px;
+    }
+
+    .mini-btn{
+      border:1px solid var(--border);
+      background:#fff;
+      color:var(--text);
+      border-radius:12px;
+      padding:10px 12px;
+      font-weight:700;
+      cursor:pointer;
+      width:auto;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+    }
+
+    .mini-btn:disabled{ opacity:.65; cursor:not-allowed; }
+    .mini-btn.danger{
+      color:var(--danger);
+      border-color:rgba(239,68,68,.18);
+      background:rgba(239,68,68,.06);
+    }
+
+    .mini-btn.success{
+      color:var(--success);
+      border-color:rgba(16,185,129,.18);
+      background:rgba(16,185,129,.06);
+    }
+
+    .preview-wrap{
+      margin-top:12px;
+      display:grid;
+      gap:10px;
+    }
+
+    .preview-box{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      padding:10px;
+      border:1px dashed var(--border);
+      border-radius:14px;
+      background:#fff;
+    }
+
+    .preview-box img{
+      width:64px;
+      height:64px;
+      object-fit:cover;
+      border-radius:12px;
+      border:1px solid var(--border);
+      background:#f8fafc;
+    }
+
+    .hidden{ display:none !important; }
+
+    .spinner{
+      width:16px;
+      height:16px;
+      border:2px solid rgba(255,255,255,.4);
+      border-top-color:#fff;
+      border-radius:50%;
+      animation:spin .8s linear infinite;
+      display:none;
+    }
+
+    .spinner.dark{
+      border-color:rgba(15,23,42,.18);
+      border-top-color:var(--text);
+    }
+
+    .is-loading .spinner{
+      display:inline-block;
+    }
+
+    .is-loading .btn-label{
+      opacity:.9;
+    }
+
+    @keyframes spin{
+      to{ transform:rotate(360deg); }
+    }
+
+    .modal{
+      position:fixed;
+      inset:0;
+      background:rgba(15,23,42,.45);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:16px;
+      z-index:999;
+    }
+
+    .modal.open{ display:flex; }
+
+    .modal-card{
+      width:min(760px,100%);
+      max-height:92vh;
+      overflow:auto;
+      background:#fff;
+      border-radius:20px;
+      border:1px solid var(--border);
+      box-shadow:var(--shadow);
+      padding:18px;
+    }
+
+    .modal-head{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      margin-bottom:14px;
+    }
+
+    .empty{
+      padding:20px;
+      border:1px dashed var(--border);
+      border-radius:16px;
+      text-align:center;
+      color:var(--muted);
+      background:#fff;
     }
   </style>
 </head>
 <body>
   <div class="wrap">
-    <section class="hero">
-      <h1>April Blossoms Admin</h1>
-      <p>Manage products, add new dresses, and control what appears on the store.</p>
-    </section>
+    <div class="topbar">
+      <section class="hero">
+        <h1>April Blossoms Admin</h1>
+        <p>Manage products, upload images, search inventory, toggle availability, edit items, and delete products from one place.</p>
+      </section>
 
-    <section class="card">
-      <h2>Admin Login</h2>
+      <div class="top-actions">
+        <div class="badge" id="authBadge">Not logged in</div>
+        <button class="btn btn-ghost" id="refreshBtn" type="button">Refresh</button>
+        <button class="btn btn-ghost hidden" id="logoutBtn" type="button">Log Out</button>
+      </div>
+    </div>
+
+    <div class="layout">
+      <div class="left-col">
+        <section class="card">
+          <h2>Admin Login</h2>
+          <div class="grid">
+            <div>
+              <label for="adminEmail">Email</label>
+              <input type="email" id="adminEmail" placeholder="Enter admin email" />
+            </div>
+            <div>
+              <label for="adminPassword">Password</label>
+              <input type="password" id="adminPassword" placeholder="Enter password" />
+            </div>
+          </div>
+
+          <div class="btn-row">
+            <button class="btn btn-primary" id="adminLoginBtn" type="button">
+              <span class="spinner"></span>
+              <span class="btn-label">Log In</span>
+            </button>
+          </div>
+
+          <div id="adminStatus" class="status info">Not logged in</div>
+        </section>
+
+        <section class="card">
+          <h2>Add Product</h2>
+
+          <div class="grid two">
+            <div>
+              <label for="productId">Product ID</label>
+              <input type="text" id="productId" placeholder="e.g. DRESS-051" />
+            </div>
+            <div>
+              <label for="productTitle">Title</label>
+              <input type="text" id="productTitle" placeholder="e.g. Rose Bloom Dress" />
+            </div>
+            <div>
+              <label for="productPrice">Price</label>
+              <input type="number" id="productPrice" placeholder="e.g. 45" min="0" step="0.01" />
+            </div>
+            <div>
+              <label for="productAge">Age Category</label>
+              <input type="text" id="productAge" placeholder="e.g. 4-5" />
+            </div>
+          </div>
+
+          <div style="margin-top:12px;">
+            <label for="productDescription">Description (optional)</label>
+            <textarea id="productDescription" placeholder="Write product description"></textarea>
+          </div>
+
+          <div class="grid two" style="margin-top:12px;">
+            <div>
+              <label for="productImageFile">Upload image file</label>
+              <input type="file" id="productImageFile" accept="image/*" />
+            </div>
+            <div>
+              <label for="productImageUrl">Or paste image URL</label>
+              <input type="text" id="productImageUrl" placeholder="https://..." />
+            </div>
+          </div>
+
+          <div class="preview-wrap">
+            <div class="preview-box">
+              <img id="imagePreview" src="" alt="Preview" class="hidden" />
+              <div>
+                <strong>Image preview</strong>
+                <div class="muted" id="imagePreviewText">Choose an image file or paste an image URL.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="btn-row">
+            <button class="btn btn-primary" id="addProductBtn" type="button">
+              <span class="spinner"></span>
+              <span class="btn-label">Add Product</span>
+            </button>
+            <button class="btn btn-ghost" id="clearFormBtn" type="button">Clear</button>
+          </div>
+        </section>
+      </div>
+
+      <div class="right-col">
+        <section class="card">
+          <h2>Inventory</h2>
+
+          <div class="stats">
+            <div class="stat">
+              <strong id="statTotal">0</strong>
+              <span class="muted">Total</span>
+            </div>
+            <div class="stat">
+              <strong id="statAvailable">0</strong>
+              <span class="muted">Available</span>
+            </div>
+            <div class="stat">
+              <strong id="statSold">0</strong>
+              <span class="muted">Sold out</span>
+            </div>
+            <div class="stat">
+              <strong id="statValue">₵0</strong>
+              <span class="muted">Visible value</span>
+            </div>
+          </div>
+
+          <div class="toolbar">
+            <input type="search" id="searchInput" placeholder="Search by title, ID, age..." />
+            <select id="filterAvailability">
+              <option value="all">All products</option>
+              <option value="available">Available only</option>
+              <option value="sold">Sold out only</option>
+            </select>
+            <button class="btn btn-ghost" id="reloadProductsBtn" type="button">Reload</button>
+            <button class="btn btn-ghost" id="openAddModalBtn" type="button">Open Add Form</button>
+          </div>
+
+          <div id="adminProducts" class="product-list"></div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="editModal">
+    <div class="modal-card">
+      <div class="modal-head">
+        <div>
+          <h2 style="margin:0;">Edit Product</h2>
+          <p class="muted" style="margin:6px 0 0;">Update product details and save changes.</p>
+        </div>
+        <button class="btn btn-ghost" id="closeEditModalBtn" type="button">Close</button>
+      </div>
+
       <div class="grid two">
         <div>
-          <label for="adminEmail">Email</label>
-          <input type="email" id="adminEmail" placeholder="Enter admin email" />
+          <label for="editProductId">Product ID</label>
+          <input type="text" id="editProductId" />
         </div>
         <div>
-          <label for="adminPassword">Password</label>
-          <input type="password" id="adminPassword" placeholder="Enter password" />
-        </div>
-      </div>
-      <div style="margin-top:12px;">
-        <button class="btn btn-primary" id="adminLoginBtn" type="button">Log In</button>
-      </div>
-      <div id="adminStatus" class="muted">Not logged in</div>
-    </section>
-
-    <section class="card">
-      <h2>Add Product</h2>
-      <div class="grid two">
-        <div>
-          <label for="productId">Product ID</label>
-          <input type="text" id="productId" placeholder="e.g. DRESS-051" />
+          <label for="editProductTitle">Title</label>
+          <input type="text" id="editProductTitle" />
         </div>
         <div>
-          <label for="productTitle">Title</label>
-          <input type="text" id="productTitle" placeholder="e.g. Rose Bloom Dress" />
+          <label for="editProductPrice">Price</label>
+          <input type="number" id="editProductPrice" min="0" step="0.01" />
         </div>
         <div>
-          <label for="productPrice">Price</label>
-          <input type="number" id="productPrice" placeholder="e.g. 45" />
-        </div>
-        <div>
-          <label for="productAge">Age Category</label>
-          <input type="text" id="productAge" placeholder="e.g. 4-5" />
+          <label for="editProductAge">Age Category</label>
+          <input type="text" id="editProductAge" />
         </div>
       </div>
 
       <div style="margin-top:12px;">
-        <label for="productDescription">Description</label>
-        <textarea id="productDescription" placeholder="Write product description"></textarea>
+        <label for="editProductDescription">Description (optional)</label>
+        <textarea id="editProductDescription"></textarea>
       </div>
 
-      <div style="margin-top:12px;">
-        <label for="productImage">Image filename for now</label>
-        <input type="text" id="productImage" placeholder="e.g. IMG_5750.JPG" />
+      <div class="grid two" style="margin-top:12px;">
+        <div>
+          <label for="editProductImageFile">Replace with image file</label>
+          <input type="file" id="editProductImageFile" accept="image/*" />
+        </div>
+        <div>
+          <label for="editProductImageUrl">Or image URL</label>
+          <input type="text" id="editProductImageUrl" />
+        </div>
       </div>
 
-      <div style="margin-top:12px;">
-        <button class="btn btn-primary" id="addProductBtn" type="button">Add Product</button>
+      <div class="preview-wrap">
+        <div class="preview-box">
+          <img id="editImagePreview" src="" alt="Edit preview" class="hidden" />
+          <div>
+            <strong>Edit image preview</strong>
+            <div class="muted" id="editImagePreviewText">Choose a replacement image file or URL.</div>
+          </div>
+        </div>
       </div>
-    </section>
 
-    <section class="card">
-      <h2>Current Products</h2>
-      <p class="muted">Products from Firestore will appear here.</p>
-      <div id="adminProducts"></div>
-    </section>
+      <div class="btn-row">
+        <button class="btn btn-primary" id="saveEditBtn" type="button">
+          <span class="spinner"></span>
+          <span class="btn-label">Save Changes</span>
+        </button>
+        <button class="btn btn-ghost" id="cancelEditBtn" type="button">Cancel</button>
+      </div>
+
+      <div id="editStatus" class="status info"></div>
+    </div>
   </div>
 
   <script type="module" src="admin.js"></script>
