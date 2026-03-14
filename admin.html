@@ -9,1304 +9,2296 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
-
-  <style>
-    :root{
-      --bg:#f6f7fb;
-      --surface:#ffffff;
-      --surface-2:#f9fafc;
-      --sidebar:#e53d7d;
-      --sidebar-dark:#c92d69;
-      --primary:#e53d7d;
-      --primary-2:#ff6b9e;
-      --text:#111827;
-      --muted:#6b7280;
-      --line:#e7eaf1;
-      --success:#16a34a;
-      --danger:#dc2626;
-      --warning:#f59e0b;
-      --shadow:0 18px 40px rgba(17,24,39,.08);
-      --radius:18px;
-      --radius-sm:12px;
-      --sidebar-w:270px;
-      --topbar-h:74px;
-    }
-
-    *{ box-sizing:border-box; }
-
-    html,body{
-      margin:0;
-      padding:0;
-      font-family:"Inter", Arial, sans-serif;
-      background:var(--bg);
-      color:var(--text);
-    }
-
-    body{ min-height:100vh; }
-
-    img{
-      max-width:100%;
-      display:block;
-    }
-
-    button,input,select,textarea{
-      font:inherit;
-    }
-
-    a{
-      color:inherit;
-      text-decoration:none;
-    }
-
-    .admin-shell{
-      min-height:100vh;
-      display:grid;
-      grid-template-columns:var(--sidebar-w) 1fr;
-    }
-
-    .sidebar{
-      background:linear-gradient(180deg, var(--sidebar), var(--sidebar-dark));
-      color:#fff;
-      padding:22px 16px 18px;
-      position:sticky;
-      top:0;
-      height:100vh;
-      display:flex;
-      flex-direction:column;
-      gap:20px;
-      z-index:20;
-    }
-
-    .brand{
-      display:flex;
-      align-items:center;
-      gap:12px;
-      padding:8px 8px 6px;
-    }
-
-    .brand-mark{
-      width:44px;
-      height:44px;
-      border-radius:14px;
-      background:rgba(255,255,255,.16);
-      display:grid;
-      place-items:center;
-      box-shadow: inset 0 0 0 1px rgba(255,255,255,.14);
-      font-size:18px;
-    }
-
-    .brand-copy h1{
-      margin:0;
-      font-size:18px;
-      font-weight:800;
-      letter-spacing:-.02em;
-    }
-
-    .brand-copy p{
-      margin:3px 0 0;
-      font-size:12px;
-      opacity:.86;
-    }
-
-    .sidebar-group{
-      display:grid;
-      gap:8px;
-    }
-
-    .sidebar-title{
-      font-size:11px;
-      font-weight:700;
-      text-transform:uppercase;
-      letter-spacing:.08em;
-      opacity:.72;
-      padding:0 10px;
-      margin-bottom:2px;
-    }
-
-    .nav-btn{
-      width:100%;
-      border:0;
-      background:transparent;
-      color:#fff;
-      display:flex;
-      align-items:center;
-      gap:12px;
-      padding:13px 14px;
-      border-radius:14px;
-      cursor:pointer;
-      transition:background .18s ease, transform .18s ease;
-      text-align:left;
-    }
-
-    .nav-btn:hover{
-      background:rgba(255,255,255,.12);
-    }
-
-    .nav-btn.active{
-      background:#fff;
-      color:var(--primary);
-      box-shadow:0 8px 20px rgba(0,0,0,.12);
-    }
-
-    .nav-icon{
-      width:18px;
-      height:18px;
-      display:grid;
-      place-items:center;
-      flex:0 0 18px;
-      font-size:14px;
-    }
-
-    .sidebar-bottom{
-      margin-top:auto;
-      display:grid;
-      gap:10px;
-    }
-
-    .sidebar-card{
-      background:rgba(255,255,255,.12);
-      border:1px solid rgba(255,255,255,.14);
-      border-radius:16px;
-      padding:14px;
-    }
-
-    .sidebar-card h3{
-      margin:0 0 6px;
-      font-size:14px;
-      font-weight:700;
-    }
-
-    .sidebar-card p{
-      margin:0;
-      font-size:12px;
-      line-height:1.5;
-      opacity:.9;
-    }
-
-    .main{
-      min-width:0;
-      display:flex;
-      flex-direction:column;
-    }
-
-    .topbar{
-      height:var(--topbar-h);
-      background:rgba(255,255,255,.9);
-      backdrop-filter:blur(10px);
-      border-bottom:1px solid var(--line);
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:16px;
-      padding:14px 24px;
-      position:sticky;
-      top:0;
-      z-index:15;
-    }
-
-    .topbar-left{
-      display:flex;
-      align-items:center;
-      gap:14px;
-      min-width:0;
-    }
-
-    .menu-toggle{
-      display:none;
-      width:42px;
-      height:42px;
-      border-radius:12px;
-      border:1px solid var(--line);
-      background:#fff;
-      cursor:pointer;
-      flex:0 0 auto;
-      color:var(--text);
-    }
-
-    .page-heading h2{
-      margin:0;
-      font-size:20px;
-      font-weight:800;
-      letter-spacing:-.02em;
-    }
-
-    .page-heading p{
-      margin:4px 0 0;
-      color:var(--muted);
-      font-size:13px;
-    }
-
-    .topbar-right{
-      display:flex;
-      align-items:center;
-      gap:12px;
-      min-width:0;
-    }
-
-    .searchbar{
-      width:min(340px, 36vw);
-      min-width:190px;
-      position:relative;
-    }
-
-    .searchbar input{
-      width:100%;
-      height:44px;
-      border-radius:999px;
-      border:1px solid var(--line);
-      background:#fff;
-      padding:0 16px 0 42px;
-      outline:none;
-    }
-
-    .searchbar .search-icon{
-      position:absolute;
-      left:14px;
-      top:50%;
-      transform:translateY(-50%);
-      color:var(--muted);
-      font-size:13px;
-    }
-
-    .admin-user{
-      display:flex;
-      align-items:center;
-      gap:10px;
-      padding-left:6px;
-    }
-
-    .avatar{
-      width:42px;
-      height:42px;
-      border-radius:50%;
-      background:linear-gradient(135deg, #fbc2d9, #ffd7e6);
-      display:grid;
-      place-items:center;
-      font-weight:800;
-      color:var(--primary);
-    }
-
-    .admin-user-copy{
-      min-width:0;
-    }
-
-    .admin-user-copy strong{
-      display:block;
-      font-size:13px;
-      line-height:1.2;
-    }
-
-    .admin-user-copy span{
-      display:block;
-      font-size:12px;
-      color:var(--muted);
-      margin-top:2px;
-    }
-
-    .content{
-      padding:24px;
-      display:grid;
-      gap:22px;
-    }
-
-    .overview-grid{
-      display:grid;
-      grid-template-columns:repeat(4, minmax(0,1fr));
-      gap:16px;
-    }
-
-    .stat-card{
-      background:var(--surface);
-      border:1px solid var(--line);
-      border-radius:20px;
-      padding:18px;
-      box-shadow:var(--shadow);
-      min-height:120px;
-      display:flex;
-      align-items:flex-start;
-      justify-content:space-between;
-      gap:12px;
-    }
-
-    .stat-card.highlight{
-      background:linear-gradient(135deg, var(--primary), var(--primary-2));
-      color:#fff;
-      border-color:transparent;
-    }
-
-    .stat-copy span{
-      display:block;
-      font-size:13px;
-      color:var(--muted);
-      margin-bottom:10px;
-      font-weight:600;
-    }
-
-    .stat-card.highlight .stat-copy span{
-      color:rgba(255,255,255,.84);
-    }
-
-    .stat-copy strong{
-      display:block;
-      font-size:30px;
-      line-height:1;
-      letter-spacing:-.03em;
-      margin-bottom:8px;
-    }
-
-    .stat-copy small{
-      display:block;
-      font-size:12px;
-      color:var(--muted);
-    }
-
-    .stat-card.highlight .stat-copy small{
-      color:rgba(255,255,255,.84);
-    }
-
-    .stat-icon{
-      width:44px;
-      height:44px;
-      border-radius:14px;
-      background:#f9eef3;
-      color:var(--primary);
-      display:grid;
-      place-items:center;
-      flex:0 0 44px;
-      font-size:18px;
-    }
-
-    .stat-card.highlight .stat-icon{
-      background:rgba(255,255,255,.14);
-      color:#fff;
-    }
-
-    .main-grid{
-      display:grid;
-      grid-template-columns:minmax(0,1.35fr) minmax(300px,.9fr);
-      gap:20px;
-      align-items:start;
-    }
-
-    .panel{
-      background:var(--surface);
-      border:1px solid var(--line);
-      border-radius:22px;
-      box-shadow:var(--shadow);
-      overflow:hidden;
-    }
-
-    .panel-head{
-      display:flex;
-      align-items:flex-start;
-      justify-content:space-between;
-      gap:14px;
-      padding:18px 18px 14px;
-      border-bottom:1px solid var(--line);
-      flex-wrap:wrap;
-    }
-
-    .panel-head h3{
-      margin:0;
-      font-size:18px;
-      font-weight:800;
-      letter-spacing:-.02em;
-    }
-
-    .panel-head p{
-      margin:6px 0 0;
-      font-size:13px;
-      color:var(--muted);
-      line-height:1.45;
-    }
-
-    .panel-actions{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-    }
-
-    .soft-btn{
-      border:1px solid var(--line);
-      background:#fff;
-      color:var(--text);
-      border-radius:12px;
-      padding:10px 12px;
-      cursor:pointer;
-      font-weight:700;
-      font-size:13px;
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-    }
-
-    .soft-btn.primary{
-      background:var(--primary);
-      border-color:var(--primary);
-      color:#fff;
-    }
-
-    .panel-body{
-      padding:18px;
-    }
-
-    .purchase-list{
-      display:grid;
-      gap:12px;
-    }
-
-    .purchase-card{
-      border:1px solid var(--line);
-      border-radius:18px;
-      padding:15px;
-      background:var(--surface-2);
-      cursor:pointer;
-      transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease;
-    }
-
-    .purchase-card:hover{
-      transform:translateY(-2px);
-      box-shadow:0 12px 28px rgba(17,24,39,.08);
-      border-color:#d9deea;
-    }
-
-    .purchase-card-top{
-      display:flex;
-      justify-content:space-between;
-      align-items:flex-start;
-      gap:14px;
-      flex-wrap:wrap;
-    }
-
-    .purchase-card h4{
-      margin:0 0 6px;
-      font-size:15px;
-      font-weight:800;
-    }
-
-    .purchase-card p{
-      margin:4px 0;
-      font-size:13px;
-      color:var(--muted);
-      line-height:1.45;
-    }
-
-    .purchase-total{
-      text-align:right;
-    }
-
-    .purchase-total strong{
-      display:block;
-      font-size:18px;
-      line-height:1;
-      margin-bottom:8px;
-    }
-
-    .pill{
-      display:inline-flex;
-      align-items:center;
-      gap:6px;
-      padding:8px 10px;
-      border-radius:999px;
-      font-size:12px;
-      font-weight:800;
-      border:1px solid transparent;
-      white-space:nowrap;
-    }
-
-    .pill.success{
-      color:var(--success);
-      background:rgba(22,163,74,.10);
-      border-color:rgba(22,163,74,.16);
-    }
-
-    .pill.danger{
-      color:var(--danger);
-      background:rgba(220,38,38,.10);
-      border-color:rgba(220,38,38,.16);
-    }
-
-    .pill.info{
-      color:var(--primary);
-      background:rgba(229,61,125,.10);
-      border-color:rgba(229,61,125,.14);
-    }
-
-    .inventory-toolbar{
-      display:grid;
-      grid-template-columns:minmax(0,1.1fr) minmax(0,.7fr) minmax(0,.7fr) auto;
-      gap:12px;
-      margin-bottom:16px;
-    }
-
-    .inventory-toolbar input,
-    .inventory-toolbar select{
-      width:100%;
-      height:46px;
-      border-radius:14px;
-      border:1px solid var(--line);
-      background:#fff;
-      padding:0 14px;
-      outline:none;
-    }
-
-    .inventory-toolbar .soft-btn{
-      height:46px;
-    }
-
-    .product-list{
-      display:grid;
-      gap:12px;
-    }
-
-    .product-row{
-      background:var(--surface-2);
-      border:1px solid var(--line);
-      border-radius:18px;
-      padding:14px;
-      display:grid;
-      grid-template-columns:84px minmax(0,1fr);
-      gap:14px;
-    }
-
-    .product-thumb{
-      width:84px;
-      height:84px;
-      border-radius:16px;
-      object-fit:cover;
-      background:#eef2f7;
-      border:1px solid var(--line);
-    }
-
-    .product-head{
-      display:flex;
-      justify-content:space-between;
-      align-items:flex-start;
-      gap:12px;
-      flex-wrap:wrap;
-    }
-
-    .product-row h3{
-      margin:0 0 6px;
-      font-size:16px;
-      font-weight:800;
-    }
-
-    .product-row p{
-      margin:4px 0;
-      font-size:13px;
-      color:var(--muted);
-      line-height:1.45;
-      word-break:break-word;
-    }
-
-    .product-actions{
-      display:flex;
-      gap:8px;
-      flex-wrap:wrap;
-      margin-top:10px;
-    }
-
-    .mini-btn{
-      border:1px solid var(--line);
-      background:#fff;
-      color:var(--text);
-      border-radius:12px;
-      padding:10px 12px;
-      font-weight:700;
-      cursor:pointer;
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-    }
-
-    .mini-btn.success{
-      color:var(--success);
-      border-color:rgba(22,163,74,.16);
-      background:rgba(22,163,74,.06);
-    }
-
-    .mini-btn.danger{
-      color:var(--danger);
-      border-color:rgba(220,38,38,.16);
-      background:rgba(220,38,38,.06);
-    }
-
-    .form-grid{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:14px;
-    }
-
-    .field-full{
-      grid-column:1 / -1;
-    }
-
-    input,select,textarea{
-      width:100%;
-      border:1px solid var(--line);
-      background:#fff;
-      color:var(--text);
-      border-radius:14px;
-      padding:12px 14px;
-      outline:none;
-    }
-
-    textarea{
-      resize:vertical;
-      min-height:110px;
-    }
-
-    input:focus,
-    select:focus,
-    textarea:focus{
-      border-color:rgba(229,61,125,.35);
-      box-shadow:0 0 0 4px rgba(229,61,125,.08);
-    }
-
-    .form-actions{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      margin-top:14px;
-    }
-
-    .preview-wrap{
-      margin-top:14px;
-    }
-
-    .preview-box{
-      display:flex;
-      gap:12px;
-      align-items:center;
-      border:1px dashed var(--line);
-      border-radius:16px;
-      background:#fcfcfe;
-      padding:12px;
-    }
-
-    .preview-box img{
-      width:66px;
-      height:66px;
-      object-fit:cover;
-      border-radius:14px;
-      background:#eef2f7;
-      border:1px solid var(--line);
-      flex:0 0 66px;
-    }
-
-    .status{
-      margin-top:12px;
-      min-height:20px;
-      font-size:14px;
-      font-weight:700;
-    }
-
-    .status.info{ color:var(--muted); }
-    .status.success{ color:var(--success); }
-    .status.error{ color:var(--danger); }
-
-    .hidden{ display:none !important; }
-
-    .empty{
-      border:1px dashed var(--line);
-      border-radius:18px;
-      padding:22px 16px;
-      text-align:center;
-      color:var(--muted);
-      background:#fcfcfe;
-    }
-
-    .drawer-overlay{
-      position:fixed;
-      inset:0;
-      background:rgba(17,24,39,.42);
-      z-index:100;
-    }
-
-    .drawer-overlay.hidden{
-      display:none;
-    }
-
-    .admin-drawer{
-      position:fixed;
-      top:0;
-      right:-100%;
-      width:min(100%, 520px);
-      height:100vh;
-      background:#fff;
-      z-index:120;
-      box-shadow:-18px 0 50px rgba(17,24,39,.18);
-      transition:right .28s ease;
-      display:flex;
-      flex-direction:column;
-    }
-
-    .admin-drawer.open{
-      right:0;
-    }
-
-    .drawer-head{
-      padding:18px;
-      border-bottom:1px solid var(--line);
-      display:flex;
-      justify-content:space-between;
-      align-items:flex-start;
-      gap:12px;
-    }
-
-    .drawer-head h3{
-      margin:0 0 4px;
-      font-size:20px;
-      font-weight:800;
-    }
-
-    .drawer-head p{
-      margin:0;
-      color:var(--muted);
-      font-size:13px;
-      line-height:1.45;
-    }
-
-    .drawer-body{
-      padding:18px;
-      overflow:auto;
-      display:grid;
-      gap:14px;
-    }
-
-    .purchase-detail-card{
-      border:1px solid var(--line);
-      border-radius:18px;
-      background:#fcfcfe;
-      padding:14px;
-    }
-
-    .purchase-detail-card h4{
-      margin:0 0 10px;
-      font-size:15px;
-      font-weight:800;
-    }
-
-    .purchase-lines{
-      display:grid;
-      gap:8px;
-    }
-
-    .purchase-lines p{
-      margin:0;
-      font-size:13px;
-      line-height:1.45;
-      color:var(--muted);
-      word-break:break-word;
-    }
-
-    .purchase-lines strong{
-      color:var(--text);
-    }
-
-    .purchase-product{
-      display:grid;
-      grid-template-columns:72px minmax(0,1fr);
-      gap:12px;
-      align-items:start;
-      padding:12px;
-      border-radius:16px;
-      border:1px solid var(--line);
-      background:#fff;
-    }
-
-    .purchase-product img{
-      width:72px;
-      height:72px;
-      object-fit:cover;
-      border-radius:14px;
-      background:#eef2f7;
-      border:1px solid var(--line);
-    }
-
-    .modal{
-      position:fixed;
-      inset:0;
-      background:rgba(17,24,39,.42);
-      display:none;
-      align-items:center;
-      justify-content:center;
-      padding:18px;
-      z-index:140;
-    }
-
-    .modal.open{
-      display:flex;
-    }
-
-    .modal-card{
-      width:min(760px,100%);
-      max-height:92vh;
-      overflow:auto;
-      background:#fff;
-      border-radius:22px;
-      border:1px solid var(--line);
-      box-shadow:0 30px 80px rgba(17,24,39,.16);
-      padding:18px;
-    }
-
-    .modal-head{
-      display:flex;
-      justify-content:space-between;
-      align-items:flex-start;
-      gap:12px;
-      margin-bottom:14px;
-    }
-
-    .modal-head h2{
-      margin:0;
-      font-size:22px;
-      font-weight:800;
-    }
-
-    .modal-head p{
-      margin:6px 0 0;
-      color:var(--muted);
-      font-size:13px;
-      line-height:1.45;
-    }
-
-    @media (max-width:1180px){
-      .overview-grid{
-        grid-template-columns:repeat(2,minmax(0,1fr));
-      }
-
-      .main-grid{
-        grid-template-columns:1fr;
-      }
-    }
-
-    @media (max-width:980px){
-      .admin-shell{
-        grid-template-columns:1fr;
-      }
-
-      .sidebar{
-        position:fixed;
-        left:-100%;
-        top:0;
-        width:min(86vw,320px);
-        transition:left .28s ease;
-        box-shadow:18px 0 50px rgba(17,24,39,.18);
-      }
-
-      .sidebar.open{
-        left:0;
-      }
-
-      .menu-toggle{
-        display:grid;
-        place-items:center;
-      }
-
-      .topbar{
-        padding:14px 16px;
-      }
-
-      .content{
-        padding:18px 16px 30px;
-      }
-    }
-
-    @media (max-width:760px){
-      .topbar{
-        height:auto;
-      }
-
-      .topbar-right{
-        width:100%;
-        justify-content:space-between;
-      }
-
-      .searchbar{
-        width:100%;
-        min-width:0;
-      }
-
-      .admin-user-copy{
-        display:none;
-      }
-
-      .overview-grid{
-        grid-template-columns:1fr;
-      }
-
-      .inventory-toolbar{
-        grid-template-columns:1fr;
-      }
-
-      .form-grid{
-        grid-template-columns:1fr;
-      }
-
-      .product-row{
-        grid-template-columns:1fr;
-      }
-
-      .product-thumb{
-        width:100%;
-        height:220px;
-      }
-
-      .purchase-product{
-        grid-template-columns:1fr;
-      }
-
-      .purchase-product img{
-        width:100%;
-        height:220px;
-      }
-
-      .preview-box{
-        align-items:flex-start;
-      }
-    }
-  </style>
+<style>
+:root{
+  --bg:#f5f6fb;
+  --bg-2:#eef1f8;
+  --surface:#ffffff;
+  --surface-2:#f9fafe;
+  --text:#111827;
+  --muted:#6b7280;
+  --line:#e5e7ef;
+  --line-2:#d8dcea;
+
+  --primary:#e83f7f;
+  --primary-2:#ff6b9d;
+  --primary-3:#c92c68;
+
+  --success:#16a34a;
+  --danger:#dc2626;
+  --warning:#f59e0b;
+
+  --sidebar-w:270px;
+  --header-h:72px;
+
+  --radius-sm:12px;
+  --radius:18px;
+  --radius-lg:24px;
+
+  --shadow-sm:0 8px 20px rgba(17,24,39,.06);
+  --shadow:0 18px 40px rgba(17,24,39,.08);
+  --shadow-lg:0 24px 60px rgba(17,24,39,.12);
+
+  --ease:cubic-bezier(.2,.8,.2,1);
+}
+
+*{
+  box-sizing:border-box;
+}
+
+html,body{
+  margin:0;
+  padding:0;
+  min-height:100%;
+}
+
+html{
+  scroll-behavior:smooth;
+}
+
+body{
+  font-family:"Inter", Arial, sans-serif;
+  color:var(--text);
+  background:
+    radial-gradient(900px 500px at 0% 0%, rgba(232,63,127,.08), transparent 55%),
+    radial-gradient(800px 500px at 100% 0%, rgba(255,107,157,.08), transparent 50%),
+    linear-gradient(180deg, var(--bg), var(--bg-2));
+  overflow-x:hidden;
+}
+
+img{
+  max-width:100%;
+  display:block;
+}
+
+button,
+input,
+select,
+textarea{
+  font:inherit;
+}
+
+button{
+  border:0;
+  background:none;
+  cursor:pointer;
+}
+
+input,
+select,
+textarea{
+  width:100%;
+  border:1px solid var(--line);
+  background:#fff;
+  color:var(--text);
+  border-radius:14px;
+  padding:13px 14px;
+  outline:none;
+  transition:border-color .2s var(--ease), box-shadow .2s var(--ease), background .2s var(--ease);
+}
+
+textarea{
+  min-height:120px;
+  resize:vertical;
+}
+
+input:focus,
+select:focus,
+textarea:focus{
+  border-color:rgba(232,63,127,.45);
+  box-shadow:0 0 0 4px rgba(232,63,127,.08);
+  background:#fff;
+}
+
+input::placeholder,
+textarea::placeholder{
+  color:#9aa3b2;
+}
+
+a{
+  color:inherit;
+  text-decoration:none;
+}
+
+.hidden{
+  display:none !important;
+}
+
+.status{
+  margin-top:12px;
+  min-height:20px;
+  font-size:14px;
+  font-weight:700;
+}
+
+.status.info{ color:var(--muted); }
+.status.success{ color:var(--success); }
+.status.error{ color:var(--danger); }
+
+/* LOGIN VIEW */
+.auth-shell{
+  min-height:100vh;
+  display:grid;
+  place-items:center;
+  padding:28px 16px;
+}
+
+.auth-card{
+  width:min(100%, 460px);
+  background:rgba(255,255,255,.92);
+  backdrop-filter:blur(10px);
+  border:1px solid rgba(255,255,255,.7);
+  box-shadow:var(--shadow-lg);
+  border-radius:28px;
+  padding:28px 22px 24px;
+  position:relative;
+  overflow:hidden;
+}
+
+.auth-card::before{
+  content:"";
+  position:absolute;
+  inset:0 0 auto 0;
+  height:6px;
+  background:linear-gradient(90deg, var(--primary), var(--primary-2));
+}
+
+.auth-brand{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  margin-bottom:22px;
+}
+
+.auth-brand__icon{
+  width:56px;
+  height:56px;
+  border-radius:18px;
+  display:grid;
+  place-items:center;
+  background:linear-gradient(135deg, var(--primary), var(--primary-2));
+  color:#fff;
+  font-size:22px;
+  box-shadow:0 16px 30px rgba(232,63,127,.22);
+  flex:0 0 auto;
+}
+
+.auth-brand__text h1{
+  margin:0;
+  font-size:23px;
+  line-height:1.05;
+  font-weight:800;
+  letter-spacing:-.03em;
+}
+
+.auth-brand__text p{
+  margin:4px 0 0;
+  color:var(--muted);
+  font-size:13px;
+}
+
+.auth-copy{
+  margin-bottom:18px;
+}
+
+.auth-copy h2{
+  margin:0 0 8px;
+  font-size:22px;
+  font-weight:800;
+  letter-spacing:-.02em;
+}
+
+.auth-copy p{
+  margin:0;
+  color:var(--muted);
+  line-height:1.55;
+  font-size:14px;
+}
+
+.auth-form{
+  display:grid;
+  gap:16px;
+}
+
+.field{
+  display:grid;
+  gap:7px;
+}
+
+.field label{
+  font-size:14px;
+  font-weight:700;
+  color:var(--text);
+}
+
+.field-full{
+  grid-column:1 / -1;
+}
+
+.input-wrap{
+  position:relative;
+}
+
+.input-wrap i{
+  position:absolute;
+  left:14px;
+  top:50%;
+  transform:translateY(-50%);
+  color:#9aa3b2;
+  font-size:14px;
+  pointer-events:none;
+}
+
+.input-wrap input{
+  padding-left:40px;
+}
+
+/* BUTTONS */
+.btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:9px;
+  min-height:46px;
+  padding:12px 16px;
+  border-radius:14px;
+  font-weight:700;
+  transition:transform .18s var(--ease), box-shadow .18s var(--ease), background .18s var(--ease), border-color .18s var(--ease), opacity .18s var(--ease);
+  white-space:nowrap;
+}
+
+.btn:hover{
+  transform:translateY(-1px);
+}
+
+.btn:disabled{
+  opacity:.7;
+  cursor:not-allowed;
+  transform:none;
+}
+
+.btn-primary{
+  color:#fff;
+  background:linear-gradient(90deg, var(--primary), var(--primary-2));
+  box-shadow:0 14px 28px rgba(232,63,127,.18);
+}
+
+.btn-primary:hover{
+  box-shadow:0 18px 36px rgba(232,63,127,.22);
+}
+
+.btn-ghost{
+  color:var(--text);
+  background:#fff;
+  border:1px solid var(--line);
+}
+
+.btn-ghost:hover{
+  background:#fafbff;
+}
+
+.btn-block,
+.btn-block-mobile{
+  width:100%;
+}
+
+.icon-btn{
+  width:42px;
+  height:42px;
+  border-radius:12px;
+  display:grid;
+  place-items:center;
+  background:#fff;
+  border:1px solid var(--line);
+  color:var(--text);
+  transition:transform .18s var(--ease), box-shadow .18s var(--ease), background .18s var(--ease), border-color .18s var(--ease);
+}
+
+.icon-btn:hover{
+  transform:translateY(-1px);
+  box-shadow:var(--shadow-sm);
+  background:#fcfcff;
+}
+
+.spinner{
+  width:15px;
+  height:15px;
+  border:2px solid rgba(255,255,255,.38);
+  border-top-color:#fff;
+  border-radius:50%;
+  display:none;
+  animation:spin .8s linear infinite;
+}
+
+.btn-ghost .spinner{
+  border-color:rgba(17,24,39,.15);
+  border-top-color:var(--text);
+}
+
+.is-loading .spinner{
+  display:inline-block;
+}
+
+@keyframes spin{
+  to{ transform:rotate(360deg); }
+}
+
+/* APP LAYOUT */
+.admin-app{
+  min-height:100vh;
+}
+
+.app-main{
+  min-height:100vh;
+  margin-left:var(--sidebar-w);
+  display:flex;
+  flex-direction:column;
+}
+
+.sidebar{
+  position:fixed;
+  top:0;
+  left:0;
+  width:var(--sidebar-w);
+  height:100vh;
+  background:linear-gradient(180deg, var(--primary), var(--primary-3));
+  color:#fff;
+  padding:18px 14px 18px;
+  z-index:80;
+  display:flex;
+  flex-direction:column;
+  gap:18px;
+  box-shadow:20px 0 40px rgba(201,44,104,.18);
+}
+
+.sidebar-top{
+  padding:6px 6px 2px;
+}
+
+.brand{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+.brand-mark{
+  width:46px;
+  height:46px;
+  border-radius:16px;
+  display:grid;
+  place-items:center;
+  background:rgba(255,255,255,.16);
+  border:1px solid rgba(255,255,255,.14);
+  font-size:18px;
+  flex:0 0 auto;
+}
+
+.brand-copy{
+  min-width:0;
+}
+
+.brand-copy strong{
+  display:block;
+  font-size:17px;
+  line-height:1.1;
+  font-weight:800;
+}
+
+.brand-copy span{
+  display:block;
+  margin-top:4px;
+  font-size:12px;
+  opacity:.88;
+}
+
+.sidebar-nav{
+  display:grid;
+  gap:8px;
+}
+
+.nav-btn{
+  width:100%;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  text-align:left;
+  color:#fff;
+  border-radius:14px;
+  padding:13px 14px;
+  transition:background .18s var(--ease), transform .18s var(--ease), color .18s var(--ease);
+}
+
+.nav-btn:hover{
+  background:rgba(255,255,255,.11);
+}
+
+.nav-btn.active{
+  background:#fff;
+  color:var(--primary);
+  box-shadow:0 12px 28px rgba(0,0,0,.12);
+}
+
+.nav-btn__icon{
+  width:18px;
+  height:18px;
+  display:grid;
+  place-items:center;
+  flex:0 0 18px;
+  font-size:14px;
+}
+
+.nav-btn__text{
+  font-size:14px;
+  font-weight:700;
+}
+
+.sidebar-bottom{
+  margin-top:auto;
+}
+
+.sidebar-note{
+  display:flex;
+  gap:12px;
+  align-items:flex-start;
+  padding:14px;
+  background:rgba(255,255,255,.12);
+  border:1px solid rgba(255,255,255,.14);
+  border-radius:18px;
+}
+
+.sidebar-note__icon{
+  width:38px;
+  height:38px;
+  border-radius:12px;
+  display:grid;
+  place-items:center;
+  background:rgba(255,255,255,.14);
+  flex:0 0 auto;
+}
+
+.sidebar-note h3{
+  margin:0 0 4px;
+  font-size:14px;
+  font-weight:800;
+}
+
+.sidebar-note p{
+  margin:0;
+  font-size:12px;
+  line-height:1.5;
+  opacity:.92;
+}
+
+/* HEADER */
+.app-header{
+  position:fixed;
+  top:0;
+  left:var(--sidebar-w);
+  right:0;
+  height:var(--header-h);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  padding:14px 22px;
+  background:rgba(255,255,255,.82);
+  backdrop-filter:blur(12px);
+  border-bottom:1px solid rgba(229,231,239,.9);
+  z-index:60;
+}
+
+.header-left,
+.header-right{
+  display:flex;
+  align-items:center;
+  gap:14px;
+}
+
+.menu-btn{
+  display:none;
+}
+
+.page-heading h1{
+  margin:0;
+  font-size:22px;
+  line-height:1;
+  font-weight:800;
+  letter-spacing:-.03em;
+}
+
+.desktop-user{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+.user-chip{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:999px;
+  padding:6px 12px 6px 6px;
+  box-shadow:var(--shadow-sm);
+}
+
+.user-chip__avatar{
+  width:36px;
+  height:36px;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  background:linear-gradient(135deg, #ffd7e8, #ffe7ef);
+  color:var(--primary);
+  font-size:14px;
+  flex:0 0 auto;
+}
+
+.user-chip__meta strong{
+  display:block;
+  font-size:13px;
+  line-height:1.1;
+  font-weight:800;
+}
+
+.user-chip__meta span{
+  display:block;
+  margin-top:2px;
+  color:var(--muted);
+  font-size:11px;
+}
+
+.mobile-user-menu{
+  display:none;
+  position:relative;
+}
+
+.user-dropdown{
+  position:absolute;
+  right:0;
+  top:calc(100% + 10px);
+  width:180px;
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:16px;
+  box-shadow:var(--shadow-lg);
+  padding:10px;
+}
+
+.user-dropdown__head{
+  padding:8px 8px 10px;
+  border-bottom:1px solid var(--line);
+  margin-bottom:8px;
+}
+
+.user-dropdown__head strong{
+  display:block;
+  font-size:13px;
+  line-height:1.2;
+}
+
+.user-dropdown__head span{
+  display:block;
+  margin-top:2px;
+  color:var(--muted);
+  font-size:12px;
+}
+
+.dropdown-btn{
+  width:100%;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  border-radius:12px;
+  padding:11px 10px;
+  color:var(--danger);
+  font-weight:700;
+  text-align:left;
+}
+
+.dropdown-btn:hover{
+  background:#fff5f6;
+}
+
+/* CONTENT */
+.app-content{
+  padding:calc(var(--header-h) + 20px) 22px 26px;
+  display:grid;
+  gap:22px;
+}
+
+.page-section{
+  display:grid;
+  gap:20px;
+}
+
+.hero-strip{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  background:linear-gradient(135deg, rgba(232,63,127,.08), rgba(255,107,157,.08));
+  border:1px solid rgba(232,63,127,.12);
+  border-radius:24px;
+  padding:22px 20px;
+  box-shadow:var(--shadow-sm);
+}
+
+.hero-strip__copy h2{
+  margin:0 0 8px;
+  font-size:28px;
+  font-weight:800;
+  letter-spacing:-.03em;
+}
+
+.hero-strip__copy p{
+  margin:0;
+  color:var(--muted);
+  font-size:14px;
+  line-height:1.6;
+  max-width:62ch;
+}
+
+.eyebrow{
+  margin:0 0 8px !important;
+  color:var(--primary) !important;
+  font-size:12px !important;
+  font-weight:800 !important;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+}
+
+.page-intro{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:14px;
+  flex-wrap:wrap;
+}
+
+.page-intro h2{
+  margin:0 0 8px;
+  font-size:28px;
+  font-weight:800;
+  letter-spacing:-.03em;
+}
+
+.page-intro p{
+  margin:0;
+  color:var(--muted);
+  line-height:1.6;
+  font-size:14px;
+}
+
+.page-actions{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  align-items:center;
+}
+
+/* DASHBOARD */
+.dashboard-stats{
+  display:grid;
+  grid-template-columns:repeat(4, minmax(0,1fr));
+  gap:16px;
+}
+
+.stat-card{
+  background:rgba(255,255,255,.9);
+  backdrop-filter:blur(8px);
+  border:1px solid rgba(255,255,255,.78);
+  border-radius:22px;
+  box-shadow:var(--shadow);
+  padding:18px;
+  display:grid;
+  gap:16px;
+  transition:transform .2s var(--ease), box-shadow .2s var(--ease), border-color .2s var(--ease);
+}
+
+.stat-card:hover{
+  transform:translateY(-2px);
+  box-shadow:0 24px 44px rgba(17,24,39,.1);
+}
+
+.stat-card--accent{
+  background:linear-gradient(135deg, var(--primary), var(--primary-2));
+  color:#fff;
+  border-color:transparent;
+}
+
+.stat-card__top{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
+
+.stat-icon{
+  width:48px;
+  height:48px;
+  border-radius:16px;
+  display:grid;
+  place-items:center;
+  background:rgba(232,63,127,.1);
+  color:var(--primary);
+  font-size:18px;
+  flex:0 0 auto;
+}
+
+.stat-card--accent .stat-icon{
+  background:rgba(255,255,255,.16);
+  color:#fff;
+}
+
+.mini-arrow{
+  width:34px;
+  height:34px;
+  border-radius:12px;
+  display:grid;
+  place-items:center;
+  background:#fff;
+  border:1px solid var(--line);
+  color:var(--text);
+  transition:transform .18s var(--ease), background .18s var(--ease), color .18s var(--ease);
+}
+
+.mini-arrow:hover{
+  transform:translateX(1px);
+  background:#fafbff;
+}
+
+.stat-card--accent .mini-arrow{
+  background:rgba(255,255,255,.16);
+  border-color:rgba(255,255,255,.18);
+  color:#fff;
+}
+
+.stat-card__body span{
+  display:block;
+  font-size:13px;
+  font-weight:700;
+  color:var(--muted);
+  margin-bottom:8px;
+}
+
+.stat-card__body strong{
+  display:block;
+  font-size:30px;
+  line-height:1;
+  letter-spacing:-.04em;
+  font-weight:800;
+  margin-bottom:8px;
+}
+
+.stat-card__body small{
+  display:block;
+  font-size:12px;
+  color:var(--muted);
+  line-height:1.5;
+}
+
+.stat-card--accent .stat-card__body span,
+.stat-card--accent .stat-card__body small{
+  color:rgba(255,255,255,.86);
+}
+
+.dashboard-panels{
+  display:grid;
+  grid-template-columns:1.1fr .9fr;
+  gap:18px;
+}
+
+.panel-card,
+.form-card,
+.info-card,
+.mini-stat{
+  background:rgba(255,255,255,.9);
+  backdrop-filter:blur(8px);
+  border:1px solid rgba(255,255,255,.78);
+  border-radius:22px;
+  box-shadow:var(--shadow);
+}
+
+.panel-card{
+  padding:18px;
+}
+
+.panel-card__head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:14px;
+  margin-bottom:14px;
+}
+
+.panel-card__head h3{
+  margin:0 0 6px;
+  font-size:18px;
+  font-weight:800;
+  letter-spacing:-.02em;
+}
+
+.panel-card__head p{
+  margin:0;
+  color:var(--muted);
+  font-size:13px;
+  line-height:1.55;
+}
+
+.quick-summary-list,
+.quick-action-list{
+  display:grid;
+  gap:12px;
+}
+
+.summary-row{
+  display:flex;
+  gap:12px;
+  align-items:flex-start;
+  padding:14px;
+  border-radius:18px;
+  background:var(--surface-2);
+  border:1px solid var(--line);
+}
+
+.summary-row__icon{
+  width:40px;
+  height:40px;
+  border-radius:14px;
+  display:grid;
+  place-items:center;
+  background:rgba(232,63,127,.1);
+  color:var(--primary);
+  flex:0 0 auto;
+}
+
+.summary-row__copy strong{
+  display:block;
+  margin-bottom:4px;
+  font-size:14px;
+  font-weight:800;
+}
+
+.summary-row__copy span{
+  display:block;
+  color:var(--muted);
+  font-size:13px;
+  line-height:1.55;
+}
+
+.quick-action-btn{
+  width:100%;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:15px 16px;
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:16px;
+  font-weight:700;
+  color:var(--text);
+  text-align:left;
+  transition:transform .18s var(--ease), box-shadow .18s var(--ease), border-color .18s var(--ease);
+}
+
+.quick-action-btn:hover{
+  transform:translateY(-1px);
+  box-shadow:var(--shadow-sm);
+  border-color:var(--line-2);
+}
+
+.quick-action-btn span{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+/* PURCHASES */
+.purchase-summary-cards{
+  display:grid;
+  grid-template-columns:repeat(3, minmax(0,1fr));
+  gap:14px;
+}
+
+.mini-stat{
+  padding:16px 18px;
+}
+
+.mini-stat span{
+  display:block;
+  color:var(--muted);
+  font-size:13px;
+  font-weight:700;
+  margin-bottom:10px;
+}
+
+.mini-stat strong{
+  display:block;
+  font-size:26px;
+  line-height:1;
+  font-weight:800;
+  letter-spacing:-.03em;
+}
+
+.purchase-list{
+  display:grid;
+  gap:14px;
+}
+
+.purchase-card{
+  background:rgba(255,255,255,.9);
+  border:1px solid rgba(255,255,255,.78);
+  box-shadow:var(--shadow);
+  border-radius:20px;
+  padding:16px;
+  cursor:pointer;
+  transition:transform .18s var(--ease), box-shadow .18s var(--ease), border-color .18s var(--ease);
+}
+
+.purchase-card:hover{
+  transform:translateY(-2px);
+  box-shadow:0 22px 42px rgba(17,24,39,.1);
+}
+
+.purchase-card-top{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:14px;
+  flex-wrap:wrap;
+}
+
+.purchase-card h4{
+  margin:0 0 6px;
+  font-size:16px;
+  font-weight:800;
+}
+
+.purchase-card p{
+  margin:4px 0;
+  color:var(--muted);
+  font-size:13px;
+  line-height:1.5;
+}
+
+.purchase-total{
+  text-align:right;
+}
+
+.purchase-total strong{
+  display:block;
+  font-size:22px;
+  line-height:1;
+  margin-bottom:10px;
+  font-weight:800;
+  letter-spacing:-.03em;
+}
+
+.pill{
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  padding:8px 11px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:800;
+  border:1px solid transparent;
+}
+
+.pill.success{
+  color:var(--success);
+  background:rgba(22,163,74,.1);
+  border-color:rgba(22,163,74,.12);
+}
+
+.pill.danger{
+  color:var(--danger);
+  background:rgba(220,38,38,.1);
+  border-color:rgba(220,38,38,.12);
+}
+
+.pill.info{
+  color:var(--primary);
+  background:rgba(232,63,127,.1);
+  border-color:rgba(232,63,127,.12);
+}
+
+/* FORM PAGE */
+.form-page-grid{
+  display:grid;
+  grid-template-columns:1.05fr .95fr;
+  gap:18px;
+}
+
+.form-card{
+  padding:18px;
+}
+
+.form-card__head{
+  margin-bottom:16px;
+}
+
+.form-card__head h3{
+  margin:0 0 6px;
+  font-size:18px;
+  font-weight:800;
+}
+
+.form-card__head p{
+  margin:0;
+  color:var(--muted);
+  font-size:13px;
+  line-height:1.55;
+}
+
+.form-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px;
+}
+
+.form-actions{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-top:16px;
+}
+
+.preview-wrap{
+  margin-top:14px;
+}
+
+.preview-box{
+  display:flex;
+  gap:12px;
+  align-items:center;
+  padding:14px;
+  border-radius:18px;
+  background:var(--surface-2);
+  border:1px dashed var(--line-2);
+}
+
+.preview-box img{
+  width:72px;
+  height:72px;
+  object-fit:cover;
+  border-radius:16px;
+  background:#edf1f7;
+  border:1px solid var(--line);
+  flex:0 0 auto;
+}
+
+.preview-box strong{
+  display:block;
+  font-size:14px;
+  font-weight:800;
+  margin-bottom:4px;
+}
+
+.preview-box p{
+  margin:0;
+  color:var(--muted);
+  font-size:13px;
+  line-height:1.55;
+}
+
+/* INVENTORY */
+.inventory-toolbar{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:14px;
+  align-items:center;
+}
+
+.inventory-search{
+  position:relative;
+}
+
+.inventory-search i{
+  position:absolute;
+  left:14px;
+  top:50%;
+  transform:translateY(-50%);
+  color:#9aa3b2;
+  font-size:14px;
+  pointer-events:none;
+}
+
+.inventory-search input{
+  padding-left:40px;
+}
+
+.inventory-filters{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+.inventory-filters select{
+  min-width:180px;
+}
+
+.inventory-grid{
+  display:grid;
+  grid-template-columns:repeat(2, minmax(0,1fr));
+  gap:16px;
+}
+
+.product-card{
+  background:rgba(255,255,255,.92);
+  border:1px solid rgba(255,255,255,.8);
+  box-shadow:var(--shadow);
+  border-radius:22px;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  min-width:0;
+}
+
+.product-card__media{
+  position:relative;
+  aspect-ratio: 4 / 3;
+  background:#edf1f7;
+}
+
+.product-card__media img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+.product-card__body{
+  padding:16px;
+  display:grid;
+  gap:12px;
+}
+
+.product-card__head{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:12px;
+}
+
+.product-card__head h3{
+  margin:0 0 4px;
+  font-size:17px;
+  font-weight:800;
+  line-height:1.25;
+}
+
+.product-card__meta{
+  display:grid;
+  gap:4px;
+}
+
+.product-card__meta p{
+  margin:0;
+  color:var(--muted);
+  font-size:13px;
+  line-height:1.5;
+  word-break:break-word;
+}
+
+.product-card__price{
+  font-size:22px;
+  font-weight:800;
+  letter-spacing:-.03em;
+}
+
+.product-actions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-top:2px;
+}
+
+.mini-btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  min-height:42px;
+  padding:10px 12px;
+  border-radius:12px;
+  font-size:13px;
+  font-weight:700;
+  border:1px solid var(--line);
+  background:#fff;
+  color:var(--text);
+  transition:transform .18s var(--ease), box-shadow .18s var(--ease), background .18s var(--ease), border-color .18s var(--ease);
+}
+
+.mini-btn:hover{
+  transform:translateY(-1px);
+  box-shadow:var(--shadow-sm);
+}
+
+.mini-btn.success{
+  color:var(--success);
+  background:rgba(22,163,74,.06);
+  border-color:rgba(22,163,74,.16);
+}
+
+.mini-btn.danger{
+  color:var(--danger);
+  background:rgba(220,38,38,.06);
+  border-color:rgba(220,38,38,.16);
+}
+
+/* OVERVIEW */
+.overview-grid-page{
+  display:grid;
+  grid-template-columns:repeat(2, minmax(0,1fr));
+  gap:16px;
+}
+
+.info-card{
+  padding:18px;
+  display:flex;
+  gap:14px;
+  align-items:flex-start;
+}
+
+.info-card__icon{
+  width:48px;
+  height:48px;
+  border-radius:16px;
+  display:grid;
+  place-items:center;
+  background:rgba(232,63,127,.1);
+  color:var(--primary);
+  flex:0 0 auto;
+  font-size:18px;
+}
+
+.info-card h3{
+  margin:0 0 6px;
+  font-size:17px;
+  font-weight:800;
+}
+
+.info-card p{
+  margin:0;
+  color:var(--muted);
+  font-size:14px;
+  line-height:1.6;
+}
+
+/* EMPTY */
+.empty-state{
+  background:rgba(255,255,255,.92);
+  border:1px dashed var(--line-2);
+  border-radius:22px;
+  padding:28px 18px;
+  text-align:center;
+  color:var(--muted);
+}
+
+.empty-state i{
+  width:56px;
+  height:56px;
+  border-radius:18px;
+  display:grid;
+  place-items:center;
+  margin:0 auto 12px;
+  background:rgba(232,63,127,.08);
+  color:var(--primary);
+  font-size:20px;
+}
+
+.empty-state h3{
+  margin:0 0 6px;
+  color:var(--text);
+  font-size:18px;
+  font-weight:800;
+}
+
+.empty-state p{
+  margin:0;
+  font-size:14px;
+  line-height:1.6;
+}
+
+/* DRAWER */
+.sidebar-overlay,
+.drawer-overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(17,24,39,.45);
+  backdrop-filter:blur(4px);
+  z-index:70;
+}
+
+.purchase-drawer{
+  position:fixed;
+  top:0;
+  right:-100%;
+  width:min(100%, 520px);
+  height:100vh;
+  background:#fff;
+  box-shadow:-24px 0 60px rgba(17,24,39,.16);
+  z-index:100;
+  display:flex;
+  flex-direction:column;
+  transition:right .28s var(--ease);
+}
+
+.purchase-drawer.open{
+  right:0;
+}
+
+.purchase-drawer__head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  padding:18px;
+  border-bottom:1px solid var(--line);
+}
+
+.purchase-drawer__head h3{
+  margin:0 0 4px;
+  font-size:22px;
+  font-weight:800;
+  letter-spacing:-.02em;
+}
+
+.purchase-drawer__head p{
+  margin:0;
+  color:var(--muted);
+  font-size:13px;
+  line-height:1.55;
+}
+
+.purchase-drawer__body{
+  padding:18px;
+  overflow:auto;
+  display:grid;
+  gap:14px;
+}
+
+.purchase-detail-card{
+  background:var(--surface-2);
+  border:1px solid var(--line);
+  border-radius:20px;
+  padding:16px;
+}
+
+.purchase-detail-card h4{
+  margin:0 0 12px;
+  font-size:16px;
+  font-weight:800;
+}
+
+.purchase-lines{
+  display:grid;
+  gap:8px;
+}
+
+.purchase-lines p{
+  margin:0;
+  color:var(--muted);
+  font-size:13px;
+  line-height:1.55;
+  word-break:break-word;
+}
+
+.purchase-lines strong{
+  color:var(--text);
+}
+
+.purchase-product{
+  display:grid;
+  grid-template-columns:76px minmax(0,1fr);
+  gap:12px;
+  align-items:start;
+  padding:12px;
+  border-radius:16px;
+  background:#fff;
+  border:1px solid var(--line);
+}
+
+.purchase-product img{
+  width:76px;
+  height:76px;
+  object-fit:cover;
+  border-radius:16px;
+  background:#edf1f7;
+  border:1px solid var(--line);
+}
+
+/* MODAL */
+.modal{
+  position:fixed;
+  inset:0;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:18px;
+  background:rgba(17,24,39,.45);
+  backdrop-filter:blur(4px);
+  z-index:110;
+}
+
+.modal.open{
+  display:flex;
+}
+
+.modal-card{
+  width:min(820px, 100%);
+  max-height:92vh;
+  overflow:auto;
+  background:#fff;
+  border-radius:24px;
+  border:1px solid rgba(255,255,255,.8);
+  box-shadow:0 28px 80px rgba(17,24,39,.18);
+  padding:20px;
+}
+
+.modal-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:12px;
+  margin-bottom:16px;
+}
+
+.modal-head h2{
+  margin:0 0 6px;
+  font-size:24px;
+  font-weight:800;
+  letter-spacing:-.03em;
+}
+
+.modal-head p{
+  margin:0;
+  color:var(--muted);
+  font-size:13px;
+  line-height:1.55;
+}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{
+  width:10px;
+  height:10px;
+}
+
+::-webkit-scrollbar-thumb{
+  background:rgba(17,24,39,.14);
+  border-radius:999px;
+  border:2px solid transparent;
+  background-clip:padding-box;
+}
+
+::-webkit-scrollbar-track{
+  background:transparent;
+}
+
+/* RESPONSIVE */
+@media (max-width: 1200px){
+  .dashboard-stats{
+    grid-template-columns:repeat(3, minmax(0,1fr));
+  }
+
+  .dashboard-panels{
+    grid-template-columns:1fr;
+  }
+
+  .form-page-grid{
+    grid-template-columns:1fr;
+  }
+}
+
+@media (max-width: 980px){
+  :root{
+    --sidebar-w:0px;
+  }
+
+  .sidebar{
+    left:-100%;
+    width:min(86vw, 300px);
+    box-shadow:24px 0 50px rgba(17,24,39,.18);
+  }
+
+  .sidebar.open{
+    left:0;
+  }
+
+  .app-main{
+    margin-left:0;
+  }
+
+  .app-header{
+    left:0;
+    padding:14px 16px;
+  }
+
+  .menu-btn{
+    display:grid;
+  }
+
+  .desktop-user{
+    display:none;
+  }
+
+  .mobile-user-menu{
+    display:block;
+  }
+
+  .app-content{
+    padding:calc(var(--header-h) + 18px) 16px 24px;
+  }
+
+  .dashboard-stats{
+    grid-template-columns:repeat(2, minmax(0,1fr));
+  }
+
+  .inventory-grid{
+    grid-template-columns:repeat(2, minmax(0,1fr));
+  }
+}
+
+@media (max-width: 760px){
+  .hero-strip{
+    padding:18px 16px;
+  }
+
+  .hero-strip__copy h2,
+  .page-intro h2{
+    font-size:24px;
+  }
+
+  .purchase-summary-cards{
+    grid-template-columns:1fr;
+  }
+
+  .inventory-toolbar{
+    grid-template-columns:1fr;
+  }
+
+  .inventory-filters{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+  }
+
+  .inventory-filters select{
+    min-width:0;
+  }
+
+  .overview-grid-page{
+    grid-template-columns:1fr;
+  }
+}
+
+@media (max-width: 640px){
+  .auth-shell{
+    padding:18px 12px;
+  }
+
+  .auth-card{
+    padding:24px 16px 20px;
+    border-radius:24px;
+  }
+
+  .app-header{
+    height:68px;
+    padding:12px 14px;
+  }
+
+  .header-left,
+  .header-right{
+    gap:10px;
+  }
+
+  .page-heading h1{
+    font-size:18px;
+  }
+
+  .app-content{
+    padding:calc(68px + 16px) 12px 20px;
+    gap:18px;
+  }
+
+  .dashboard-stats{
+    grid-template-columns:1fr;
+    gap:14px;
+  }
+
+  .stat-card{
+    padding:16px;
+  }
+
+  .stat-card__body strong{
+    font-size:28px;
+  }
+
+  .panel-card,
+  .form-card,
+  .mini-stat,
+  .info-card{
+    border-radius:20px;
+  }
+
+  .purchase-card{
+    padding:14px;
+  }
+
+  .purchase-card-top{
+    flex-direction:column;
+    align-items:stretch;
+  }
+
+  .purchase-total{
+    text-align:left;
+  }
+
+  .form-grid{
+    grid-template-columns:1fr;
+  }
+
+  .inventory-grid{
+    grid-template-columns:1fr;
+  }
+
+  .product-card__media{
+    aspect-ratio: 4 / 3.2;
+  }
+
+  .product-actions{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+  }
+
+  .product-actions .mini-btn:last-child{
+    grid-column:1 / -1;
+  }
+
+  .btn-block-mobile{
+    width:100%;
+  }
+
+  .preview-box{
+    align-items:flex-start;
+  }
+
+  .preview-box img{
+    width:64px;
+    height:64px;
+  }
+
+  .purchase-product{
+    grid-template-columns:1fr;
+  }
+
+  .purchase-product img{
+    width:100%;
+    height:220px;
+  }
+
+  .modal{
+    padding:12px;
+  }
+
+  .modal-card{
+    padding:16px;
+    border-radius:20px;
+  }
+}
+
+@media (max-width: 480px){
+  .auth-brand__text h1{
+    font-size:20px;
+  }
+
+  .page-heading h1{
+    font-size:17px;
+  }
+
+  .icon-btn{
+    width:40px;
+    height:40px;
+    border-radius:11px;
+  }
+
+  .hero-strip__copy h2,
+  .page-intro h2{
+    font-size:22px;
+  }
+
+  .inventory-filters{
+    grid-template-columns:1fr;
+  }
+
+  .page-actions,
+  .form-actions{
+    display:grid;
+    grid-template-columns:1fr;
+    width:100%;
+  }
+
+  .page-actions .btn,
+  .form-actions .btn{
+    width:100%;
+  }
+
+  .quick-action-btn{
+    padding:14px;
+  }
+
+  .mini-stat strong{
+    font-size:24px;
+  }
+
+  .purchase-drawer{
+    width:100%;
+  }
+}
+</style>
 </head>
-<body>
-  <div class="admin-shell">
-    <aside class="sidebar" id="sidebar">
-      <div class="brand">
-        <div class="brand-mark">
+  <body>
+  <!-- LOGIN VIEW ONLY -->
+  <section class="auth-shell" id="authShell">
+    <div class="auth-card">
+      <div class="auth-brand">
+        <div class="auth-brand__icon">
           <i class="fa-solid fa-store"></i>
         </div>
-        <div class="brand-copy">
-          <h1>April Blossoms</h1>
-          <p>Admin dashboard</p>
+        <div class="auth-brand__text">
+          <h1>April Blossoms Admin</h1>
+          <p>Secure dashboard access</p>
         </div>
       </div>
 
-      <div class="sidebar-group">
-        <div class="sidebar-title">Main</div>
-        <button class="nav-btn active" type="button">
-          <span class="nav-icon"><i class="fa-solid fa-table-columns"></i></span>
-          <span>Dashboard</span>
-        </button>
-        <button class="nav-btn" type="button">
-          <span class="nav-icon"><i class="fa-solid fa-chart-line"></i></span>
-          <span>Overview</span>
-        </button>
+      <div class="auth-copy">
+        <h2>Admin Login</h2>
+        <p>Sign in to manage products, inventory, and customer purchases.</p>
       </div>
 
-      <div class="sidebar-group">
-        <div class="sidebar-title">Store</div>
-        <button class="nav-btn" type="button">
-          <span class="nav-icon"><i class="fa-solid fa-shirt"></i></span>
-          <span>Products</span>
+      <form id="loginForm" class="auth-form" novalidate>
+        <div class="field">
+          <label for="adminEmail">Email</label>
+          <div class="input-wrap">
+            <i class="fa-solid fa-envelope"></i>
+            <input type="email" id="adminEmail" placeholder="Enter admin email" autocomplete="email" />
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="adminPassword">Password</label>
+          <div class="input-wrap">
+            <i class="fa-solid fa-lock"></i>
+            <input type="password" id="adminPassword" placeholder="Enter password" autocomplete="current-password" />
+          </div>
+        </div>
+
+        <button class="btn btn-primary btn-block" id="adminLoginBtn" type="button">
+          <span class="spinner"></span>
+          <i class="fa-solid fa-right-to-bracket"></i>
+          <span class="btn-label">Log In</span>
         </button>
-        <button class="nav-btn" type="button">
-          <span class="nav-icon"><i class="fa-solid fa-bag-shopping"></i></span>
-          <span>Orders</span>
-        </button>
-        <button class="nav-btn" type="button">
-          <span class="nav-icon"><i class="fa-solid fa-users"></i></span>
-          <span>Customers</span>
-        </button>
+
+        <div id="adminStatus" class="status info">Not logged in</div>
+      </form>
+    </div>
+  </section>
+
+  <!-- APP VIEW ONLY -->
+  <div class="admin-app hidden" id="adminApp">
+    <!-- MOBILE SIDEBAR OVERLAY -->
+    <div class="sidebar-overlay hidden" id="sidebarOverlay"></div>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-top">
+        <a href="#" class="brand" data-page-link="dashboardPage">
+          <div class="brand-mark">
+            <i class="fa-solid fa-store"></i>
+          </div>
+          <div class="brand-copy">
+            <strong>April Blossoms</strong>
+            <span>Admin Panel</span>
+          </div>
+        </a>
       </div>
 
-      <div class="sidebar-group">
-        <div class="sidebar-title">Tools</div>
-        <button class="nav-btn" type="button">
-          <span class="nav-icon"><i class="fa-solid fa-plus"></i></span>
-          <span>Add Product</span>
+      <nav class="sidebar-nav" aria-label="Admin navigation">
+        <button class="nav-btn active" type="button" data-page-link="dashboardPage">
+          <span class="nav-btn__icon"><i class="fa-solid fa-table-columns"></i></span>
+          <span class="nav-btn__text">Dashboard</span>
         </button>
-        <button class="nav-btn" type="button">
-          <span class="nav-icon"><i class="fa-solid fa-rotate-right"></i></span>
-          <span>Refresh Data</span>
+
+        <button class="nav-btn" type="button" data-page-link="purchasesPage">
+          <span class="nav-btn__icon"><i class="fa-solid fa-bag-shopping"></i></span>
+          <span class="nav-btn__text">Recent Purchases</span>
         </button>
-        <button class="nav-btn" type="button">
-          <span class="nav-icon"><i class="fa-solid fa-file-import"></i></span>
-          <span>Imports</span>
+
+        <button class="nav-btn" type="button" data-page-link="addProductPage">
+          <span class="nav-btn__icon"><i class="fa-solid fa-square-plus"></i></span>
+          <span class="nav-btn__text">Add Product</span>
         </button>
-      </div>
+
+        <button class="nav-btn" type="button" data-page-link="inventoryPage">
+          <span class="nav-btn__icon"><i class="fa-solid fa-box-open"></i></span>
+          <span class="nav-btn__text">Inventory</span>
+        </button>
+
+        <button class="nav-btn" type="button" data-page-link="overviewPage">
+          <span class="nav-btn__icon"><i class="fa-solid fa-chart-line"></i></span>
+          <span class="nav-btn__text">Overview</span>
+        </button>
+      </nav>
 
       <div class="sidebar-bottom">
-        <div class="sidebar-card">
-          <h3>Quick note</h3>
-          <p>Use this panel to manage inventory, view paid purchases, and monitor the live store more cleanly.</p>
+        <div class="sidebar-note">
+          <div class="sidebar-note__icon">
+            <i class="fa-solid fa-shield-heart"></i>
+          </div>
+          <div>
+            <h3>Store Admin</h3>
+            <p>Manage products, track sales, and monitor orders from one dashboard.</p>
+          </div>
         </div>
       </div>
     </aside>
 
-    <main class="main">
-      <header class="topbar">
-        <div class="topbar-left">
-          <button class="menu-toggle" id="menuToggle" type="button" aria-label="Open menu">
+    <!-- MAIN -->
+    <div class="app-main">
+      <!-- FIXED HEADER -->
+      <header class="app-header">
+        <div class="header-left">
+          <button class="icon-btn menu-btn" id="menuToggle" type="button" aria-label="Open navigation">
             <i class="fa-solid fa-bars"></i>
           </button>
 
           <div class="page-heading">
-            <h2>Dashboard</h2>
-            <p>Manage April Blossoms products and customer purchases</p>
+            <h1 id="headerPageTitle">Dashboard</h1>
           </div>
         </div>
 
-        <div class="topbar-right">
-          <div class="searchbar">
-            <span class="search-icon"><i class="fa-solid fa-magnifying-glass"></i></span>
-            <input type="search" placeholder="Search products, orders, customer..." />
+        <div class="header-right">
+          <div class="desktop-user">
+            <div class="user-chip">
+              <div class="user-chip__avatar">
+                <i class="fa-solid fa-user"></i>
+              </div>
+              <div class="user-chip__meta">
+                <strong id="authBadge">Admin</strong>
+                <span>Authenticated</span>
+              </div>
+            </div>
+
+            <button class="btn btn-ghost" id="logoutBtn" type="button">
+              <i class="fa-solid fa-right-from-bracket"></i>
+              <span>Log Out</span>
+            </button>
           </div>
 
-          <div class="admin-user">
-            <div class="avatar">
+          <div class="mobile-user-menu">
+            <button class="icon-btn user-menu-toggle" id="mobileUserMenuBtn" type="button" aria-label="Open user menu">
               <i class="fa-solid fa-user"></i>
-            </div>
-            <div class="admin-user-copy">
-              <strong id="authBadge">Not logged in</strong>
-              <span>Administrator</span>
+            </button>
+
+            <div class="user-dropdown hidden" id="mobileUserDropdown">
+              <div class="user-dropdown__head">
+                <strong id="mobileAuthBadge">Admin</strong>
+                <span>Signed in</span>
+              </div>
+
+              <button class="dropdown-btn" id="mobileLogoutBtn" type="button">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                <span>Log Out</span>
+              </button>
             </div>
           </div>
         </div>
       </header>
 
-      <section class="content">
-        <section class="overview-grid">
-          <div class="stat-card">
-            <div class="stat-copy">
-              <span>Total Products</span>
-              <strong id="statTotal">0</strong>
-              <small>All products in inventory</small>
-            </div>
-            <div class="stat-icon">
-              <i class="fa-solid fa-shirt"></i>
-            </div>
-          </div>
-
-          <div class="stat-card">
-            <div class="stat-copy">
-              <span>Available</span>
-              <strong id="statAvailable">0</strong>
-              <small>Ready for purchase</small>
-            </div>
-            <div class="stat-icon">
-              <i class="fa-solid fa-circle-check"></i>
+      <!-- CONTENT -->
+      <main class="app-content">
+        <!-- DASHBOARD PAGE -->
+        <section class="page-section" id="dashboardPage">
+          <div class="hero-strip">
+            <div class="hero-strip__copy">
+              <p class="eyebrow">Admin dashboard</p>
+              <h2>Welcome back</h2>
+              <p>Track products, monitor available stock, and jump quickly into purchases and inventory.</p>
             </div>
           </div>
 
-          <div class="stat-card">
-            <div class="stat-copy">
-              <span>Sold Out</span>
-              <strong id="statSold">0</strong>
-              <small>Unavailable items</small>
-            </div>
-            <div class="stat-icon">
-              <i class="fa-solid fa-box-archive"></i>
-            </div>
-          </div>
-
-          <div class="stat-card highlight">
-            <div class="stat-copy">
-              <span>Visible Value</span>
-              <strong id="statValue">₵0.00</strong>
-              <small>Current available stock value</small>
-            </div>
-            <div class="stat-icon">
-              <i class="fa-solid fa-sack-dollar"></i>
-            </div>
-          </div>
-        </section>
-
-        <section class="main-grid">
-          <div class="panel">
-            <div class="panel-head">
-              <div>
-                <h3>Recent Purchases</h3>
-                <p>Customer orders and payment records from the store.</p>
-              </div>
-
-              <div class="panel-actions">
-                <button class="soft-btn" id="refreshBtn" type="button">
-                  <i class="fa-solid fa-rotate-right"></i>
-                  <span>Refresh</span>
+          <section class="dashboard-stats">
+            <article class="stat-card" data-page-target="inventoryPage">
+              <div class="stat-card__top">
+                <div class="stat-icon">
+                  <i class="fa-solid fa-boxes-stacked"></i>
+                </div>
+                <button class="mini-arrow" type="button" data-page-link="inventoryPage" aria-label="Go to inventory">
+                  <i class="fa-solid fa-angle-right"></i>
                 </button>
-                <button class="soft-btn primary" id="reloadPurchasesBtn" type="button">
-                  <span class="spinner"></span>
+              </div>
+              <div class="stat-card__body">
+                <span>Total Products</span>
+                <strong id="statTotal">0</strong>
+                <small>All products in the store</small>
+              </div>
+            </article>
+
+            <article class="stat-card" data-page-target="inventoryPage">
+              <div class="stat-card__top">
+                <div class="stat-icon">
+                  <i class="fa-solid fa-circle-check"></i>
+                </div>
+                <button class="mini-arrow" type="button" data-page-link="inventoryPage" aria-label="Go to inventory">
+                  <i class="fa-solid fa-angle-right"></i>
+                </button>
+              </div>
+              <div class="stat-card__body">
+                <span>Available Products</span>
+                <strong id="statAvailable">0</strong>
+                <small>Currently visible for sale</small>
+              </div>
+            </article>
+
+            <article class="stat-card" data-page-target="inventoryPage">
+              <div class="stat-card__top">
+                <div class="stat-icon">
+                  <i class="fa-solid fa-box-archive"></i>
+                </div>
+                <button class="mini-arrow" type="button" data-page-link="inventoryPage" aria-label="Go to inventory">
+                  <i class="fa-solid fa-angle-right"></i>
+                </button>
+              </div>
+              <div class="stat-card__body">
+                <span>Sold Out</span>
+                <strong id="statSold">0</strong>
+                <small>Unavailable items</small>
+              </div>
+            </article>
+
+            <article class="stat-card stat-card--accent" data-page-target="inventoryPage">
+              <div class="stat-card__top">
+                <div class="stat-icon">
+                  <i class="fa-solid fa-sack-dollar"></i>
+                </div>
+                <button class="mini-arrow" type="button" data-page-link="inventoryPage" aria-label="Go to inventory">
+                  <i class="fa-solid fa-angle-right"></i>
+                </button>
+              </div>
+              <div class="stat-card__body">
+                <span>Available Stock Value</span>
+                <strong id="statValue">₵0.00</strong>
+                <small>Based on current available items</small>
+              </div>
+            </article>
+
+            <article class="stat-card" data-page-target="purchasesPage">
+              <div class="stat-card__top">
+                <div class="stat-icon">
                   <i class="fa-solid fa-receipt"></i>
-                  <span class="btn-label">Reload Purchases</span>
+                </div>
+                <button class="mini-arrow" type="button" data-page-link="purchasesPage" aria-label="Go to purchases">
+                  <i class="fa-solid fa-angle-right"></i>
                 </button>
               </div>
+              <div class="stat-card__body">
+                <span>Total Orders</span>
+                <strong id="purchaseStatTotal">0</strong>
+                <small>Recorded purchase entries</small>
+              </div>
+            </article>
+
+            <article class="stat-card" data-page-target="purchasesPage">
+              <div class="stat-card__top">
+                <div class="stat-icon">
+                  <i class="fa-solid fa-badge-check"></i>
+                </div>
+                <button class="mini-arrow" type="button" data-page-link="purchasesPage" aria-label="Go to purchases">
+                  <i class="fa-solid fa-angle-right"></i>
+                </button>
+              </div>
+              <div class="stat-card__body">
+                <span>Paid Orders</span>
+                <strong id="purchaseStatPaid">0</strong>
+                <small>Completed purchase records</small>
+              </div>
+            </article>
+
+            <article class="stat-card" data-page-target="purchasesPage">
+              <div class="stat-card__top">
+                <div class="stat-icon">
+                  <i class="fa-solid fa-chart-column"></i>
+                </div>
+                <button class="mini-arrow" type="button" data-page-link="purchasesPage" aria-label="Go to purchases">
+                  <i class="fa-solid fa-angle-right"></i>
+                </button>
+              </div>
+              <div class="stat-card__body">
+                <span>Total Revenue</span>
+                <strong id="purchaseStatRevenue">₵0.00</strong>
+                <small>From recorded paid purchases</small>
+              </div>
+            </article>
+
+            <article class="stat-card" data-page-target="addProductPage">
+              <div class="stat-card__top">
+                <div class="stat-icon">
+                  <i class="fa-solid fa-square-plus"></i>
+                </div>
+                <button class="mini-arrow" type="button" data-page-link="addProductPage" aria-label="Go to add product">
+                  <i class="fa-solid fa-angle-right"></i>
+                </button>
+              </div>
+              <div class="stat-card__body">
+                <span>Add New Product</span>
+                <strong>Quick</strong>
+                <small>Create a new listing for the store</small>
+              </div>
+            </article>
+          </section>
+
+          <section class="dashboard-panels">
+            <article class="panel-card">
+              <div class="panel-card__head">
+                <div>
+                  <h3>Quick Summary</h3>
+                  <p>Important store information at a glance.</p>
+                </div>
+              </div>
+
+              <div class="quick-summary-list">
+                <div class="summary-row">
+                  <div class="summary-row__icon">
+                    <i class="fa-solid fa-store"></i>
+                  </div>
+                  <div class="summary-row__copy">
+                    <strong>Store Status</strong>
+                    <span>Admin dashboard ready for product and order management.</span>
+                  </div>
+                </div>
+
+                <div class="summary-row">
+                  <div class="summary-row__icon">
+                    <i class="fa-solid fa-boxes-stacked"></i>
+                  </div>
+                  <div class="summary-row__copy">
+                    <strong>Inventory Control</strong>
+                    <span>Mark products available or sold out directly from inventory.</span>
+                  </div>
+                </div>
+
+                <div class="summary-row">
+                  <div class="summary-row__icon">
+                    <i class="fa-solid fa-bag-shopping"></i>
+                  </div>
+                  <div class="summary-row__copy">
+                    <strong>Purchase Tracking</strong>
+                    <span>Open any purchase to see customer details and purchased items.</span>
+                  </div>
+                </div>
+              </div>
+            </article>
+
+            <article class="panel-card">
+              <div class="panel-card__head">
+                <div>
+                  <h3>Quick Actions</h3>
+                  <p>Move to the section you need immediately.</p>
+                </div>
+              </div>
+
+              <div class="quick-action-list">
+                <button class="quick-action-btn" type="button" data-page-link="purchasesPage">
+                  <span><i class="fa-solid fa-bag-shopping"></i> View Purchases</span>
+                  <i class="fa-solid fa-angle-right"></i>
+                </button>
+
+                <button class="quick-action-btn" type="button" data-page-link="addProductPage">
+                  <span><i class="fa-solid fa-square-plus"></i> Add Product</span>
+                  <i class="fa-solid fa-angle-right"></i>
+                </button>
+
+                <button class="quick-action-btn" type="button" data-page-link="inventoryPage">
+                  <span><i class="fa-solid fa-box-open"></i> Open Inventory</span>
+                  <i class="fa-solid fa-angle-right"></i>
+                </button>
+
+                <button class="quick-action-btn" type="button" id="dashboardRefreshBtn">
+                  <span><i class="fa-solid fa-rotate-right"></i> Refresh Data</span>
+                  <i class="fa-solid fa-angle-right"></i>
+                </button>
+              </div>
+            </article>
+          </section>
+        </section>
+
+        <!-- RECENT PURCHASES PAGE -->
+        <section class="page-section hidden" id="purchasesPage">
+          <div class="page-intro">
+            <div>
+              <p class="eyebrow">Recent Purchases</p>
+              <h2>Purchase Records</h2>
+              <p>Click any purchase card to open the full order details.</p>
             </div>
 
-            <div class="panel-body">
-              <div class="overview-grid" style="grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin-bottom:16px;">
-                <div class="stat-card" style="min-height:auto; padding:14px;">
-                  <div class="stat-copy">
-                    <span>Total Orders</span>
-                    <strong id="purchaseStatTotal" style="font-size:24px;">0</strong>
-                  </div>
-                </div>
-
-                <div class="stat-card" style="min-height:auto; padding:14px;">
-                  <div class="stat-copy">
-                    <span>Paid Orders</span>
-                    <strong id="purchaseStatPaid" style="font-size:24px;">0</strong>
-                  </div>
-                </div>
-
-                <div class="stat-card" style="min-height:auto; padding:14px;">
-                  <div class="stat-copy">
-                    <span>Total Revenue</span>
-                    <strong id="purchaseStatRevenue" style="font-size:24px;">₵0.00</strong>
-                  </div>
-                </div>
-              </div>
-
-              <div id="purchaseList" class="purchase-list">
-                <div class="empty">No purchases yet.</div>
-              </div>
+            <div class="page-actions">
+              <button class="btn btn-ghost" id="refreshPurchasesBtnSecondary" type="button">
+                <i class="fa-solid fa-rotate-right"></i>
+                <span>Refresh</span>
+              </button>
             </div>
           </div>
 
-          <div style="display:grid; gap:20px;">
-            <section class="panel">
-              <div class="panel-head">
-                <div>
-                  <h3>Admin Login</h3>
-                  <p>Authenticate before editing inventory or viewing protected data.</p>
-                </div>
+          <div class="purchase-summary-cards">
+            <article class="mini-stat">
+              <span>Total Orders</span>
+              <strong id="purchaseStatTotalDuplicate">0</strong>
+            </article>
 
-                <div class="panel-actions">
-                  <button class="soft-btn hidden" id="logoutBtn" type="button">
-                    <i class="fa-solid fa-right-from-bracket"></i>
-                    <span>Log Out</span>
-                  </button>
-                </div>
+            <article class="mini-stat">
+              <span>Paid Orders</span>
+              <strong id="purchaseStatPaidDuplicate">0</strong>
+            </article>
+
+            <article class="mini-stat">
+              <span>Total Revenue</span>
+              <strong id="purchaseStatRevenueDuplicate">₵0.00</strong>
+            </article>
+          </div>
+
+          <div id="purchaseList" class="purchase-list">
+            <div class="empty-state">
+              <i class="fa-solid fa-bag-shopping"></i>
+              <h3>No purchases yet</h3>
+              <p>Purchase records will appear here after successful payments.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- ADD PRODUCT PAGE -->
+        <section class="page-section hidden" id="addProductPage">
+          <div class="page-intro">
+            <div>
+              <p class="eyebrow">Add Product</p>
+              <h2>Create New Product</h2>
+              <p>Fill in the product details below and add the item to the store.</p>
+            </div>
+
+            <div class="page-actions">
+              <button class="btn btn-ghost" id="clearFormBtn" type="button">
+                <i class="fa-solid fa-eraser"></i>
+                <span>Clear</span>
+              </button>
+
+              <button class="btn btn-primary" id="bulkImportBtn" type="button" style="display:none;">
+                <span class="spinner"></span>
+                <i class="fa-solid fa-file-import"></i>
+                <span class="btn-label">Import Original 50 Products</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="form-page-grid">
+            <section class="form-card">
+              <div class="form-card__head">
+                <h3>Product Information</h3>
+                <p>Only the important information is needed.</p>
               </div>
 
-              <div class="panel-body">
-                <div class="form-grid">
-                  <div>
-                    <label for="adminEmail">Email</label>
-                    <input type="email" id="adminEmail" placeholder="Enter admin email" />
-                  </div>
-
-                  <div>
-                    <label for="adminPassword">Password</label>
-                    <input type="password" id="adminPassword" placeholder="Enter password" />
-                  </div>
+              <div class="form-grid">
+                <div class="field">
+                  <label for="productId">Product ID</label>
+                  <input type="text" id="productId" placeholder="e.g. DRESS-051" />
                 </div>
 
-                <div class="form-actions">
-                  <button class="soft-btn primary" id="adminLoginBtn" type="button">
-                    <span class="spinner"></span>
-                    <i class="fa-solid fa-right-to-bracket"></i>
-                    <span class="btn-label">Log In</span>
-                  </button>
+                <div class="field">
+                  <label for="productTitle">Title</label>
+                  <input type="text" id="productTitle" placeholder="e.g. Rose Bloom Dress" />
                 </div>
 
-                <div id="adminStatus" class="status info">Not logged in</div>
+                <div class="field">
+                  <label for="productPrice">Price</label>
+                  <input type="number" id="productPrice" min="0" step="0.01" placeholder="e.g. 45" />
+                </div>
+
+                <div class="field">
+                  <label for="productAge">Age Category</label>
+                  <input type="text" id="productAge" placeholder="e.g. 4-5, 7-8" />
+                </div>
+
+                <div class="field field-full">
+                  <label for="productDescription">Description</label>
+                  <textarea id="productDescription" placeholder="Write product description"></textarea>
+                </div>
               </div>
             </section>
 
-            <section class="panel">
-              <div class="panel-head">
-                <div>
-                  <h3>Add Product</h3>
-                  <p>Create a new product entry for the storefront.</p>
+            <section class="form-card">
+              <div class="form-card__head">
+                <h3>Product Image</h3>
+                <p>Upload a file or paste an image URL.</p>
+              </div>
+
+              <div class="form-grid">
+                <div class="field field-full">
+                  <label for="productImageFile">Upload image file</label>
+                  <input type="file" id="productImageFile" accept="image/*" />
                 </div>
 
-                <div class="panel-actions">
-                  <button class="soft-btn" id="clearFormBtn" type="button">
-                    <i class="fa-solid fa-eraser"></i>
-                    <span>Clear</span>
-                  </button>
-                  <button class="soft-btn primary" id="bulkImportBtn" type="button" style="display:none;">
-                    <span class="spinner"></span>
-                    <i class="fa-solid fa-file-import"></i>
-                    <span class="btn-label">Import Original 50 Products</span>
-                  </button>
+                <div class="field field-full">
+                  <label for="productImageUrl">Or paste image URL</label>
+                  <input type="text" id="productImageUrl" placeholder="https://..." />
                 </div>
               </div>
 
-              <div class="panel-body">
-                <div class="form-grid">
+              <div class="preview-wrap">
+                <div class="preview-box">
+                  <img id="imagePreview" src="" alt="Preview" class="hidden" />
                   <div>
-                    <label for="productId">Product ID</label>
-                    <input type="text" id="productId" placeholder="e.g. DRESS-051" />
-                  </div>
-
-                  <div>
-                    <label for="productTitle">Title</label>
-                    <input type="text" id="productTitle" placeholder="e.g. Rose Bloom Dress" />
-                  </div>
-
-                  <div>
-                    <label for="productPrice">Price</label>
-                    <input type="number" id="productPrice" min="0" step="0.01" placeholder="e.g. 45" />
-                  </div>
-
-                  <div>
-                    <label for="productAge">Age Category</label>
-                    <input type="text" id="productAge" placeholder="e.g. 4-5, 7-8" />
-                  </div>
-
-                  <div class="field-full">
-                    <label for="productDescription">Description</label>
-                    <textarea id="productDescription" placeholder="Write product description"></textarea>
-                  </div>
-
-                  <div>
-                    <label for="productImageFile">Upload image file</label>
-                    <input type="file" id="productImageFile" accept="image/*" />
-                  </div>
-
-                  <div>
-                    <label for="productImageUrl">Or paste image URL</label>
-                    <input type="text" id="productImageUrl" placeholder="https://..." />
+                    <strong>Image preview</strong>
+                    <p id="imagePreviewText">Choose an image file or paste an image URL.</p>
                   </div>
                 </div>
+              </div>
 
-                <div class="preview-wrap">
-                  <div class="preview-box">
-                    <img id="imagePreview" src="" alt="Preview" class="hidden" />
-                    <div>
-                      <strong>Image preview</strong>
-                      <div id="imagePreviewText" style="margin-top:4px; color:var(--muted); font-size:13px;">Choose an image file or paste an image URL.</div>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="form-actions">
-                  <button class="soft-btn primary" id="addProductBtn" type="button">
-                    <span class="spinner"></span>
-                    <i class="fa-solid fa-plus"></i>
-                    <span class="btn-label">Add Product</span>
-                  </button>
-                </div>
+              <div class="form-actions">
+                <button class="btn btn-primary btn-block-mobile" id="addProductBtn" type="button">
+                  <span class="spinner"></span>
+                  <i class="fa-solid fa-square-plus"></i>
+                  <span class="btn-label">Add Product</span>
+                </button>
               </div>
             </section>
           </div>
         </section>
 
-        <section class="panel">
-          <div class="panel-head">
+        <!-- INVENTORY PAGE -->
+        <section class="page-section hidden" id="inventoryPage">
+          <div class="page-intro">
             <div>
-              <h3>Inventory</h3>
-              <p>Search products, filter availability, sort by date, edit items, or remove them.</p>
+              <p class="eyebrow">Inventory</p>
+              <h2>Manage Products</h2>
+              <p>Search inventory, filter products, and edit or update availability.</p>
             </div>
 
-            <div class="panel-actions">
-              <button class="soft-btn" id="openAddModalBtn" type="button" style="display:none;">
-                <i class="fa-solid fa-up-right-from-square"></i>
-                <span>Open Add Form</span>
-              </button>
-              <button class="soft-btn primary" id="reloadProductsBtn" type="button">
+            <div class="page-actions">
+              <button class="btn btn-ghost" id="reloadProductsBtn" type="button">
                 <i class="fa-solid fa-rotate-right"></i>
                 <span>Reload</span>
               </button>
             </div>
           </div>
 
-          <div class="panel-body">
-            <div class="inventory-toolbar">
+          <div class="inventory-toolbar">
+            <div class="inventory-search">
+              <i class="fa-solid fa-magnifying-glass"></i>
               <input type="search" id="searchInput" placeholder="Search by title, ID, age..." />
+            </div>
 
+            <div class="inventory-filters">
               <select id="filterAvailability">
                 <option value="all">All products</option>
                 <option value="available">Available only</option>
@@ -1317,22 +2309,67 @@
                 <option value="newest">Newest to Oldest</option>
                 <option value="oldest">Oldest to Newest</option>
               </select>
-
-              <button class="soft-btn" type="button">
-                <i class="fa-solid fa-filter"></i>
-                <span>Filter</span>
-              </button>
             </div>
+          </div>
 
-            <div id="adminProducts" class="product-list">
-              <div class="empty">Log in to manage products.</div>
+          <div id="adminProducts" class="inventory-grid">
+            <div class="empty-state">
+              <i class="fa-solid fa-box-open"></i>
+              <h3>Log in to manage products</h3>
+              <p>Your product inventory will appear here after authentication.</p>
             </div>
           </div>
         </section>
-      </section>
-    </main>
+
+        <!-- OVERVIEW PAGE -->
+        <section class="page-section hidden" id="overviewPage">
+          <div class="page-intro">
+            <div>
+              <p class="eyebrow">Overview</p>
+              <h2>Store Overview</h2>
+              <p>A simple summary page for general admin activity.</p>
+            </div>
+          </div>
+
+          <div class="overview-grid-page">
+            <article class="info-card">
+              <div class="info-card__icon"><i class="fa-solid fa-boxes-stacked"></i></div>
+              <div>
+                <h3>Product Management</h3>
+                <p>Use Inventory to edit, delete, or toggle product availability.</p>
+              </div>
+            </article>
+
+            <article class="info-card">
+              <div class="info-card__icon"><i class="fa-solid fa-bag-shopping"></i></div>
+              <div>
+                <h3>Purchase Tracking</h3>
+                <p>Use Recent Purchases to review customer orders and payment details.</p>
+              </div>
+            </article>
+
+            <article class="info-card">
+              <div class="info-card__icon"><i class="fa-solid fa-square-plus"></i></div>
+              <div>
+                <h3>New Listings</h3>
+                <p>Use Add Product to create and upload new product entries quickly.</p>
+              </div>
+            </article>
+
+            <article class="info-card">
+              <div class="info-card__icon"><i class="fa-solid fa-chart-line"></i></div>
+              <div>
+                <h3>Store Metrics</h3>
+                <p>Dashboard cards help you jump into the exact area you need.</p>
+              </div>
+            </article>
+          </div>
+        </section>
+      </main>
+    </div>
   </div>
 
+  <!-- EDIT PRODUCT MODAL -->
   <div class="modal" id="editModal">
     <div class="modal-card">
       <div class="modal-head">
@@ -1340,44 +2377,44 @@
           <h2>Edit Product</h2>
           <p>Update product details and save changes.</p>
         </div>
-        <button class="soft-btn" id="closeEditModalBtn" type="button">
+
+        <button class="icon-btn" id="closeEditModalBtn" type="button" aria-label="Close edit modal">
           <i class="fa-solid fa-xmark"></i>
-          <span>Close</span>
         </button>
       </div>
 
       <div class="form-grid">
-        <div>
+        <div class="field">
           <label for="editProductId">Product ID</label>
           <input type="text" id="editProductId" />
         </div>
 
-        <div>
+        <div class="field">
           <label for="editProductTitle">Title</label>
           <input type="text" id="editProductTitle" />
         </div>
 
-        <div>
+        <div class="field">
           <label for="editProductPrice">Price</label>
           <input type="number" id="editProductPrice" min="0" step="0.01" />
         </div>
 
-        <div>
+        <div class="field">
           <label for="editProductAge">Age Category</label>
           <input type="text" id="editProductAge" />
         </div>
 
-        <div class="field-full">
+        <div class="field field-full">
           <label for="editProductDescription">Description</label>
           <textarea id="editProductDescription"></textarea>
         </div>
 
-        <div>
+        <div class="field">
           <label for="editProductImageFile">Replace with image file</label>
           <input type="file" id="editProductImageFile" accept="image/*" />
         </div>
 
-        <div>
+        <div class="field">
           <label for="editProductImageUrl">Or image URL</label>
           <input type="text" id="editProductImageUrl" />
         </div>
@@ -1388,18 +2425,19 @@
           <img id="editImagePreview" src="" alt="Edit preview" class="hidden" />
           <div>
             <strong>Edit image preview</strong>
-            <div id="editImagePreviewText" style="margin-top:4px; color:var(--muted); font-size:13px;">Choose a replacement image file or URL.</div>
+            <p id="editImagePreviewText">Choose a replacement image file or URL.</p>
           </div>
         </div>
       </div>
 
       <div class="form-actions">
-        <button class="soft-btn primary" id="saveEditBtn" type="button">
+        <button class="btn btn-primary" id="saveEditBtn" type="button">
           <span class="spinner"></span>
           <i class="fa-solid fa-floppy-disk"></i>
           <span class="btn-label">Save Changes</span>
         </button>
-        <button class="soft-btn" id="cancelEditBtn" type="button">
+
+        <button class="btn btn-ghost" id="cancelEditBtn" type="button">
           <i class="fa-solid fa-ban"></i>
           <span>Cancel</span>
         </button>
@@ -1409,25 +2447,28 @@
     </div>
   </div>
 
+  <!-- PURCHASE DRAWER -->
   <div class="drawer-overlay hidden" id="purchaseDrawerOverlay"></div>
 
-  <aside class="admin-drawer" id="purchaseDrawer">
-    <div class="drawer-head">
+  <aside class="purchase-drawer" id="purchaseDrawer">
+    <div class="purchase-drawer__head">
       <div>
         <h3>Purchase Details</h3>
         <p id="purchaseDrawerSub">Order details</p>
       </div>
-      <button class="soft-btn" id="closePurchaseDrawerBtn" type="button">
+
+      <button class="icon-btn" id="closePurchaseDrawerBtn" type="button" aria-label="Close purchase drawer">
         <i class="fa-solid fa-xmark"></i>
-        <span>Close</span>
       </button>
     </div>
 
-    <div class="drawer-body" id="purchaseDrawerBody">
-      <div class="empty">Select a purchase to view details.</div>
+    <div class="purchase-drawer__body" id="purchaseDrawerBody">
+      <div class="empty-state">
+        <i class="fa-solid fa-bag-shopping"></i>
+        <h3>Select a purchase</h3>
+        <p>Full order details will appear here.</p>
+      </div>
     </div>
   </aside>
-
-  <script type="module" src="admin.js"></script>
 </body>
 </html>
