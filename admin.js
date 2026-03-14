@@ -71,6 +71,7 @@ const imagePreviewText = document.getElementById("imagePreviewText");
 const adminProducts = document.getElementById("adminProducts");
 const searchInput = document.getElementById("searchInput");
 const filterAvailability = document.getElementById("filterAvailability");
+const sortProducts = document.getElementById("sortProducts");
 const reloadProductsBtn = document.getElementById("reloadProductsBtn");
 const openAddModalBtn = document.getElementById("openAddModalBtn");
 
@@ -247,8 +248,9 @@ function normalizeProducts(snapshot) {
 function applyFilters(products) {
   const query = (searchInput?.value || "").trim().toLowerCase();
   const availability = filterAvailability?.value || "all";
+  const sortValue = sortProducts?.value || "newest";
 
-  return products.filter((product) => {
+  let filtered = products.filter((product) => {
     const matchesQuery =
       !query ||
       String(product.title || "").toLowerCase().includes(query) ||
@@ -262,6 +264,19 @@ function applyFilters(products) {
 
     return matchesQuery && matchesAvailability;
   });
+
+  filtered.sort((a, b) => {
+    const aTime = new Date(a.createdAt || 0).getTime();
+    const bTime = new Date(b.createdAt || 0).getTime();
+
+    if (sortValue === "oldest") {
+      return aTime - bTime;
+    }
+
+    return bTime - aTime;
+  });
+
+  return filtered;
 }
 
 function renderStats(products) {
@@ -528,6 +543,10 @@ searchInput?.addEventListener("input", () => {
 });
 
 filterAvailability?.addEventListener("change", () => {
+  renderProductList(applyFilters(allProducts));
+});
+
+sortProducts?.addEventListener("change", () => {
   renderProductList(applyFilters(allProducts));
 });
 
