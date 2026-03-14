@@ -595,7 +595,14 @@
               <option value="sold">Sold out only</option>
             </select>
             <button class="btn btn-ghost" id="reloadProductsBtn" type="button">Reload</button>
-            <button class="btn btn-ghost" id="openAddModalBtn" type="button">Open Add Form</button>
+            <label class="field">
+  <span>Sort by Date</span>
+  <select id="sortProducts">
+    <option value="newest">Newest to Oldest</option>
+    <option value="oldest">Oldest to Newest</option>
+  </select>
+</label>
+            <button class="btn btn-ghost" id="openAddModalBtn" type="button" style="display: none;">Open Add Form</button>
           </div>
 
           <div id="adminProducts" class="product-list"></div>
