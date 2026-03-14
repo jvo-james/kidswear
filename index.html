@@ -7044,6 +7044,28 @@ async function onPaymentSuccess(orderPayload, reference) {
 
 await markProductsAsSoldInFirebase(order.items);
 await loadProductsFromFirebase();
+    // Save purchase to Firestore
+    try {
+      const { db, collection, addDoc } = window.firebaseServices;
+
+      await addDoc(collection(db, "purchases"), {
+        orderId: order.orderId,
+        paystackRef: order.paystackRef || "",
+        paidAt: order.paidAt,
+        subtotal: order.subtotal || 0,
+        processingFee: order.processingFee || 0,
+        deliveryFee: order.deliveryFee || 0,
+        discount: order.discount || 0,
+        total: order.total || 0,
+        customer: order.customer || {},
+        items: order.items || [],
+        createdAt: new Date().toISOString()
+      });
+
+      console.log("Purchase saved to Firestore");
+    } catch (error) {
+      console.error("Failed to save purchase to Firestore:", error);
+    }    
 
     // push to history and persist BEFORE reload
     state.history = state.history || [];
@@ -7099,28 +7121,7 @@ await loadProductsFromFirebase();
     toast("An error occurred after payment. If you were charged, contact support.", "error", 7000);
     const btn = $("#payNowBtn"); if (btn) btn.disabled = false;
   }
-  try {
-  const { db, collection, addDoc } = window.firebaseServices;
 
-  await addDoc(collection(db, "purchases"), {
-    orderId: order.orderId,
-    paystackRef: order.paystackRef || "",
-    paidAt: order.paidAt,
-    subtotal: order.subtotal || 0,
-    processingFee: order.processingFee || 0,
-    deliveryFee: order.deliveryFee || 0,
-    discount: order.discount || 0,
-    total: order.total || 0,
-    customer: order.customer || {},
-    items: order.items || [],
-    createdAt: new Date().toISOString()
-  });
-
-  console.log("Purchase saved to Firestore");
-} catch (error) {
-  console.error("Failed to save purchase to Firestore:", error);
-}
-}
 window.onPaymentSuccess = onPaymentSuccess;
 
 
