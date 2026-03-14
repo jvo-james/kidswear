@@ -7019,7 +7019,6 @@ async function onPaymentSuccess(orderPayload, reference) {
     const feedback = $("#checkoutFeedback");
     const btn = $("#payNowBtn");
 
-    // Final availability check (defensive)
     const lock = lockCartItemsOrFail();
     if (!lock.ok) {
       btn && (btn.disabled = false);
@@ -7028,98 +7027,114 @@ async function onPaymentSuccess(orderPayload, reference) {
       return;
     }
 
-    // Use passed payload items (fallback to cart)
-    const purchasedItems = (orderPayload && orderPayload.items && orderPayload.items.length)
-      ? orderPayload.items
-      : state.cart.map(it => ({ id: it.id }));
-
-    // purchasedItems.forEach(it => { if (it && it.id) state.soldIds.add(it.id); });
-
-    // finalize order object
     const paidAt = nowISO();
-    const order = Object.assign({}, orderPayload, {
-  paystackRef: reference || orderPayload.paystackRef,
-  paidAt
-});
 
-await markProductsAsSoldInFirebase(order.items);
-await loadProductsFromFirebase();
+    const order = {
+      ...orderPayload,
+      paystackRef: reference || orderPayload.paystackRef,
+      paidAt,
+      status: "paid"
+    };
 
-    // push to history and persist BEFORE reload
+    await markProductsAsSoldInFirebase(order.items);
+    await loadProductsFromFirebase();
+
+    // Save purchase to Firestore FIRST
+    try {
+      const { db, collection, addDoc } = window.firebaseServices;
+
+      await addDoc(collection(db, "purchases"), {
+        orderId: order.orderId,
+        paystackRef: order.paystackRef || "",
+        paidAt: order.paidAt,
+        status: "paid",
+        subtotal: order.subtotal || 0,
+        processingFee: order.processingFee || 0,
+        deliveryFee: order.deliveryFee || 0,
+        discount: order.discount || 0,
+        total: order.total || 0,
+        customer: order.customer || {},
+        items: (order.items || []).map(item => {
+          const product = PRODUCTS.find(p => p.id === item.id);
+          return {
+            ...item,
+            image: product?.images?.[0] || "",
+            images: product?.images || []
+          };
+        }),
+        createdAt: new Date().toISOString()
+      });
+
+      console.log("Purchase saved to Firestore");
+    } catch (error) {
+      console.error("Failed to save purchase to Firestore:", error);
+      toast("Payment succeeded, but purchase record failed to save.", "error", 7000);
+      return;
+    }
+
     state.history = state.history || [];
     state.history.push(order);
 
-    // Clear cart and one-time context
     state.cart = [];
     state.appliedPromo = null;
     state.oneTimePurchase = null;
     persist();
 
-    // Update UI as best as possible before reload
-    try { renderBadges(); renderProducts(); renderCart(); renderSaved(); renderHistory(); } catch (e) { console.warn("UI update after payment failed", e); }
-
-    // Close checkout modal cleanly
-    try { closeModal("checkoutModal"); } catch (e) { /* ignore */ }
-
-    // Persist a marker so the page on reload will show confirmation modal
-    try { sessionStorage.setItem("ab_pending_confirmation", JSON.stringify(order)); } catch (e) { console.warn("sessionStorage set failed", e); }
-
-    // If this script is running in a popup window, notify the opener and then close:
     try {
-      if (window.opener && !window.opener.closed) {
-        window.opener.postMessage({ type: "ab_payment_success", order }, "*");
-        // give the opener a short moment to receive the message
-        setTimeout(() => { try { window.close(); } catch (e) { /* ignore */ } }, 220);
-        return;
-      }
-    } catch (e) { console.warn("postMessage to opener failed", e); }
+      renderBadges();
+      renderProducts();
+      renderCart();
+      renderSaved();
+      renderHistory();
+    } catch (e) {
+      console.warn("UI update after payment failed", e);
+    }
 
-    // Otherwise attempt to reload the topmost window so state and UI refresh (best-effort)
-    setTimeout(() => {
-      try {
-        // prefer top-level reload (in case Paystack callback ran inside an iframe)
-        if (window.top && window.top !== window && typeof window.top.location !== "undefined") {
-          try { window.top.location.reload(); return; } catch (errTop) { console.warn("top reload failed", errTop); }
-        }
-        // fallback to normal reload
-        location.reload();
-      } catch (e) {
-        console.warn("Reload failed; opening confirmation without reload", e);
-        try { populateAndOpenPaymentSuccessModal(order); } catch (ee) { console.error("Fallback open failed", ee); }
-      }
-    }, 350);
+    try {
+      closeModal("checkoutModal");
+    } catch (e) {}
 
-    // persist & notify external analytics / Formspree asynchronously (fire & forget)
-    try { sendOrderToFormspree(order).catch(()=>{}); } catch (_) {}
+    try {
+      sessionStorage.setItem("ab_pending_confirmation", JSON.stringify(order));
+    } catch (e) {
+      console.warn("sessionStorage set failed", e);
+    }
+
+    try {
+      sendOrderToFormspree(order).catch(() => {});
+    } catch (_) {}
 
     toast("Payment confirmed — finalizing…", "success", 3000);
     setA11yLive("Payment successful. Finalizing your order.");
+
+    // Reload ONLY AFTER Firestore save succeeds
+    setTimeout(() => {
+      try {
+        if (window.top && window.top !== window && typeof window.top.location !== "undefined") {
+          try {
+            window.top.location.reload();
+            return;
+          } catch (errTop) {
+            console.warn("top reload failed", errTop);
+          }
+        }
+        location.reload();
+      } catch (e) {
+        console.warn("Reload failed; opening confirmation without reload", e);
+        try {
+          populateAndOpenPaymentSuccessModal(order);
+        } catch (ee) {
+          console.error("Fallback open failed", ee);
+        }
+      }
+    }, 350);
+
   } catch (ex) {
     console.error("onPaymentSuccess error", ex);
     toast("An error occurred after payment. If you were charged, contact support.", "error", 7000);
-    const btn = $("#payNowBtn"); if (btn) btn.disabled = false;
+    const btn = $("#payNowBtn");
+    if (btn) btn.disabled = false;
   }
-  try {
-  const { db, collection, addDoc } = window.firebaseServices;
-
-  await addDoc(collection(db, "purchases"), {
-    orderId: order.orderId,
-    paystackRef: order.paystackRef || "",
-    paidAt: order.paidAt,
-    subtotal: order.subtotal || 0,
-    processingFee: order.processingFee || 0,
-    deliveryFee: order.deliveryFee || 0,
-    discount: order.discount || 0,
-    total: order.total || 0,
-    customer: order.customer || {},
-    items: order.items || [],
-    createdAt: new Date().toISOString()
-  });
-
-  console.log("Purchase saved to Firestore");
-} catch (error) {
-  console.error("Failed to save purchase to Firestore:", error);
-}
 }
 window.onPaymentSuccess = onPaymentSuccess;
 
