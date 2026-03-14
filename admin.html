@@ -460,6 +460,180 @@
       color:var(--muted);
       background:#fff;
     }
+
+    .admin-section {
+  margin-top: 24px;
+  padding: 18px;
+  border-radius: 18px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+.section-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.section-top h2 {
+  margin: 0 0 6px;
+}
+
+.section-top p {
+  margin: 0;
+  opacity: 0.8;
+}
+
+.section-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.purchase-list {
+  display: grid;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.purchase-card {
+  padding: 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.03);
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.purchase-card:hover {
+  transform: translateY(-2px);
+  background: rgba(255,255,255,0.05);
+}
+
+.purchase-card-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.purchase-card h4 {
+  margin: 0 0 6px;
+}
+
+.purchase-card p {
+  margin: 4px 0;
+  opacity: 0.88;
+}
+
+.admin-drawer {
+  position: fixed;
+  top: 0;
+  right: -100%;
+  width: min(96vw, 520px);
+  height: 100vh;
+  background: #111827;
+  border-left: 1px solid rgba(255,255,255,0.08);
+  z-index: 3000;
+  transition: right 0.3s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-drawer.open {
+  right: 0;
+}
+
+.drawer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 2990;
+}
+
+.drawer-overlay.hidden {
+  display: none;
+}
+
+.drawer-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.drawer-head h3 {
+  margin: 0 0 4px;
+}
+
+.drawer-head p {
+  margin: 0;
+  opacity: 0.8;
+}
+
+.drawer-body {
+  padding: 16px;
+  overflow-y: auto;
+  display: grid;
+  gap: 16px;
+}
+
+.purchase-detail-card {
+  padding: 14px;
+  border-radius: 14px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+.purchase-detail-card h4 {
+  margin: 0 0 10px;
+}
+
+.purchase-product {
+  display: grid;
+  grid-template-columns: 72px 1fr;
+  gap: 12px;
+  align-items: start;
+}
+
+.purchase-product img {
+  width: 72px;
+  height: 72px;
+  object-fit: cover;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+.purchase-lines {
+  display: grid;
+  gap: 8px;
+}
+
+.purchase-lines p {
+  margin: 0;
+  line-height: 1.45;
+}
+
+@media (max-width: 640px) {
+  .purchase-product {
+    grid-template-columns: 1fr;
+  }
+
+  .purchase-product img {
+    width: 100%;
+    height: auto;
+    max-height: 240px;
+  }
+
+  .admin-drawer {
+    width: 100%;
+  }
+}
   </style>
 </head>
 <body>
@@ -506,6 +680,41 @@
           <div id="adminStatus" class="status info">Not logged in</div>
         </section>
 
+        <section class="admin-section">
+  <div class="section-top">
+    <div>
+      <h2>Purchases</h2>
+      <p>View customer orders and full order details.</p>
+    </div>
+
+    <div class="section-actions">
+      <button class="btn btn-ghost" id="reloadPurchasesBtn" type="button">
+        <span class="spinner"></span>
+        <span class="btn-label">Reload Purchases</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <span>Total Orders</span>
+      <strong id="purchaseStatTotal">0</strong>
+    </div>
+    <div class="stat-card">
+      <span>Paid Orders</span>
+      <strong id="purchaseStatPaid">0</strong>
+    </div>
+    <div class="stat-card">
+      <span>Total Revenue</span>
+      <strong id="purchaseStatRevenue">₵0.00</strong>
+    </div>
+  </div>
+
+  <div id="purchaseList" class="purchase-list">
+    <div class="empty">No purchases yet.</div>
+  </div>
+</section>
+        
         <section class="card">
           <h2>Add Product</h2>
 
@@ -679,7 +888,21 @@
       <div id="editStatus" class="status info"></div>
     </div>
   </div>
+<div class="drawer-overlay hidden" id="purchaseDrawerOverlay"></div>
 
+<aside class="admin-drawer" id="purchaseDrawer">
+  <div class="drawer-head">
+    <div>
+      <h3>Purchase Details</h3>
+      <p id="purchaseDrawerSub">Order details</p>
+    </div>
+    <button class="mini-btn" id="closePurchaseDrawerBtn" type="button">Close</button>
+  </div>
+
+  <div class="drawer-body" id="purchaseDrawerBody">
+    <div class="empty">Select a purchase to view details.</div>
+  </div>
+</aside>
   <script type="module" src="admin.js"></script>
 </body>
 </html>
