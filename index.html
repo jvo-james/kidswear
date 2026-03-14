@@ -4433,14 +4433,12 @@ a:focus, button:focus, input:focus, select:focus, textarea:focus {
       </div>
 
       <!-- Mini filter chips (visual; JS will wire them) -->
-      <div class="chips" aria-label="Quick filters">
-        <button class="chip is-active" type="button" data-filter="all">All</button>
-        <button class="chip" type="button" data-filter="available">Available</button>
-        <button class="chip" type="button" data-filter="under50">Under ₵50</button>
-        <button class="chip" type="button" data-filter="premium">Premium</button>
-        <button class="chip" type="button" data-filter="age-4-5">Age 4–5</button>
-        <button class="chip" type="button" data-filter="age-7-8">Age 7–8</button>
-      </div>
+      <div class="chips" id="categoryChips" aria-label="Quick filters">
+  <button class="chip is-active" type="button" data-filter="all">All</button>
+  <button class="chip" type="button" data-filter="available">Available</button>
+  <button class="chip" type="button" data-filter="under50">Under ₵50</button>
+  <button class="chip" type="button" data-filter="premium">Premium</button>
+</div>
 
       <!-- Products grid (JS will inject product cards here) -->
       <div class="products-grid" id="productsGrid" aria-live="polite" aria-busy="true">
@@ -5761,9 +5759,10 @@ let PRODUCTS = [
     if (f.quick === "available") list = list.filter(p => p.available);
     if (f.quick === "under50") list = list.filter(p => p.price < 50);
     if (f.quick === "premium") list = list.filter(p => p.price >= 60);
-    if (f.quick === "age-4-5") list = list.filter(p => p.ageCategory === "4-5");
-    if (f.quick === "age-7-8") list = list.filter(p => p.ageCategory === "7-8");
-
+    if (f.quick.startsWith("age-")) {
+  const category = f.quick.replace("age-", "");
+  list = list.filter(p => (p.ageCategory || "").trim() === category);
+}
     // advanced filters
     if (f.availableOnly) list = list.filter(p => p.available);
     if (f.priceMin != null && !Number.isNaN(Number(f.priceMin))) list = list.filter(p => p.price >= Number(f.priceMin));
@@ -5935,6 +5934,36 @@ window.markProductsAsSoldInFirebase = markProductsAsSoldInFirebase;
     } catch (e) { /* ignore */ }
   }
 
+  function renderCategoryChips() {
+  const chipsWrap = document.getElementById("categoryChips");
+  if (!chipsWrap) return;
+
+  chipsWrap.innerHTML = `
+    <button class="chip is-active" type="button" data-filter="all">All</button>
+    <button class="chip" type="button" data-filter="available">Available</button>
+    <button class="chip" type="button" data-filter="under50">Under ₵50</button>
+    <button class="chip" type="button" data-filter="premium">Premium</button>
+  `;
+
+  const uniqueCategories = [...new Set(
+    PRODUCTS
+      .map(p => (p.ageCategory || "").trim())
+      .filter(Boolean)
+  )].sort((a, b) => {
+    const aNum = parseInt(a.split("-")[0]) || 0;
+    const bNum = parseInt(b.split("-")[0]) || 0;
+    return aNum - bNum;
+  });
+
+  uniqueCategories.forEach(category => {
+    const btn = document.createElement("button");
+    btn.className = "chip";
+    btn.type = "button";
+    btn.dataset.filter = `age-${category}`;
+    btn.textContent = `Age ${category}`;
+    chipsWrap.appendChild(btn);
+  });
+}
   /* =============
      BADGES, CART & SAVED
      ============= */
