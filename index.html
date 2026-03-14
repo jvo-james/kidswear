@@ -7518,18 +7518,54 @@ a:focus, button:focus, input:focus, select:focus, textarea:focus {
        DEBUG EXPORT
     ========================= */
     window.__AB = {
-      state,
-      get products() {
-        return state.products;
-      },
-      renderProducts,
-      renderCart,
-      renderSaved,
-      renderHistory,
-      openQuickView,
-      startCheckoutPayment
-    };
-  })();
+    PRODUCTS,
+    state,
+    renderProducts,
+    renderCart,
+    renderBadges,
+    renderSaved,
+    renderHistory,
+    renderSearchResults,
+    renderCheckoutSummary,
+    boot,
+    productById,
+    money,
+    persist,
+    toast,
+    fillReceipt,
+    safeImageUrl,
+    placeholderSVG,
+    openModal,
+    closeModal,
+    openDrawer,
+    closeDrawer,
+    startPaystackPayment,
+    computeCheckoutContextTotals
+  };
+
+  window.PRODUCTS = PRODUCTS;
+  window.state = state;
+  window.renderProducts = renderProducts;
+  window.renderCart = renderCart;
+  window.renderBadges = renderBadges;
+  window.renderSaved = renderSaved;
+  window.renderHistory = renderHistory;
+  window.renderSearchResults = renderSearchResults;
+  window.renderCheckoutSummary = renderCheckoutSummary;
+  window.productById = productById;
+  window.money = money;
+  window.persist = persist;
+  window.toast = toast;
+ window.fillReceipt = fillReceipt;
+  window.safeImageUrl = safeImageUrl;
+  window.placeholderSVG = placeholderSVG;
+  window.openModal = openModal;
+  window.closeModal = closeModal;
+  window.openDrawer = openDrawer;
+  window.closeDrawer = closeDrawer;
+  window.startPaystackPayment = startPaystackPayment;
+  window.computeCheckoutContextTotals = computeCheckoutContextTotals;
+ })();
 </script>
 
 </body>
