@@ -6,56 +6,107 @@
   <title>April Blossoms Admin</title>
   <style>
     :root{
-      --bg:#fffaf6;
-      --bg-2:#fff7f0;
-      --card:#ffffff;
-      --text:#0f172a;
-      --muted:#6b7280;
-      --border:rgba(15,23,42,.08);
-      --pink:#ff6b8a;
-      --yellow:#ffd166;
-      --mint:#6ee7b7;
-      --danger:#ef4444;
-      --success:#10b981;
-      --shadow:0 10px 30px rgba(16,24,40,.08);
-      --radius:18px;
-      --radius-sm:12px;
+      --bg: #fff8f5;
+      --bg-2: #fff2ea;
+      --surface: rgba(255,255,255,.72);
+      --card: #ffffff;
+      --text: #172033;
+      --muted: #6b7280;
+      --border: rgba(23,32,51,.08);
+      --border-2: rgba(23,32,51,.12);
+
+      --pink: #ff6b8a;
+      --yellow: #ffd166;
+      --mint: #6ee7b7;
+      --danger: #ef4444;
+      --success: #10b981;
+      --info: #667eea;
+
+      --shadow-sm: 0 8px 20px rgba(17,24,39,.06);
+      --shadow: 0 14px 34px rgba(17,24,39,.08);
+      --shadow-lg: 0 22px 60px rgba(17,24,39,.12);
+
+      --radius-sm: 12px;
+      --radius: 18px;
+      --radius-lg: 26px;
+
+      --max: 1260px;
+      --pad: 16px;
+      --ease: cubic-bezier(.2,.8,.2,1);
+      --font: "Inter", "Segoe UI", Arial, sans-serif;
     }
 
-    *{box-sizing:border-box}
-    html,body{margin:0;padding:0}
+    @media (min-width: 760px){
+      :root{ --pad: 20px; }
+    }
+
+    *{ box-sizing:border-box; }
+    html,body{ margin:0; padding:0; }
     body{
-      font-family: Arial, sans-serif;
-      background: linear-gradient(180deg,var(--bg) 0%,var(--bg-2) 100%);
+      font-family: var(--font);
       color: var(--text);
+      background:
+        radial-gradient(900px 500px at 0% 0%, rgba(255,107,138,.16), transparent 55%),
+        radial-gradient(800px 500px at 100% 0%, rgba(255,209,102,.14), transparent 55%),
+        linear-gradient(180deg, var(--bg), var(--bg-2));
+      min-height:100vh;
+    }
+
+    img{ max-width:100%; display:block; }
+    button, input, textarea, select{
+      font: inherit;
     }
 
     .wrap{
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 20px 16px 48px;
+      width:min(100%, var(--max));
+      margin:0 auto;
+      padding:20px var(--pad) 44px;
+    }
+
+    .shell{
+      display:grid;
+      gap:16px;
     }
 
     .topbar{
+      position:sticky;
+      top:0;
+      z-index:30;
+      backdrop-filter: blur(16px);
+      background: rgba(255,248,245,.82);
+      border-bottom:1px solid rgba(23,32,51,.06);
+      margin:0 calc(var(--pad) * -1) 18px;
+      padding:14px var(--pad);
+    }
+
+    .topbar-inner{
+      width:min(100%, var(--max));
+      margin:0 auto;
+      display:grid;
+      gap:14px;
+    }
+
+    .brand-block{
       display:flex;
-      gap:12px;
-      justify-content:space-between;
       align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
       flex-wrap:wrap;
-      margin-bottom:18px;
     }
 
-    .hero h1{
-      margin:0 0 8px;
-      font-size: clamp(28px, 5vw, 40px);
-      line-height:1.05;
-    }
-
-    .hero p{
+    .brand-copy h1{
       margin:0;
+      font-size: clamp(28px, 7vw, 44px);
+      line-height:1.02;
+      letter-spacing:-.03em;
+    }
+
+    .brand-copy p{
+      margin:8px 0 0;
       color:var(--muted);
       line-height:1.5;
-      max-width:65ch;
+      max-width:64ch;
+      font-size:14px;
     }
 
     .top-actions{
@@ -65,86 +116,201 @@
       align-items:center;
     }
 
-    .badge{
+    .auth-chip{
       display:inline-flex;
       align-items:center;
       gap:8px;
-      padding:10px 12px;
+      min-height:44px;
+      padding:10px 14px;
       border-radius:999px;
-      background:#fff;
+      background:rgba(255,255,255,.82);
       border:1px solid var(--border);
-      box-shadow:var(--shadow);
+      box-shadow: var(--shadow-sm);
       font-size:14px;
       font-weight:700;
+      color:var(--text);
+    }
+
+    .auth-dot{
+      width:10px;
+      height:10px;
+      border-radius:999px;
+      background:var(--danger);
+      box-shadow:0 0 0 4px rgba(239,68,68,.12);
+    }
+
+    .btn{
+      appearance:none;
+      border:0;
+      border-radius:14px;
+      padding:12px 14px;
+      min-height:44px;
+      font-weight:800;
+      cursor:pointer;
+      transition: transform .16s var(--ease), box-shadow .16s var(--ease), opacity .16s var(--ease), background .16s var(--ease);
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      text-decoration:none;
+      width:auto;
+    }
+
+    .btn:hover{ transform: translateY(-1px); }
+    .btn:disabled{
+      opacity:.65;
+      cursor:not-allowed;
+      transform:none;
+    }
+
+    .btn-primary{
+      color:#fff;
+      background: linear-gradient(135deg, var(--pink), #ff8aa1 42%, var(--yellow));
+      box-shadow: 0 16px 30px rgba(255,107,138,.22);
+    }
+
+    .btn-ghost{
+      color:var(--text);
+      background: rgba(255,255,255,.9);
+      border:1px solid var(--border);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .btn-danger{
+      color:var(--danger);
+      background: rgba(239,68,68,.09);
+      border:1px solid rgba(239,68,68,.14);
+    }
+
+    .btn-success{
+      color:var(--success);
+      background: rgba(16,185,129,.10);
+      border:1px solid rgba(16,185,129,.16);
+    }
+
+    .spinner{
+      width:16px;
+      height:16px;
+      border:2px solid rgba(255,255,255,.45);
+      border-top-color:#fff;
+      border-radius:999px;
+      animation: spin .8s linear infinite;
+      display:none;
+      flex:0 0 auto;
+    }
+
+    .btn-ghost .spinner,
+    .btn-danger .spinner,
+    .btn-success .spinner{
+      border-color: rgba(23,32,51,.18);
+      border-top-color: var(--text);
+    }
+
+    .is-loading .spinner{ display:inline-block; }
+
+    @keyframes spin{
+      to{ transform:rotate(360deg); }
     }
 
     .layout{
       display:grid;
-      grid-template-columns: 1fr;
-      gap:18px;
+      gap:16px;
     }
 
-    @media (min-width: 980px){
+    .main-stack{
+      display:grid;
+      gap:16px;
+    }
+
+    @media (min-width: 1080px){
       .layout{
-        grid-template-columns: 380px 1fr;
+        grid-template-columns: 360px minmax(0, 1fr);
         align-items:start;
       }
     }
 
+    .left-col,
+    .right-col{
+      display:grid;
+      gap:16px;
+    }
+
     .card{
-      background:var(--card);
+      position:relative;
+      background: linear-gradient(180deg, rgba(255,255,255,.96), rgba(255,255,255,.9));
       border:1px solid var(--border);
-      border-radius:var(--radius);
-      box-shadow:var(--shadow);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+
+    .card::before{
+      content:"";
+      position:absolute;
+      inset:0 0 auto 0;
+      height:3px;
+      background: linear-gradient(90deg, rgba(255,107,138,.9), rgba(255,209,102,.8), rgba(110,231,183,.8));
+      opacity:.9;
+    }
+
+    .card-body{
       padding:18px;
     }
 
-    .card h2{
-      margin:0 0 14px;
-      font-size:20px;
+    .section-head{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+      margin-bottom:14px;
     }
 
-    .muted{
+    .section-head h2{
+      margin:0;
+      font-size:20px;
+      letter-spacing:-.02em;
+    }
+
+    .section-head p{
+      margin:6px 0 0;
       color:var(--muted);
       font-size:14px;
+      line-height:1.5;
     }
 
-    .grid{
+    .field-grid{
       display:grid;
-      grid-template-columns: 1fr;
       gap:12px;
     }
 
-    @media (min-width:700px){
-      .grid.two{
+    .field-grid.two{
+      grid-template-columns:1fr;
+    }
+
+    @media (min-width: 620px){
+      .field-grid.two{
         grid-template-columns:1fr 1fr;
       }
     }
 
     label{
       display:block;
-      font-size:14px;
-      font-weight:700;
       margin-bottom:6px;
-    }
-
-    input, textarea, select, button{
-      width:100%;
-      font:inherit;
+      font-size:13px;
+      font-weight:800;
+      color:var(--text);
     }
 
     input, textarea, select{
+      width:100%;
       border:1px solid var(--border);
-      border-radius:14px;
-      padding:12px;
       background:#fff;
       color:var(--text);
+      border-radius:14px;
+      padding:12px 13px;
       outline:none;
-    }
-
-    input:focus, textarea:focus, select:focus{
-      border-color:rgba(255,107,138,.45);
-      box-shadow:0 0 0 4px rgba(255,107,138,.08);
+      transition: border-color .16s var(--ease), box-shadow .16s var(--ease), background .16s var(--ease);
     }
 
     textarea{
@@ -152,78 +318,68 @@
       resize:vertical;
     }
 
+    input:focus,
+    textarea:focus,
+    select:focus{
+      border-color: rgba(255,107,138,.36);
+      box-shadow: 0 0 0 4px rgba(255,107,138,.08);
+      background:#fff;
+    }
+
     .btn-row{
       display:flex;
       gap:10px;
       flex-wrap:wrap;
-      margin-top:12px;
-    }
-
-    .btn{
-      border:0;
-      border-radius:14px;
-      padding:12px 14px;
-      font-weight:700;
-      cursor:pointer;
-      transition:transform .15s ease, opacity .15s ease;
-      width:auto;
-      min-width:120px;
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      gap:8px;
-    }
-
-    .btn:hover{ transform:translateY(-1px); }
-    .btn:disabled{ opacity:.65; cursor:not-allowed; transform:none; }
-
-    .btn-primary{
-      background:linear-gradient(90deg,var(--pink),var(--yellow));
-      color:#fff;
-    }
-
-    .btn-ghost{
-      background:#fff;
-      color:var(--text);
-      border:1px solid var(--border);
-    }
-
-    .btn-danger{
-      background:rgba(239,68,68,.12);
-      color:var(--danger);
-      border:1px solid rgba(239,68,68,.18);
-    }
-
-    .btn-success{
-      background:rgba(16,185,129,.12);
-      color:var(--success);
-      border:1px solid rgba(16,185,129,.18);
+      margin-top:14px;
     }
 
     .status{
-      margin-top:10px;
+      min-height:20px;
+      margin-top:12px;
       font-size:14px;
       font-weight:700;
-      min-height:20px;
     }
 
+    .status.info{ color:var(--muted); }
     .status.success{ color:var(--success); }
     .status.error{ color:var(--danger); }
-    .status.info{ color:var(--muted); }
 
-    .toolbar{
-      display:grid;
-      grid-template-columns:1fr;
-      gap:10px;
-      margin-bottom:14px;
+    .preview-wrap{
+      margin-top:14px;
     }
 
-    @media (min-width:760px){
-      .toolbar{
-        grid-template-columns: 1.2fr .8fr auto auto;
-        align-items:center;
-      }
+    .preview-box{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      padding:12px;
+      border:1px dashed var(--border-2);
+      border-radius:16px;
+      background: rgba(255,248,245,.55);
     }
+
+    .preview-box img{
+      width:68px;
+      height:68px;
+      object-fit:cover;
+      border-radius:14px;
+      background:#fff;
+      border:1px solid var(--border);
+      flex:0 0 auto;
+    }
+
+    .preview-copy strong{
+      display:block;
+      margin-bottom:4px;
+    }
+
+    .muted{
+      color:var(--muted);
+      font-size:14px;
+      line-height:1.45;
+    }
+
+    .hidden{ display:none !important; }
 
     .stats{
       display:grid;
@@ -232,23 +388,55 @@
       margin-bottom:14px;
     }
 
-    @media (min-width:760px){
+    @media (min-width: 700px){
       .stats{
         grid-template-columns:repeat(4,1fr);
       }
     }
 
     .stat{
-      padding:14px;
+      background: linear-gradient(180deg, #fff, #fffaf8);
       border:1px solid var(--border);
-      border-radius:16px;
-      background:#fff;
+      border-radius:18px;
+      padding:14px;
+      box-shadow: var(--shadow-sm);
     }
 
     .stat strong{
       display:block;
-      font-size:22px;
-      margin-bottom:4px;
+      font-size:24px;
+      line-height:1;
+      margin-bottom:6px;
+      letter-spacing:-.03em;
+    }
+
+    .stat span{
+      color:var(--muted);
+      font-size:13px;
+      font-weight:700;
+    }
+
+    .toolbar{
+      display:grid;
+      gap:10px;
+      margin-bottom:14px;
+    }
+
+    @media (min-width: 760px){
+      .toolbar{
+        grid-template-columns: minmax(0,1.25fr) minmax(0,.9fr) auto auto;
+        align-items:end;
+      }
+    }
+
+    .toolbar .btn{
+      width:100%;
+    }
+
+    @media (min-width:760px){
+      .toolbar .btn{
+        width:auto;
+      }
     }
 
     .product-list{
@@ -257,178 +445,228 @@
     }
 
     .product-row{
-      border:1px solid var(--border);
-      border-radius:16px;
-      padding:12px;
-      background:#fff;
       display:grid;
-      grid-template-columns: 88px 1fr;
       gap:12px;
+      grid-template-columns:72px minmax(0,1fr);
+      padding:12px;
+      border:1px solid var(--border);
+      border-radius:20px;
+      background: linear-gradient(180deg, #fff, #fffdfc);
+      box-shadow: var(--shadow-sm);
     }
 
-    @media (max-width:520px){
+    @media (max-width: 560px){
       .product-row{
         grid-template-columns:1fr;
       }
     }
 
     .product-thumb{
-      width:88px;
-      height:88px;
-      border-radius:14px;
+      width:72px;
+      height:72px;
+      border-radius:16px;
       object-fit:cover;
       border:1px solid var(--border);
-      background:#f8fafc;
+      background:#fff;
     }
 
-    @media (max-width:520px){
+    @media (max-width: 560px){
       .product-thumb{
         width:100%;
         height:220px;
       }
     }
 
+    .product-main{
+      min-width:0;
+    }
+
     .product-head{
       display:flex;
+      align-items:flex-start;
       justify-content:space-between;
       gap:10px;
-      align-items:flex-start;
       flex-wrap:wrap;
     }
 
     .product-row h3{
-      margin:0 0 6px;
-      font-size:18px;
+      margin:0 0 4px;
+      font-size:17px;
+      line-height:1.2;
+      word-break:break-word;
     }
 
-    .product-row p{
-      margin:4px 0;
+    .product-meta{
+      display:grid;
+      gap:6px;
+      margin-top:8px;
+    }
+
+    .product-meta p{
+      margin:0;
       color:var(--muted);
-      font-size:14px;
       line-height:1.45;
+      font-size:14px;
+      word-break:break-word;
     }
 
     .pill{
       display:inline-flex;
       align-items:center;
-      gap:8px;
-      padding:8px 10px;
+      justify-content:center;
+      min-height:32px;
+      padding:7px 11px;
       border-radius:999px;
       font-size:12px;
-      font-weight:800;
+      font-weight:900;
       border:1px solid var(--border);
       background:#fff;
+      white-space:nowrap;
     }
 
     .pill.success{
       color:var(--success);
       background:rgba(16,185,129,.10);
-      border-color:rgba(16,185,129,.18);
+      border-color:rgba(16,185,129,.16);
     }
 
     .pill.danger{
       color:var(--danger);
       background:rgba(239,68,68,.10);
-      border-color:rgba(239,68,68,.18);
+      border-color:rgba(239,68,68,.16);
     }
 
     .product-actions{
       display:flex;
       gap:8px;
       flex-wrap:wrap;
-      margin-top:10px;
+      margin-top:12px;
     }
 
     .mini-btn{
+      width:auto;
       border:1px solid var(--border);
       background:#fff;
       color:var(--text);
       border-radius:12px;
       padding:10px 12px;
-      font-weight:700;
+      font-weight:800;
       cursor:pointer;
-      width:auto;
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
+      transition: transform .16s var(--ease), background .16s var(--ease), opacity .16s var(--ease);
     }
 
-    .mini-btn:disabled{ opacity:.65; cursor:not-allowed; }
+    .mini-btn:hover{ transform:translateY(-1px); }
+    .mini-btn:disabled{ opacity:.65; cursor:not-allowed; transform:none; }
     .mini-btn.danger{
       color:var(--danger);
-      border-color:rgba(239,68,68,.18);
       background:rgba(239,68,68,.06);
+      border-color:rgba(239,68,68,.16);
     }
-
     .mini-btn.success{
       color:var(--success);
-      border-color:rgba(16,185,129,.18);
       background:rgba(16,185,129,.06);
+      border-color:rgba(16,185,129,.16);
     }
 
-    .preview-wrap{
-      margin-top:12px;
+    .purchase-summary{
       display:grid;
+      grid-template-columns:repeat(3,1fr);
       gap:10px;
+      margin-bottom:14px;
     }
 
-    .preview-box{
-      display:flex;
-      gap:10px;
-      align-items:center;
-      padding:10px;
-      border:1px dashed var(--border);
-      border-radius:14px;
-      background:#fff;
+    @media (max-width: 640px){
+      .purchase-summary{
+        grid-template-columns:1fr;
+      }
     }
 
-    .preview-box img{
-      width:64px;
-      height:64px;
-      object-fit:cover;
-      border-radius:12px;
+    .stat-card{
+      padding:14px;
+      border-radius:18px;
       border:1px solid var(--border);
-      background:#f8fafc;
+      background:linear-gradient(180deg, #fff, #fffaf8);
+      box-shadow:var(--shadow-sm);
     }
 
-    .hidden{ display:none !important; }
-
-    .spinner{
-      width:16px;
-      height:16px;
-      border:2px solid rgba(255,255,255,.4);
-      border-top-color:#fff;
-      border-radius:50%;
-      animation:spin .8s linear infinite;
-      display:none;
+    .stat-card span{
+      display:block;
+      color:var(--muted);
+      font-size:13px;
+      font-weight:700;
+      margin-bottom:6px;
     }
 
-    .spinner.dark{
-      border-color:rgba(15,23,42,.18);
-      border-top-color:var(--text);
+    .stat-card strong{
+      display:block;
+      font-size:24px;
+      line-height:1;
+      letter-spacing:-.03em;
     }
 
-    .is-loading .spinner{
-      display:inline-block;
+    .purchase-list{
+      display:grid;
+      gap:12px;
     }
 
-    .is-loading .btn-label{
-      opacity:.9;
+    .purchase-card{
+      padding:14px;
+      border-radius:20px;
+      border:1px solid var(--border);
+      background:linear-gradient(180deg,#fff,#fffdfc);
+      box-shadow:var(--shadow-sm);
+      cursor:pointer;
+      transition: transform .16s var(--ease), box-shadow .16s var(--ease), border-color .16s var(--ease);
     }
 
-    @keyframes spin{
-      to{ transform:rotate(360deg); }
+    .purchase-card:hover{
+      transform:translateY(-1px);
+      box-shadow:var(--shadow);
+      border-color:rgba(255,107,138,.16);
+    }
+
+    .purchase-card-top{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+
+    .purchase-card h4{
+      margin:0 0 6px;
+      font-size:16px;
+      line-height:1.2;
+      word-break:break-word;
+    }
+
+    .purchase-card p{
+      margin:4px 0;
+      color:var(--muted);
+      font-size:14px;
+      line-height:1.45;
+      word-break:break-word;
+    }
+
+    .empty{
+      padding:22px 16px;
+      border:1px dashed var(--border-2);
+      border-radius:18px;
+      text-align:center;
+      color:var(--muted);
+      background:rgba(255,255,255,.72);
     }
 
     .modal{
       position:fixed;
       inset:0;
-      background:rgba(15,23,42,.45);
       display:none;
       align-items:center;
       justify-content:center;
-      padding:16px;
-      z-index:999;
+      padding:14px;
+      background:rgba(23,32,51,.42);
+      backdrop-filter: blur(6px);
+      z-index:2000;
     }
 
     .modal.open{ display:flex; }
@@ -437,386 +675,399 @@
       width:min(760px,100%);
       max-height:92vh;
       overflow:auto;
+      border-radius:24px;
       background:#fff;
-      border-radius:20px;
       border:1px solid var(--border);
-      box-shadow:var(--shadow);
+      box-shadow:var(--shadow-lg);
       padding:18px;
     }
 
     .modal-head{
       display:flex;
       justify-content:space-between;
-      align-items:center;
+      align-items:flex-start;
       gap:12px;
       margin-bottom:14px;
     }
 
-    .empty{
-      padding:20px;
-      border:1px dashed var(--border);
-      border-radius:16px;
-      text-align:center;
+    .modal-head h2{
+      margin:0;
+      font-size:22px;
+    }
+
+    .modal-head p{
+      margin:6px 0 0;
       color:var(--muted);
+      font-size:14px;
+      line-height:1.45;
+    }
+
+    .drawer-overlay{
+      position:fixed;
+      inset:0;
+      background:rgba(23,32,51,.4);
+      backdrop-filter: blur(4px);
+      z-index:2990;
+    }
+
+    .drawer-overlay.hidden{
+      display:none;
+    }
+
+    .admin-drawer{
+      position:fixed;
+      top:0;
+      right:-100%;
+      width:min(100%, 520px);
+      height:100vh;
+      background:linear-gradient(180deg,#fff,#fffaf8);
+      border-left:1px solid var(--border);
+      box-shadow:var(--shadow-lg);
+      z-index:3000;
+      transition:right .28s var(--ease);
+      display:flex;
+      flex-direction:column;
+    }
+
+    .admin-drawer.open{
+      right:0;
+    }
+
+    .drawer-head{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:12px;
+      padding:16px;
+      border-bottom:1px solid var(--border);
+      background:rgba(255,255,255,.9);
+      backdrop-filter: blur(10px);
+      position:sticky;
+      top:0;
+      z-index:2;
+    }
+
+    .drawer-head h3{
+      margin:0 0 4px;
+      font-size:20px;
+    }
+
+    .drawer-head p{
+      margin:0;
+      color:var(--muted);
+      font-size:14px;
+      line-height:1.4;
+    }
+
+    .drawer-body{
+      padding:16px;
+      overflow-y:auto;
+      display:grid;
+      gap:14px;
+    }
+
+    .purchase-detail-card{
+      padding:14px;
+      border-radius:18px;
+      background:#fff;
+      border:1px solid var(--border);
+      box-shadow:var(--shadow-sm);
+    }
+
+    .purchase-detail-card h4{
+      margin:0 0 10px;
+      font-size:16px;
+    }
+
+    .purchase-lines{
+      display:grid;
+      gap:8px;
+    }
+
+    .purchase-lines p{
+      margin:0;
+      line-height:1.45;
+      color:var(--muted);
+      word-break:break-word;
+      font-size:14px;
+    }
+
+    .purchase-lines strong{
+      color:var(--text);
+    }
+
+    .purchase-product{
+      display:grid;
+      grid-template-columns:72px minmax(0,1fr);
+      gap:12px;
+      align-items:start;
+      padding:12px;
+      border-radius:16px;
+      border:1px solid var(--border);
+      background:linear-gradient(180deg,#fff,#fffdfc);
+    }
+
+    .purchase-product img{
+      width:72px;
+      height:72px;
+      object-fit:cover;
+      border-radius:14px;
+      border:1px solid var(--border);
       background:#fff;
     }
 
-    .admin-section {
-  margin-top: 24px;
-  padding: 18px;
-  border-radius: 18px;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.08);
-}
+    @media (max-width: 640px){
+      .purchase-product{
+        grid-template-columns:1fr;
+      }
 
-.section-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 16px;
-  flex-wrap: wrap;
-  margin-bottom: 16px;
-}
+      .purchase-product img{
+        width:100%;
+        height:220px;
+      }
+    }
 
-.section-top h2 {
-  margin: 0 0 6px;
-}
+    .mobile-space{ display:none; }
 
-.section-top p {
-  margin: 0;
-  opacity: 0.8;
-}
-
-.section-actions {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.purchase-list {
-  display: grid;
-  gap: 12px;
-  margin-top: 18px;
-}
-
-.purchase-card {
-  padding: 14px;
-  border-radius: 16px;
-  border: 1px solid rgba(255,255,255,0.08);
-  background: rgba(255,255,255,0.03);
-  cursor: pointer;
-  transition: 0.2s ease;
-}
-
-.purchase-card:hover {
-  transform: translateY(-2px);
-  background: rgba(255,255,255,0.05);
-}
-
-.purchase-card-top {
-  display: flex;
-  justify-content: space-between;
-  gap: 14px;
-  flex-wrap: wrap;
-}
-
-.purchase-card h4 {
-  margin: 0 0 6px;
-}
-
-.purchase-card p {
-  margin: 4px 0;
-  opacity: 0.88;
-}
-
-.admin-drawer {
-  position: fixed;
-  top: 0;
-  right: -100%;
-  width: min(96vw, 520px);
-  height: 100vh;
-  background: #111827;
-  border-left: 1px solid rgba(255,255,255,0.08);
-  z-index: 3000;
-  transition: right 0.3s ease;
-  display: flex;
-  flex-direction: column;
-}
-
-.admin-drawer.open {
-  right: 0;
-}
-
-.drawer-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.5);
-  z-index: 2990;
-}
-
-.drawer-overlay.hidden {
-  display: none;
-}
-
-.drawer-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 16px;
-  border-bottom: 1px solid rgba(255,255,255,0.08);
-}
-
-.drawer-head h3 {
-  margin: 0 0 4px;
-}
-
-.drawer-head p {
-  margin: 0;
-  opacity: 0.8;
-}
-
-.drawer-body {
-  padding: 16px;
-  overflow-y: auto;
-  display: grid;
-  gap: 16px;
-}
-
-.purchase-detail-card {
-  padding: 14px;
-  border-radius: 14px;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.08);
-}
-
-.purchase-detail-card h4 {
-  margin: 0 0 10px;
-}
-
-.purchase-product {
-  display: grid;
-  grid-template-columns: 72px 1fr;
-  gap: 12px;
-  align-items: start;
-}
-
-.purchase-product img {
-  width: 72px;
-  height: 72px;
-  object-fit: cover;
-  border-radius: 12px;
-  border: 1px solid rgba(255,255,255,0.08);
-}
-
-.purchase-lines {
-  display: grid;
-  gap: 8px;
-}
-
-.purchase-lines p {
-  margin: 0;
-  line-height: 1.45;
-}
-
-@media (max-width: 640px) {
-  .purchase-product {
-    grid-template-columns: 1fr;
-  }
-
-  .purchase-product img {
-    width: 100%;
-    height: auto;
-    max-height: 240px;
-  }
-
-  .admin-drawer {
-    width: 100%;
-  }
-}
+    @media (max-width: 1079px){
+      .left-col{ order:1; }
+      .right-col{ order:2; }
+    }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="topbar">
-      <section class="hero">
-        <h1>April Blossoms Admin</h1>
-        <p>Manage products, upload images, search inventory, toggle availability, edit items, and delete products from one place.</p>
-      </section>
+  <div class="topbar">
+    <div class="topbar-inner">
+      <div class="brand-block">
+        <div class="brand-copy">
+          <h1>April Blossoms Admin</h1>
+          <p>Manage products, update availability, track purchases, and keep the storefront organized from one clean mobile-friendly dashboard.</p>
+        </div>
 
-      <div class="top-actions">
-        <div class="badge" id="authBadge">Not logged in</div>
-        <button class="btn btn-ghost" id="refreshBtn" type="button">Refresh</button>
-        <button class="btn btn-ghost hidden" id="logoutBtn" type="button">Log Out</button>
-     <button class="btn btn-primary" id="bulkImportBtn" type="button" style="display: none;">
-  <span class="spinner"></span>
-  <span class="btn-label">Import Original 50 Products</span>
-</button>
+        <div class="top-actions">
+          <div class="auth-chip" id="authBadge">
+            <span class="auth-dot"></span>
+            <span>Not logged in</span>
+          </div>
+          <button class="btn btn-ghost" id="refreshBtn" type="button">Refresh</button>
+          <button class="btn btn-ghost hidden" id="logoutBtn" type="button">Log Out</button>
+          <button class="btn btn-primary" id="bulkImportBtn" type="button" style="display:none;">
+            <span class="spinner"></span>
+            <span class="btn-label">Import Original 50 Products</span>
+          </button>
+        </div>
       </div>
     </div>
+  </div>
 
+  <div class="wrap">
     <div class="layout">
       <div class="left-col">
         <section class="card">
-          <h2>Admin Login</h2>
-          <div class="grid">
-            <div>
-              <label for="adminEmail">Email</label>
-              <input type="email" id="adminEmail" placeholder="Enter admin email" />
-            </div>
-            <div>
-              <label for="adminPassword">Password</label>
-              <input type="password" id="adminPassword" placeholder="Enter password" />
-            </div>
-          </div>
-
-          <div class="btn-row">
-            <button class="btn btn-primary" id="adminLoginBtn" type="button">
-              <span class="spinner"></span>
-              <span class="btn-label">Log In</span>
-            </button>
-          </div>
-
-          <div id="adminStatus" class="status info">Not logged in</div>
-        </section>
-
-        <section class="admin-section">
-  <div class="section-top">
-    <div>
-      <h2>Purchases</h2>
-      <p>View customer orders and full order details.</p>
-    </div>
-
-    <div class="section-actions">
-      <button class="btn btn-ghost" id="reloadPurchasesBtn" type="button">
-        <span class="spinner"></span>
-        <span class="btn-label">Reload Purchases</span>
-      </button>
-    </div>
-  </div>
-
-  <div class="stats-grid">
-    <div class="stat-card">
-      <span>Total Orders</span>
-      <strong id="purchaseStatTotal">0</strong>
-    </div>
-    <div class="stat-card">
-      <span>Paid Orders</span>
-      <strong id="purchaseStatPaid">0</strong>
-    </div>
-    <div class="stat-card">
-      <span>Total Revenue</span>
-      <strong id="purchaseStatRevenue">₵0.00</strong>
-    </div>
-  </div>
-
-  <div id="purchaseList" class="purchase-list">
-    <div class="empty">No purchases yet.</div>
-  </div>
-</section>
-        
-        <section class="card">
-          <h2>Add Product</h2>
-
-          <div class="grid two">
-            <div>
-              <label for="productId">Product ID</label>
-              <input type="text" id="productId" placeholder="e.g. DRESS-051" />
-            </div>
-            <div>
-              <label for="productTitle">Title</label>
-              <input type="text" id="productTitle" placeholder="e.g. Rose Bloom Dress" />
-            </div>
-            <div>
-              <label for="productPrice">Price</label>
-              <input type="number" id="productPrice" placeholder="e.g. 45" min="0" step="0.01" />
-            </div>
-            <div>
-            <label class="field">
-  <span>Age Category</span>
-  <input type="text" id="productAge" placeholder="e.g. 0-1, 2-3, 4-5, 7-8" />
-</label>
-            </div>
-          </div>
-
-          <div style="margin-top:12px;">
-            <label for="productDescription">Description (optional)</label>
-            <textarea id="productDescription" placeholder="Write product description"></textarea>
-          </div>
-
-          <div class="grid two" style="margin-top:12px;">
-            <div>
-              <label for="productImageFile">Upload image file</label>
-              <input type="file" id="productImageFile" accept="image/*" />
-            </div>
-            <div>
-              <label for="productImageUrl">Or paste image URL</label>
-              <input type="text" id="productImageUrl" placeholder="https://..." />
-            </div>
-          </div>
-
-          <div class="preview-wrap">
-            <div class="preview-box">
-              <img id="imagePreview" src="" alt="Preview" class="hidden" />
+          <div class="card-body">
+            <div class="section-head">
               <div>
-                <strong>Image preview</strong>
-                <div class="muted" id="imagePreviewText">Choose an image file or paste an image URL.</div>
+                <h2>Admin Login</h2>
+                <p>Sign in to manage products and view customer purchases.</p>
               </div>
             </div>
-          </div>
 
-          <div class="btn-row">
-            <button class="btn btn-primary" id="addProductBtn" type="button">
-              <span class="spinner"></span>
-              <span class="btn-label">Add Product</span>
-            </button>
-            <button class="btn btn-ghost" id="clearFormBtn" type="button">Clear</button>
+            <div class="field-grid">
+              <div>
+                <label for="adminEmail">Email</label>
+                <input type="email" id="adminEmail" placeholder="Enter admin email" />
+              </div>
+
+              <div>
+                <label for="adminPassword">Password</label>
+                <input type="password" id="adminPassword" placeholder="Enter password" />
+              </div>
+            </div>
+
+            <div class="btn-row">
+              <button class="btn btn-primary" id="adminLoginBtn" type="button">
+                <span class="spinner"></span>
+                <span class="btn-label">Log In</span>
+              </button>
+            </div>
+
+            <div id="adminStatus" class="status info">Not logged in</div>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-body">
+            <div class="section-head">
+              <div>
+                <h2>Add Product</h2>
+                <p>Create a new product with image, price, and age category.</p>
+              </div>
+            </div>
+
+            <div class="field-grid two">
+              <div>
+                <label for="productId">Product ID</label>
+                <input type="text" id="productId" placeholder="e.g. DRESS-051" />
+              </div>
+
+              <div>
+                <label for="productTitle">Title</label>
+                <input type="text" id="productTitle" placeholder="e.g. Rose Bloom Dress" />
+              </div>
+
+              <div>
+                <label for="productPrice">Price</label>
+                <input type="number" id="productPrice" placeholder="e.g. 45" min="0" step="0.01" />
+              </div>
+
+              <div>
+                <label for="productAge">Age Category</label>
+                <input type="text" id="productAge" placeholder="e.g. 0-1, 2-3, 4-5, 7-8" />
+              </div>
+            </div>
+
+            <div style="margin-top:12px;">
+              <label for="productDescription">Description</label>
+              <textarea id="productDescription" placeholder="Write product description"></textarea>
+            </div>
+
+            <div class="field-grid two" style="margin-top:12px;">
+              <div>
+                <label for="productImageFile">Upload image file</label>
+                <input type="file" id="productImageFile" accept="image/*" />
+              </div>
+
+              <div>
+                <label for="productImageUrl">Or paste image URL</label>
+                <input type="text" id="productImageUrl" placeholder="https://..." />
+              </div>
+            </div>
+
+            <div class="preview-wrap">
+              <div class="preview-box">
+                <img id="imagePreview" src="" alt="Preview" class="hidden" />
+                <div class="preview-copy">
+                  <strong>Image preview</strong>
+                  <div class="muted" id="imagePreviewText">Choose an image file or paste an image URL.</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="btn-row">
+              <button class="btn btn-primary" id="addProductBtn" type="button">
+                <span class="spinner"></span>
+                <span class="btn-label">Add Product</span>
+              </button>
+              <button class="btn btn-ghost" id="clearFormBtn" type="button">Clear</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-body">
+            <div class="section-head">
+              <div>
+                <h2>Purchases</h2>
+                <p>View paid orders and inspect customer details quickly.</p>
+              </div>
+
+              <div class="btn-row" style="margin-top:0;">
+                <button class="btn btn-ghost" id="reloadPurchasesBtn" type="button">
+                  <span class="spinner"></span>
+                  <span class="btn-label">Reload Purchases</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="purchase-summary">
+              <div class="stat-card">
+                <span>Total Orders</span>
+                <strong id="purchaseStatTotal">0</strong>
+              </div>
+
+              <div class="stat-card">
+                <span>Paid Orders</span>
+                <strong id="purchaseStatPaid">0</strong>
+              </div>
+
+              <div class="stat-card">
+                <span>Total Revenue</span>
+                <strong id="purchaseStatRevenue">₵0.00</strong>
+              </div>
+            </div>
+
+            <div id="purchaseList" class="purchase-list">
+              <div class="empty">No purchases yet.</div>
+            </div>
           </div>
         </section>
       </div>
 
       <div class="right-col">
         <section class="card">
-          <h2>Inventory</h2>
+          <div class="card-body">
+            <div class="section-head">
+              <div>
+                <h2>Inventory</h2>
+                <p>Search, filter, edit, mark sold out, or delete products.</p>
+              </div>
+            </div>
 
-          <div class="stats">
-            <div class="stat">
-              <strong id="statTotal">0</strong>
-              <span class="muted">Total</span>
+            <div class="stats">
+              <div class="stat">
+                <strong id="statTotal">0</strong>
+                <span>Total</span>
+              </div>
+
+              <div class="stat">
+                <strong id="statAvailable">0</strong>
+                <span>Available</span>
+              </div>
+
+              <div class="stat">
+                <strong id="statSold">0</strong>
+                <span>Sold out</span>
+              </div>
+
+              <div class="stat">
+                <strong id="statValue">₵0.00</strong>
+                <span>Visible value</span>
+              </div>
             </div>
-            <div class="stat">
-              <strong id="statAvailable">0</strong>
-              <span class="muted">Available</span>
+
+            <div class="toolbar">
+              <div>
+                <label for="searchInput">Search</label>
+                <input type="search" id="searchInput" placeholder="Search by title, ID, age..." />
+              </div>
+
+              <div>
+                <label for="filterAvailability">Availability</label>
+                <select id="filterAvailability">
+                  <option value="all">All products</option>
+                  <option value="available">Available only</option>
+                  <option value="sold">Sold out only</option>
+                </select>
+              </div>
+
+              <div>
+                <label for="sortProducts">Sort by date</label>
+                <select id="sortProducts">
+                  <option value="newest">Newest to Oldest</option>
+                  <option value="oldest">Oldest to Newest</option>
+                </select>
+              </div>
+
+              <div class="btn-row" style="margin-top:0;">
+                <button class="btn btn-ghost" id="reloadProductsBtn" type="button">Reload</button>
+                <button class="btn btn-ghost" id="openAddModalBtn" type="button" style="display:none;">Open Add Form</button>
+              </div>
             </div>
-            <div class="stat">
-              <strong id="statSold">0</strong>
-              <span class="muted">Sold out</span>
-            </div>
-            <div class="stat">
-              <strong id="statValue">₵0</strong>
-              <span class="muted">Visible value</span>
+
+            <div id="adminProducts" class="product-list">
+              <div class="empty">Log in to manage products.</div>
             </div>
           </div>
-
-          <div class="toolbar">
-            <input type="search" id="searchInput" placeholder="Search by title, ID, age..." />
-            <select id="filterAvailability">
-              <option value="all">All products</option>
-              <option value="available">Available only</option>
-              <option value="sold">Sold out only</option>
-            </select>
-            <button class="btn btn-ghost" id="reloadProductsBtn" type="button">Reload</button>
-            <label class="field">
-  <span>Sort by Date</span>
-  <select id="sortProducts">
-    <option value="newest">Newest to Oldest</option>
-    <option value="oldest">Oldest to Newest</option>
-  </select>
-</label>
-            <button class="btn btn-ghost" id="openAddModalBtn" type="button" style="display: none;">Open Add Form</button>
-          </div>
-
-          <div id="adminProducts" class="product-list"></div>
         </section>
       </div>
     </div>
@@ -826,25 +1077,28 @@
     <div class="modal-card">
       <div class="modal-head">
         <div>
-          <h2 style="margin:0;">Edit Product</h2>
-          <p class="muted" style="margin:6px 0 0;">Update product details and save changes.</p>
+          <h2>Edit Product</h2>
+          <p>Update any product detail and save your changes.</p>
         </div>
         <button class="btn btn-ghost" id="closeEditModalBtn" type="button">Close</button>
       </div>
 
-      <div class="grid two">
+      <div class="field-grid two">
         <div>
           <label for="editProductId">Product ID</label>
           <input type="text" id="editProductId" />
         </div>
+
         <div>
           <label for="editProductTitle">Title</label>
           <input type="text" id="editProductTitle" />
         </div>
+
         <div>
           <label for="editProductPrice">Price</label>
           <input type="number" id="editProductPrice" min="0" step="0.01" />
         </div>
+
         <div>
           <label for="editProductAge">Age Category</label>
           <input type="text" id="editProductAge" />
@@ -852,15 +1106,16 @@
       </div>
 
       <div style="margin-top:12px;">
-        <label for="editProductDescription">Description (optional)</label>
+        <label for="editProductDescription">Description</label>
         <textarea id="editProductDescription"></textarea>
       </div>
 
-      <div class="grid two" style="margin-top:12px;">
+      <div class="field-grid two" style="margin-top:12px;">
         <div>
           <label for="editProductImageFile">Replace with image file</label>
           <input type="file" id="editProductImageFile" accept="image/*" />
         </div>
+
         <div>
           <label for="editProductImageUrl">Or image URL</label>
           <input type="text" id="editProductImageUrl" />
@@ -870,7 +1125,7 @@
       <div class="preview-wrap">
         <div class="preview-box">
           <img id="editImagePreview" src="" alt="Edit preview" class="hidden" />
-          <div>
+          <div class="preview-copy">
             <strong>Edit image preview</strong>
             <div class="muted" id="editImagePreviewText">Choose a replacement image file or URL.</div>
           </div>
@@ -888,21 +1143,23 @@
       <div id="editStatus" class="status info"></div>
     </div>
   </div>
-<div class="drawer-overlay hidden" id="purchaseDrawerOverlay"></div>
 
-<aside class="admin-drawer" id="purchaseDrawer">
-  <div class="drawer-head">
-    <div>
-      <h3>Purchase Details</h3>
-      <p id="purchaseDrawerSub">Order details</p>
+  <div class="drawer-overlay hidden" id="purchaseDrawerOverlay"></div>
+
+  <aside class="admin-drawer" id="purchaseDrawer">
+    <div class="drawer-head">
+      <div>
+        <h3>Purchase Details</h3>
+        <p id="purchaseDrawerSub">Order details</p>
+      </div>
+      <button class="mini-btn" id="closePurchaseDrawerBtn" type="button">Close</button>
     </div>
-    <button class="mini-btn" id="closePurchaseDrawerBtn" type="button">Close</button>
-  </div>
 
-  <div class="drawer-body" id="purchaseDrawerBody">
-    <div class="empty">Select a purchase to view details.</div>
-  </div>
-</aside>
+    <div class="drawer-body" id="purchaseDrawerBody">
+      <div class="empty">Select a purchase to view details.</div>
+    </div>
+  </aside>
+
   <script type="module" src="admin.js"></script>
 </body>
 </html>
