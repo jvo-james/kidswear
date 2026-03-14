@@ -12,7 +12,9 @@ import {
   getDocs,
   doc,
   updateDoc,
-  deleteDoc
+  deleteDoc,
+  query,
+  orderBy
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import {
   getStorage,
@@ -37,8 +39,6 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
-/* IMPORTANT:
-   Replace gs://YOUR_REAL_BUCKET_NAME with the exact bucket you created */
 const storage = getStorage(app, "gs://april-blossoms-admin-images");
 
 const db = getFirestore(app);
@@ -96,12 +96,24 @@ const editProductImageUrl = document.getElementById("editProductImageUrl");
 const editImagePreview = document.getElementById("editImagePreview");
 const editImagePreviewText = document.getElementById("editImagePreviewText");
 
+const reloadPurchasesBtn = document.getElementById("reloadPurchasesBtn");
+const purchaseList = document.getElementById("purchaseList");
+const purchaseStatTotal = document.getElementById("purchaseStatTotal");
+const purchaseStatPaid = document.getElementById("purchaseStatPaid");
+const purchaseStatRevenue = document.getElementById("purchaseStatRevenue");
+
+const purchaseDrawer = document.getElementById("purchaseDrawer");
+const purchaseDrawerOverlay = document.getElementById("purchaseDrawerOverlay");
+const purchaseDrawerBody = document.getElementById("purchaseDrawerBody");
+const purchaseDrawerSub = document.getElementById("purchaseDrawerSub");
+const closePurchaseDrawerBtn = document.getElementById("closePurchaseDrawerBtn");
 /* =========================
    STATE
    ========================= */
 let allProducts = [];
 let currentEditDocId = null;
 let currentEditProduct = null;
+let allPurchases = [];
 
 /* =========================
    ORIGINAL 50 PRODUCTS
@@ -362,6 +374,161 @@ async function loadAdminProducts() {
   }
 }
 
+function openPurchaseDrawer() {
+  purchaseDrawer?.classList.add("open");
+  purchaseDrawerOverlay?.classList.remove("hidden");
+}
+
+function closePurchaseDrawer() {
+  purchaseDrawer?.classList.remove("open");
+  purchaseDrawerOverlay?.classList.add("hidden");
+}
+
+function renderPurchaseStats(purchases) {
+  if (!purchaseStatTotal || !purchaseStatPaid || !purchaseStatRevenue) return;
+
+  const total = purchases.length;
+  const paid = purchases.filter(p => (p.status || "paid") === "paid").length;
+  const revenue = purchases.reduce((sum, p) => sum + Number(p.total || 0), 0);
+
+  purchaseStatTotal.textContent = String(total);
+  purchaseStatPaid.textContent = String(paid);
+  purchaseStatRevenue.textContent = money(revenue);
+}
+
+function renderPurchaseList(purchases) {
+  if (!purchaseList) return;
+
+  if (!purchases.length) {
+    purchaseList.innerHTML = `<div class="empty">No purchases yet.</div>`;
+    return;
+  }
+
+  purchaseList.innerHTML = purchases.map((purchase) => {
+    const customer = purchase.customer || {};
+    const itemCount = Array.isArray(purchase.items) ? purchase.items.length : 0;
+    const paidAt = purchase.paidAt ? new Date(purchase.paidAt).toLocaleString() : "No date";
+
+    return `
+      <div class="purchase-card" data-purchase-id="${purchase.firestoreDocId}">
+        <div class="purchase-card-top">
+          <div>
+            <h4>${purchase.orderId || "No Order ID"}</h4>
+            <p><strong>Name:</strong> ${customer.fullName || "Unknown customer"}</p>
+            <p><strong>Email:</strong> ${customer.email || "-"}</p>
+            <p><strong>Items:</strong> ${itemCount}</p>
+          </div>
+          <div>
+            <p><strong>Total:</strong> ${money(purchase.total)}</p>
+            <p><strong>Status:</strong> ${(purchase.status || "paid").toUpperCase()}</p>
+            <p><strong>Date:</strong> ${paidAt}</p>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+function renderPurchaseDrawer(purchase) {
+  if (!purchaseDrawerBody || !purchaseDrawerSub) return;
+
+  const customer = purchase.customer || {};
+  const items = Array.isArray(purchase.items) ? purchase.items : [];
+
+  purchaseDrawerSub.textContent = `${purchase.orderId || "Order"} • ${purchase.paidAt ? new Date(purchase.paidAt).toLocaleString() : ""}`;
+
+  purchaseDrawerBody.innerHTML = `
+    <div class="purchase-detail-card">
+      <h4>Order Information</h4>
+      <div class="purchase-lines">
+        <p><strong>Order ID:</strong> ${purchase.orderId || "-"}</p>
+        <p><strong>Paystack Ref:</strong> ${purchase.paystackRef || "-"}</p>
+        <p><strong>Status:</strong> ${purchase.status || "paid"}</p>
+        <p><strong>Subtotal:</strong> ${money(purchase.subtotal || 0)}</p>
+        <p><strong>Delivery Fee:</strong> ${money(purchase.deliveryFee || 0)}</p>
+        <p><strong>Discount:</strong> ${money(purchase.discount || 0)}</p>
+        <p><strong>Total:</strong> ${money(purchase.total || 0)}</p>
+        <p><strong>Paid At:</strong> ${purchase.paidAt ? new Date(purchase.paidAt).toLocaleString() : "-"}</p>
+      </div>
+    </div>
+
+    <div class="purchase-detail-card">
+      <h4>Customer Details</h4>
+      <div class="purchase-lines">
+        <p><strong>Full Name:</strong> ${customer.fullName || "-"}</p>
+        <p><strong>Email:</strong> ${customer.email || "-"}</p>
+        <p><strong>Phone:</strong> ${customer.phone || "-"}</p>
+        <p><strong>Delivery Option:</strong> ${customer.delivery || "-"}</p>
+        <p><strong>Address:</strong> ${customer.address || "-"}</p>
+        <p><strong>City:</strong> ${customer.city || "-"}</p>
+        <p><strong>Region:</strong> ${customer.region || "-"}</p>
+        <p><strong>Notes:</strong> ${customer.notes || "No notes"}</p>
+      </div>
+    </div>
+
+    <div class="purchase-detail-card">
+      <h4>Purchased Items</h4>
+      <div class="purchase-lines">
+        ${items.map(item => {
+          const image = item.images?.[0] || item.image || "";
+          return `
+            <div class="purchase-product">
+              ${image ? `<img src="${image}" alt="${item.title || "Product"}" onerror="this.style.display='none'">` : ""}
+              <div class="purchase-lines">
+                <p><strong>Title:</strong> ${item.title || "-"}</p>
+                <p><strong>ID:</strong> ${item.id || "-"}</p>
+                <p><strong>Price:</strong> ${money(item.price || 0)}</p>
+                <p><strong>Quantity:</strong> ${item.qty || 1}</p>
+                <p><strong>Age Category:</strong> ${item.ageCategory || "-"}</p>
+              </div>
+            </div>
+          `;
+        }).join("")}
+      </div>
+    </div>
+  `;
+}
+
+async function loadPurchases() {
+  try {
+    const q = query(collection(db, "purchases"), orderBy("paidAt", "desc"));
+    const snapshot = await getDocs(q);
+
+    allPurchases = snapshot.docs.map((docSnap) => ({
+      firestoreDocId: docSnap.id,
+      ...docSnap.data()
+    }));
+
+    renderPurchaseStats(allPurchases);
+    renderPurchaseList(allPurchases);
+  } catch (error) {
+    console.error("Failed to load purchases:", error);
+    if (purchaseList) {
+      purchaseList.innerHTML = `<div class="empty">Failed to load purchases.</div>`;
+    }
+  }
+}
+
+reloadPurchasesBtn?.addEventListener("click", async () => {
+  setButtonLoading(reloadPurchasesBtn, true, "Reloading...");
+  await loadPurchases();
+  setButtonLoading(reloadPurchasesBtn, false);
+});
+
+closePurchaseDrawerBtn?.addEventListener("click", closePurchaseDrawer);
+purchaseDrawerOverlay?.addEventListener("click", closePurchaseDrawer);
+
+purchaseList?.addEventListener("click", (e) => {
+  const card = e.target.closest(".purchase-card");
+  if (!card) return;
+
+  const purchaseId = card.dataset.purchaseId;
+  const purchase = allPurchases.find((p) => p.firestoreDocId === purchaseId);
+  if (!purchase) return;
+
+  renderPurchaseDrawer(purchase);
+  openPurchaseDrawer();
+});
 /* =========================
    STORAGE
    ========================= */
@@ -606,6 +773,7 @@ onAuthStateChanged(auth, async (user) => {
     logoutBtn?.classList.remove("hidden");
     setStatus(`Logged in as ${user.email}`, "success");
     await loadAdminProducts();
+    await loadPurchases();
   } else {
     if (authBadge) authBadge.textContent = "Not logged in";
     logoutBtn?.classList.add("hidden");
@@ -613,6 +781,12 @@ onAuthStateChanged(auth, async (user) => {
     if (adminProducts) adminProducts.innerHTML = `<div class="empty">Log in to manage products.</div>`;
     allProducts = [];
     renderStats([]);
+    allPurchases = [];
+renderPurchaseStats([]);
+if (purchaseList) {
+  purchaseList.innerHTML = `<div class="empty">Log in to view purchases.</div>`;
+}
+closePurchaseDrawer();
   }
 });
 
@@ -664,7 +838,7 @@ addProductBtn?.addEventListener("click", async () => {
     );
 
     clearAddForm();
-    await loadAdminProducts();
+   await loadAdminProducts();
     setStatus("Product added successfully", "success");
   } catch (error) {
     console.error("Failed to add product:", error);
