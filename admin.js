@@ -127,6 +127,7 @@ const purchaseDrawerBody = document.getElementById("purchaseDrawerBody");
 const purchaseDrawerSub = document.getElementById("purchaseDrawerSub");
 const closePurchaseDrawerBtn = document.getElementById("closePurchaseDrawerBtn");
 
+/* Bulk upload DOM */
 const bulkBaseTitle = document.getElementById("bulkBaseTitle");
 const bulkPrice = document.getElementById("bulkPrice");
 const bulkAge = document.getElementById("bulkAge");
@@ -151,60 +152,60 @@ let activePageId = "dashboardPage";
    ORIGINAL 50 PRODUCTS
 ========================= */
 const SEED_PRODUCTS = [
-  { id: "DRESS-001", title: "Floral Ruffles", price: 40.0, description: "One-of-a-kind floral ruffle dress", ageCategory: "4-5", images: ["IMG_5700.JPG"], available: true, createdAt: new Date(Date.now()-1*86400000).toISOString() },
-  { id: "DRESS-002", title: "Sunshine Dress", price: 30.0, description: "Bright yellow play dress", ageCategory: "4-5", images: ["IMG_5701.JPG"], available: true, createdAt: new Date(Date.now()-2*86400000).toISOString() },
-  { id: "DRESS-003", title: "Party Bow Dress", price: 35.0, description: "Elegant dress for special occasions", ageCategory: "4-5", images: ["IMG_5702.JPG"], available: true, createdAt: new Date(Date.now()-3*86400000).toISOString() },
-  { id: "DRESS-004", title: "Polka Play", price: 35.0, description: "Polka-dot twirl dress", ageCategory: "4-5", images: ["IMG_5703.JPG"], available: true, createdAt: new Date(Date.now()-4*86400000).toISOString() },
-  { id: "DRESS-005", title: "Candy Stripes", price: 35.0, description: "Soft striped cotton dress", ageCategory: "4-5", images: ["IMG_5704.JPG"], available: true, createdAt: new Date(Date.now()-5*86400000).toISOString() },
-  { id: "DRESS-006", title: "Meadow Tiny", price: 35.0, description: "Hand-stitched meadow pattern", ageCategory: "4-5", images: ["IMG_5705.JPG"], available: true, createdAt: new Date(Date.now()-6*86400000).toISOString() },
-  { id: "DRESS-007", title: "Lace Halo", price: 40.0, description: "Lace-trim party dress", ageCategory: "4-5", images: ["IMG_5706.JPG"], available: true, createdAt: new Date(Date.now()-7*86400000).toISOString() },
-  { id: "DRESS-008", title: "Seaside Sundress", price: 35.0, description: "Cool and breezy sun dress", ageCategory: "4-5", images: ["IMG_5707.JPG"], available: true, createdAt: new Date(Date.now()-8*86400000).toISOString() },
-  { id: "DRESS-009", title: "Minty Bow", price: 100.0, description: "White Shirt with skirt", ageCategory: "4-5", images: ["IMG_5708.JPG"], available: true, createdAt: new Date(Date.now()-9*86400000).toISOString() },
-  { id: "DRESS-010", title: "Rosette Charm", price: 35.0, description: "Rosette detailing, comfy fit", ageCategory: "4-5", images: ["IMG_5709.JPG"], available: true, createdAt: new Date(Date.now()-10*86400000).toISOString() },
+  { id: "DRESS-001", title: "Floral Ruffles", price: 40.0, description: "One-of-a-kind floral ruffle dress", ageCategory: "4-5", images: ["IMG_5700.JPG"], available: true, createdAt: new Date(Date.now() - 1 * 86400000).toISOString() },
+  { id: "DRESS-002", title: "Sunshine Dress", price: 30.0, description: "Bright yellow play dress", ageCategory: "4-5", images: ["IMG_5701.JPG"], available: true, createdAt: new Date(Date.now() - 2 * 86400000).toISOString() },
+  { id: "DRESS-003", title: "Party Bow Dress", price: 35.0, description: "Elegant dress for special occasions", ageCategory: "4-5", images: ["IMG_5702.JPG"], available: true, createdAt: new Date(Date.now() - 3 * 86400000).toISOString() },
+  { id: "DRESS-004", title: "Polka Play", price: 35.0, description: "Polka-dot twirl dress", ageCategory: "4-5", images: ["IMG_5703.JPG"], available: true, createdAt: new Date(Date.now() - 4 * 86400000).toISOString() },
+  { id: "DRESS-005", title: "Candy Stripes", price: 35.0, description: "Soft striped cotton dress", ageCategory: "4-5", images: ["IMG_5704.JPG"], available: true, createdAt: new Date(Date.now() - 5 * 86400000).toISOString() },
+  { id: "DRESS-006", title: "Meadow Tiny", price: 35.0, description: "Hand-stitched meadow pattern", ageCategory: "4-5", images: ["IMG_5705.JPG"], available: true, createdAt: new Date(Date.now() - 6 * 86400000).toISOString() },
+  { id: "DRESS-007", title: "Lace Halo", price: 40.0, description: "Lace-trim party dress", ageCategory: "4-5", images: ["IMG_5706.JPG"], available: true, createdAt: new Date(Date.now() - 7 * 86400000).toISOString() },
+  { id: "DRESS-008", title: "Seaside Sundress", price: 35.0, description: "Cool and breezy sun dress", ageCategory: "4-5", images: ["IMG_5707.JPG"], available: true, createdAt: new Date(Date.now() - 8 * 86400000).toISOString() },
+  { id: "DRESS-009", title: "Minty Bow", price: 100.0, description: "White Shirt with skirt", ageCategory: "4-5", images: ["IMG_5708.JPG"], available: true, createdAt: new Date(Date.now() - 9 * 86400000).toISOString() },
+  { id: "DRESS-010", title: "Rosette Charm", price: 35.0, description: "Rosette detailing, comfy fit", ageCategory: "4-5", images: ["IMG_5709.JPG"], available: true, createdAt: new Date(Date.now() - 10 * 86400000).toISOString() },
 
-  { id: "DRESS-011", title: "Blossom Day", price: 30.0, description: "Lightweight blossom print dress", ageCategory: "4-5", images: ["IMG_5710.JPG"], available: true, createdAt: new Date(Date.now()-11*86400000).toISOString() },
-  { id: "DRESS-012", title: "Vintage Coral", price: 40.0, description: "Retro coral dress with pockets", ageCategory: "4-5", images: ["IMG_5711.JPG"], available: true, createdAt: new Date(Date.now()-12*86400000).toISOString() },
-  { id: "DRESS-013", title: "Petal Puff", price: 30.0, description: "Petal-pattern puff sleeve dress", ageCategory: "4-5", images: ["IMG_5712.JPG"], available: true, createdAt: new Date(Date.now()-13*86400000).toISOString() },
-  { id: "DRESS-014", title: "Lemon Drop", price: 65.0, description: "Blue jeans trousers", ageCategory: "4-5", images: ["IMG_5713.JPG"], available: true, createdAt: new Date(Date.now()-14*86400000).toISOString() },
-  { id: "DRESS-015", title: "Bluebell Classic", price: 65.0, description: "Black jeans trousers", ageCategory: "4-5", images: ["IMG_5714.JPG"], available: true, createdAt: new Date(Date.now()-15*86400000).toISOString() },
-  { id: "DRESS-016", title: "Gingham Girl", price: 35.0, description: "Cute gingham for playdates", ageCategory: "4-5", images: ["IMG_5715.JPG"], available: true, createdAt: new Date(Date.now()-16*86400000).toISOString() },
-  { id: "DRESS-017", title: "Velvet Holiday", price: 50.0, description: "Velvet holiday edition", ageCategory: "4-5", images: ["IMG_5716.JPG"], available: true, createdAt: new Date(Date.now()-17*86400000).toISOString() },
-  { id: "DRESS-018", title: "Daisy Chain", price: 70.0, description: "Daisy print with soft lining", ageCategory: "4-5", images: ["IMG_5717.JPG"], available: true, createdAt: new Date(Date.now()-18*86400000).toISOString() },
-  { id: "DRESS-019", title: "Sunset Ombre", price: 50.0, description: "Ombre fade summer dress", ageCategory: "4-5", images: ["IMG_5718.JPG"], available: true, createdAt: new Date(Date.now()-19*86400000).toISOString() },
-  { id: "DRESS-020", title: "Coral Petals", price: 70.0, description: "Coral floral with ruffled hem", ageCategory: "4-5", images: ["IMG_5719.JPG"], available: true, createdAt: new Date(Date.now()-20*86400000).toISOString() },
+  { id: "DRESS-011", title: "Blossom Day", price: 30.0, description: "Lightweight blossom print dress", ageCategory: "4-5", images: ["IMG_5710.JPG"], available: true, createdAt: new Date(Date.now() - 11 * 86400000).toISOString() },
+  { id: "DRESS-012", title: "Vintage Coral", price: 40.0, description: "Retro coral dress with pockets", ageCategory: "4-5", images: ["IMG_5711.JPG"], available: true, createdAt: new Date(Date.now() - 12 * 86400000).toISOString() },
+  { id: "DRESS-013", title: "Petal Puff", price: 30.0, description: "Petal-pattern puff sleeve dress", ageCategory: "4-5", images: ["IMG_5712.JPG"], available: true, createdAt: new Date(Date.now() - 13 * 86400000).toISOString() },
+  { id: "DRESS-014", title: "Lemon Drop", price: 65.0, description: "Blue jeans trousers", ageCategory: "4-5", images: ["IMG_5713.JPG"], available: true, createdAt: new Date(Date.now() - 14 * 86400000).toISOString() },
+  { id: "DRESS-015", title: "Bluebell Classic", price: 65.0, description: "Black jeans trousers", ageCategory: "4-5", images: ["IMG_5714.JPG"], available: true, createdAt: new Date(Date.now() - 15 * 86400000).toISOString() },
+  { id: "DRESS-016", title: "Gingham Girl", price: 35.0, description: "Cute gingham for playdates", ageCategory: "4-5", images: ["IMG_5715.JPG"], available: true, createdAt: new Date(Date.now() - 16 * 86400000).toISOString() },
+  { id: "DRESS-017", title: "Velvet Holiday", price: 50.0, description: "Velvet holiday edition", ageCategory: "4-5", images: ["IMG_5716.JPG"], available: true, createdAt: new Date(Date.now() - 17 * 86400000).toISOString() },
+  { id: "DRESS-018", title: "Daisy Chain", price: 70.0, description: "Daisy print with soft lining", ageCategory: "4-5", images: ["IMG_5717.JPG"], available: true, createdAt: new Date(Date.now() - 18 * 86400000).toISOString() },
+  { id: "DRESS-019", title: "Sunset Ombre", price: 50.0, description: "Ombre fade summer dress", ageCategory: "4-5", images: ["IMG_5718.JPG"], available: true, createdAt: new Date(Date.now() - 19 * 86400000).toISOString() },
+  { id: "DRESS-020", title: "Coral Petals", price: 70.0, description: "Coral floral with ruffled hem", ageCategory: "4-5", images: ["IMG_5719.JPG"], available: true, createdAt: new Date(Date.now() - 20 * 86400000).toISOString() },
 
-  { id: "DRESS-021", title: "Lavender Mist", price: 28.0, description: "Soft lavender cotton dress", ageCategory: "4-5", images: ["IMG_5720.JPG"], available: true, createdAt: new Date(Date.now()-21*86400000).toISOString() },
-  { id: "DRESS-022", title: "Plaid Picnic", price: 28.0, description: "Cute plaid button dress", ageCategory: "4-5", images: ["IMG_5720.JPG"], available: true, createdAt: new Date(Date.now()-22*86400000).toISOString() },
-  { id: "DRESS-023", title: "Rosebud Twirl", price: 120.0, description: "Lightweight twirl skirt", ageCategory: "4-5", images: ["IMG_5721.JPG"], available: true, createdAt: new Date(Date.now()-23*86400000).toISOString() },
-  { id: "DRESS-024", title: "Mint Sprig", price: 80.0, description: "Refreshingly cool mint dress", ageCategory: "4-5", images: ["IMG_5722.JPG"], available: true, createdAt: new Date(Date.now()-24*86400000).toISOString() },
-  { id: "DRESS-025", title: "Buttercup", price: 35.0, description: "Premium buttercup fabric", ageCategory: "4-5", images: ["IMG_5723.JPG"], available: true, createdAt: new Date(Date.now()-25*86400000).toISOString() },
-  { id: "DRESS-026", title: "Peach Dream", price: 60.0, description: "Soft peach party dress", ageCategory: "4-5", images: ["IMG_5724.JPG"], available: true, createdAt: new Date(Date.now()-26*86400000).toISOString() },
-  { id: "DRESS-027", title: "Ivy Garden", price: 35.0, description: "Ivy print with tiny pleats", ageCategory: "4-5", images: ["IMG_5725.JPG"], available: true, createdAt: new Date(Date.now()-27*86400000).toISOString() },
-  { id: "DRESS-028", title: "Ocean Breeze", price: 45.0, description: "Nautical details and stripes", ageCategory: "4-5", images: ["IMG_5726.JPG"], available: true, createdAt: new Date(Date.now()-28*86400000).toISOString() },
-  { id: "DRESS-029", title: "Lilac Lace", price: 35.0, description: "Delicate lilac lace overlay", ageCategory: "4-5", images: ["IMG_5727.JPG"], available: true, createdAt: new Date(Date.now()-29*86400000).toISOString() },
-  { id: "DRESS-030", title: "Maple Sweet", price: 40.0, description: "Warm tones for autumn play", ageCategory: "4-5", images: ["IMG_5728.JPG"], available: true, createdAt: new Date(Date.now()-30*86400000).toISOString() },
+  { id: "DRESS-021", title: "Lavender Mist", price: 28.0, description: "Soft lavender cotton dress", ageCategory: "4-5", images: ["IMG_5720.JPG"], available: true, createdAt: new Date(Date.now() - 21 * 86400000).toISOString() },
+  { id: "DRESS-022", title: "Plaid Picnic", price: 28.0, description: "Cute plaid button dress", ageCategory: "4-5", images: ["IMG_5720.JPG"], available: true, createdAt: new Date(Date.now() - 22 * 86400000).toISOString() },
+  { id: "DRESS-023", title: "Rosebud Twirl", price: 120.0, description: "Lightweight twirl skirt", ageCategory: "4-5", images: ["IMG_5721.JPG"], available: true, createdAt: new Date(Date.now() - 23 * 86400000).toISOString() },
+  { id: "DRESS-024", title: "Mint Sprig", price: 80.0, description: "Refreshingly cool mint dress", ageCategory: "4-5", images: ["IMG_5722.JPG"], available: true, createdAt: new Date(Date.now() - 24 * 86400000).toISOString() },
+  { id: "DRESS-025", title: "Buttercup", price: 35.0, description: "Premium buttercup fabric", ageCategory: "4-5", images: ["IMG_5723.JPG"], available: true, createdAt: new Date(Date.now() - 25 * 86400000).toISOString() },
+  { id: "DRESS-026", title: "Peach Dream", price: 60.0, description: "Soft peach party dress", ageCategory: "4-5", images: ["IMG_5724.JPG"], available: true, createdAt: new Date(Date.now() - 26 * 86400000).toISOString() },
+  { id: "DRESS-027", title: "Ivy Garden", price: 35.0, description: "Ivy print with tiny pleats", ageCategory: "4-5", images: ["IMG_5725.JPG"], available: true, createdAt: new Date(Date.now() - 27 * 86400000).toISOString() },
+  { id: "DRESS-028", title: "Ocean Breeze", price: 45.0, description: "Nautical details and stripes", ageCategory: "4-5", images: ["IMG_5726.JPG"], available: true, createdAt: new Date(Date.now() - 28 * 86400000).toISOString() },
+  { id: "DRESS-029", title: "Lilac Lace", price: 35.0, description: "Delicate lilac lace overlay", ageCategory: "4-5", images: ["IMG_5727.JPG"], available: true, createdAt: new Date(Date.now() - 29 * 86400000).toISOString() },
+  { id: "DRESS-030", title: "Maple Sweet", price: 40.0, description: "Warm tones for autumn play", ageCategory: "4-5", images: ["IMG_5728.JPG"], available: true, createdAt: new Date(Date.now() - 30 * 86400000).toISOString() },
 
-  { id: "DRESS-031", title: "Cherry Puff", price: 40.0, description: "Cherry prints and puff sleeves", ageCategory: "4-5", images: ["IMG_5729.JPG"], available: true, createdAt: new Date(Date.now()-31*86400000).toISOString() },
-  { id: "DRESS-032", title: "Starry Night", price: 35.0, description: "Dark blue with star pattern", ageCategory: "4-5", images: ["IMG_5730.JPG"], available: true, createdAt: new Date(Date.now()-32*86400000).toISOString() },
-  { id: "DRESS-033", title: "Palm Picnic", price: 35.0, description: "Tropical print for sunny days", ageCategory: "4-5", images: ["IMG_5731.JPG"], available: true, createdAt: new Date(Date.now()-33*86400000).toISOString() },
-  { id: "DRESS-034", title: "Velvet Ribbon", price: 40.0, description: "Lux velvet with ribbon tie", ageCategory: "4-5", images: ["IMG_5732.JPG"], available: true, createdAt: new Date(Date.now()-34*86400000).toISOString() },
-  { id: "DRESS-035", title: "Rose Quartz", price: 35.0, description: "Soft pink, comfy cotton", ageCategory: "4-5", images: ["IMG_5733.JPG"], available: true, createdAt: new Date(Date.now()-35*86400000).toISOString() },
-  { id: "DRESS-036", title: "Star Bloom", price: 30.0, description: "Star bloom pattern, breezy", ageCategory: "4-5", images: ["IMG_5734.JPG"], available: true, createdAt: new Date(Date.now()-36*86400000).toISOString() },
-  { id: "DRESS-037", title: "Meadow Stitch", price: 40.0, description: "Detailed stitching, floral", ageCategory: "4-5", images: ["IMG_5735.JPG"], available: true, createdAt: new Date(Date.now()-37*86400000).toISOString() },
-  { id: "DRESS-038", title: "Denim Dolly", price: 50.0, description: "Soft denim dress with buttons", ageCategory: "4-5", images: ["IMG_5736.JPG"], available: true, createdAt: new Date(Date.now()-38*86400000).toISOString() },
-  { id: "DRESS-039", title: "Citrine Bloom", price: 65.0, description: "Sunny citrine color", ageCategory: "4-5", images: ["IMG_5737.JPG"], available: true, createdAt: new Date(Date.now()-39*86400000).toISOString() },
-  { id: "DRESS-040", title: "Cloud Puff", price: 25.0, description: "Puffy clouds print", ageCategory: "4-5", images: ["IMG_5738.JPG"], available: true, createdAt: new Date(Date.now()-40*86400000).toISOString() },
+  { id: "DRESS-031", title: "Cherry Puff", price: 40.0, description: "Cherry prints and puff sleeves", ageCategory: "4-5", images: ["IMG_5729.JPG"], available: true, createdAt: new Date(Date.now() - 31 * 86400000).toISOString() },
+  { id: "DRESS-032", title: "Starry Night", price: 35.0, description: "Dark blue with star pattern", ageCategory: "4-5", images: ["IMG_5730.JPG"], available: true, createdAt: new Date(Date.now() - 32 * 86400000).toISOString() },
+  { id: "DRESS-033", title: "Palm Picnic", price: 35.0, description: "Tropical print for sunny days", ageCategory: "4-5", images: ["IMG_5731.JPG"], available: true, createdAt: new Date(Date.now() - 33 * 86400000).toISOString() },
+  { id: "DRESS-034", title: "Velvet Ribbon", price: 40.0, description: "Lux velvet with ribbon tie", ageCategory: "4-5", images: ["IMG_5732.JPG"], available: true, createdAt: new Date(Date.now() - 34 * 86400000).toISOString() },
+  { id: "DRESS-035", title: "Rose Quartz", price: 35.0, description: "Soft pink, comfy cotton", ageCategory: "4-5", images: ["IMG_5733.JPG"], available: true, createdAt: new Date(Date.now() - 35 * 86400000).toISOString() },
+  { id: "DRESS-036", title: "Star Bloom", price: 30.0, description: "Star bloom pattern, breezy", ageCategory: "4-5", images: ["IMG_5734.JPG"], available: true, createdAt: new Date(Date.now() - 36 * 86400000).toISOString() },
+  { id: "DRESS-037", title: "Meadow Stitch", price: 40.0, description: "Detailed stitching, floral", ageCategory: "4-5", images: ["IMG_5735.JPG"], available: true, createdAt: new Date(Date.now() - 37 * 86400000).toISOString() },
+  { id: "DRESS-038", title: "Denim Dolly", price: 50.0, description: "Soft denim dress with buttons", ageCategory: "4-5", images: ["IMG_5736.JPG"], available: true, createdAt: new Date(Date.now() - 38 * 86400000).toISOString() },
+  { id: "DRESS-039", title: "Citrine Bloom", price: 65.0, description: "Sunny citrine color", ageCategory: "4-5", images: ["IMG_5737.JPG"], available: true, createdAt: new Date(Date.now() - 39 * 86400000).toISOString() },
+  { id: "DRESS-040", title: "Cloud Puff", price: 25.0, description: "Puffy clouds print", ageCategory: "4-5", images: ["IMG_5738.JPG"], available: true, createdAt: new Date(Date.now() - 40 * 86400000).toISOString() },
 
-  { id: "DRESS-041", title: "Mint Melody", price: 28.0, description: "Light mint with trims", ageCategory: "4-5", images: ["IMG_5739.JPG"], available: true, createdAt: new Date(Date.now()-41*86400000).toISOString() },
-  { id: "DRESS-042", title: "Petite Pearl", price: 25.0, description: "Pearl button detail", ageCategory: "4-5", images: ["IMG_5740.JPG"], available: true, createdAt: new Date(Date.now()-42*86400000).toISOString() },
-  { id: "DRESS-043", title: "Coral Breeze", price: 35.0, description: "Soft coral shade", ageCategory: "4-5", images: ["IMG_5741.JPG"], available: true, createdAt: new Date(Date.now()-43*86400000).toISOString() },
-  { id: "DRESS-044", title: "Pineapple Pop", price: 30.0, description: "Fun pineapple print", ageCategory: "4-5", images: ["IMG_5742.JPG"], available: true, createdAt: new Date(Date.now()-44*86400000).toISOString() },
-  { id: "DRESS-045", title: "Willow Whisper", price: 40.0, description: "Earthy willow tones", ageCategory: "4-5", images: ["IMG_5743.JPG"], available: true, createdAt: new Date(Date.now()-45*86400000).toISOString() },
-  { id: "DRESS-046", title: "Sunbeam Tuck", price: 35.0, description: "Tucked waist, sunny print", ageCategory: "4-5", images: ["IMG_5744.JPG"], available: true, createdAt: new Date(Date.now()-46*86400000).toISOString() },
-  { id: "DRESS-047", title: "Peppermint Twist", price: 30.0, description: "Mint stripes and soft collar", ageCategory: "4-5", images: ["IMG_5745.JPG"], available: true, createdAt: new Date(Date.now()-47*86400000).toISOString() },
-  { id: "DRESS-048", title: "Dotted Dreams", price: 60.0, description: "Subtle dotted pattern", ageCategory: "4-5", images: ["IMG_5746.JPG"], available: true, createdAt: new Date(Date.now()-48*86400000).toISOString() },
-  { id: "DRESS-049", title: "Little Luxe", price: 80.0, description: "Tiny luxe finish", ageCategory: "7-8", images: ["IMG_5747.JPG"], available: true, createdAt: new Date(Date.now()-49*86400000).toISOString() },
-  { id: "DRESS-050", title: "Pocket Garden", price: 40.0, description: "Playful pockets and cotton", ageCategory: "4-5", images: ["IMG_5748.JPG"], available: true, createdAt: new Date(Date.now()-50*86400000).toISOString() }
+  { id: "DRESS-041", title: "Mint Melody", price: 28.0, description: "Light mint with trims", ageCategory: "4-5", images: ["IMG_5739.JPG"], available: true, createdAt: new Date(Date.now() - 41 * 86400000).toISOString() },
+  { id: "DRESS-042", title: "Petite Pearl", price: 25.0, description: "Pearl button detail", ageCategory: "4-5", images: ["IMG_5740.JPG"], available: true, createdAt: new Date(Date.now() - 42 * 86400000).toISOString() },
+  { id: "DRESS-043", title: "Coral Breeze", price: 35.0, description: "Soft coral shade", ageCategory: "4-5", images: ["IMG_5741.JPG"], available: true, createdAt: new Date(Date.now() - 43 * 86400000).toISOString() },
+  { id: "DRESS-044", title: "Pineapple Pop", price: 30.0, description: "Fun pineapple print", ageCategory: "4-5", images: ["IMG_5742.JPG"], available: true, createdAt: new Date(Date.now() - 44 * 86400000).toISOString() },
+  { id: "DRESS-045", title: "Willow Whisper", price: 40.0, description: "Earthy willow tones", ageCategory: "4-5", images: ["IMG_5743.JPG"], available: true, createdAt: new Date(Date.now() - 45 * 86400000).toISOString() },
+  { id: "DRESS-046", title: "Sunbeam Tuck", price: 35.0, description: "Tucked waist, sunny print", ageCategory: "4-5", images: ["IMG_5744.JPG"], available: true, createdAt: new Date(Date.now() - 46 * 86400000).toISOString() },
+  { id: "DRESS-047", title: "Peppermint Twist", price: 30.0, description: "Mint stripes and soft collar", ageCategory: "4-5", images: ["IMG_5745.JPG"], available: true, createdAt: new Date(Date.now() - 47 * 86400000).toISOString() },
+  { id: "DRESS-048", title: "Dotted Dreams", price: 60.0, description: "Subtle dotted pattern", ageCategory: "4-5", images: ["IMG_5746.JPG"], available: true, createdAt: new Date(Date.now() - 48 * 86400000).toISOString() },
+  { id: "DRESS-049", title: "Little Luxe", price: 80.0, description: "Tiny luxe finish", ageCategory: "7-8", images: ["IMG_5747.JPG"], available: true, createdAt: new Date(Date.now() - 49 * 86400000).toISOString() },
+  { id: "DRESS-050", title: "Pocket Garden", price: 40.0, description: "Playful pockets and cotton", ageCategory: "4-5", images: ["IMG_5748.JPG"], available: true, createdAt: new Date(Date.now() - 50 * 86400000).toISOString() }
 ];
 
 /* =========================
@@ -235,6 +236,7 @@ function setButtonLoading(button, isLoading, loadingText = "Processing...") {
   const label = button.querySelector(".btn-label");
   button.classList.toggle("is-loading", isLoading);
   button.disabled = isLoading;
+
   if (label) {
     if (!button.dataset.originalLabel) {
       button.dataset.originalLabel = label.textContent;
@@ -262,12 +264,14 @@ function normalizeProducts(snapshot) {
 
 function previewImageFromUrl(url, imgEl, textEl, fallbackText) {
   if (!imgEl || !textEl) return;
+
   if (!url) {
     imgEl.src = "";
     imgEl.classList.add("hidden");
     textEl.textContent = fallbackText;
     return;
   }
+
   imgEl.src = url;
   imgEl.classList.remove("hidden");
   textEl.textContent = "Preview ready.";
@@ -275,6 +279,7 @@ function previewImageFromUrl(url, imgEl, textEl, fallbackText) {
 
 function previewImageFromFile(file, imgEl, textEl) {
   if (!file || !imgEl || !textEl) return;
+
   const reader = new FileReader();
   reader.onload = () => {
     imgEl.src = reader.result;
@@ -323,7 +328,32 @@ function resetAddProductForm() {
   if (productDescription) productDescription.value = "";
   if (productImageFile) productImageFile.value = "";
   if (productImageUrl) productImageUrl.value = "";
-  previewImageFromUrl("", imagePreview, imagePreviewText, "Choose an image file or paste an image URL.");
+
+  previewImageFromUrl(
+    "",
+    imagePreview,
+    imagePreviewText,
+    "Choose an image file or paste an image URL."
+  );
+}
+
+function resetBulkUploadForm() {
+  if (bulkBaseTitle) bulkBaseTitle.value = "";
+  if (bulkPrice) bulkPrice.value = "";
+  if (bulkAge) bulkAge.value = "";
+  if (bulkDescription) bulkDescription.value = "";
+  if (bulkImageFiles) bulkImageFiles.value = "";
+
+  if (bulkPreviewImage) {
+    bulkPreviewImage.src = "";
+    bulkPreviewImage.classList.add("hidden");
+  }
+
+  if (bulkPreviewText) {
+    bulkPreviewText.textContent = "Choose multiple image files to begin.";
+  }
+
+  setStatus("", "info", bulkUploadStatus);
 }
 
 function setAuthenticatedUI(user) {
@@ -388,25 +418,6 @@ function getPurchaseItemsWithImages(purchase) {
   });
 }
 
-function resetBulkUploadForm() {
-  if (bulkBaseTitle) bulkBaseTitle.value = "";
-  if (bulkPrice) bulkPrice.value = "";
-  if (bulkAge) bulkAge.value = "";
-  if (bulkDescription) bulkDescription.value = "";
-  if (bulkImageFiles) bulkImageFiles.value = "";
-
-  if (bulkPreviewImage) {
-    bulkPreviewImage.src = "";
-    bulkPreviewImage.classList.add("hidden");
-  }
-
-  if (bulkPreviewText) {
-    bulkPreviewText.textContent = "Choose multiple image files to begin.";
-  }
-
-  setStatus("", "info", bulkUploadStatus);
-}
-
 function getNextProductNumber(products) {
   let max = 0;
 
@@ -442,6 +453,7 @@ function buildBulkProductTitle(file, index) {
 
   return rawName || `Product ${index + 1}`;
 }
+
 /* =========================
    DASHBOARD + STATS
 ========================= */
@@ -812,7 +824,6 @@ async function bulkImportSeedProducts() {
   try {
     const snapshot = await getDocs(collection(db, "products"));
     const existingIds = new Set(normalizeProducts(snapshot).map((item) => item.id));
-
     const missingProducts = SEED_PRODUCTS.filter((item) => !existingIds.has(item.id));
 
     if (!missingProducts.length) {
@@ -841,6 +852,99 @@ async function bulkImportSeedProducts() {
     setStatus(error.message || "Bulk import failed.", "error");
   } finally {
     setButtonLoading(bulkImportBtn, false);
+  }
+}
+
+/* =========================
+   BULK UPLOAD
+========================= */
+async function handleBulkUploadProducts() {
+  const user = auth.currentUser;
+  if (!user) {
+    setStatus("You must log in first.", "error", bulkUploadStatus);
+    return;
+  }
+
+  const price = Number(bulkPrice?.value);
+  const ageCategory = bulkAge?.value.trim();
+  const description = bulkDescription?.value.trim();
+  const files = Array.from(bulkImageFiles?.files || []);
+
+  if (Number.isNaN(price) || price < 0) {
+    setStatus("Enter a valid bulk price.", "error", bulkUploadStatus);
+    return;
+  }
+
+  if (!ageCategory) {
+    setStatus("Select an age category for the bulk upload.", "error", bulkUploadStatus);
+    return;
+  }
+
+  if (!files.length) {
+    setStatus("Choose one or more images to upload.", "error", bulkUploadStatus);
+    return;
+  }
+
+  const ok = window.confirm(
+    `Create ${files.length} product${files.length > 1 ? "s" : ""} with the same price and age category?`
+  );
+  if (!ok) return;
+
+  setButtonLoading(
+    bulkUploadProductsBtn,
+    true,
+    `Uploading ${files.length} item${files.length > 1 ? "s" : ""}...`
+  );
+  setStatus("Uploading bulk products...", "info", bulkUploadStatus);
+
+  try {
+    let nextNumber = getNextProductNumber(allProducts);
+    let createdCount = 0;
+
+    for (let i = 0; i < files.length; i += 1) {
+      const file = files[i];
+      const imageUrl = await uploadImageIfNeeded(file, "");
+      const productIdValue = buildBulkProductId(nextNumber++);
+      const title = buildBulkProductTitle(file, i);
+
+      await withTimeout(
+        addDoc(collection(db, "products"), {
+          id: productIdValue,
+          title,
+          price,
+          description: description || "",
+          ageCategory,
+          available: true,
+          images: imageUrl ? [imageUrl] : [],
+          createdAt: new Date().toISOString()
+        }),
+        12000,
+        `Adding bulk product failed for ${file.name}.`
+      );
+
+      createdCount += 1;
+      setStatus(
+        `Uploaded ${createdCount} of ${files.length} product${files.length > 1 ? "s" : ""}...`,
+        "info",
+        bulkUploadStatus
+      );
+    }
+
+    resetBulkUploadForm();
+    await loadAdminProducts();
+
+    setStatus(
+      `${createdCount} bulk product${createdCount > 1 ? "s" : ""} added successfully.`,
+      "success",
+      bulkUploadStatus
+    );
+
+    goToPage("inventoryPage");
+  } catch (error) {
+    console.error("Bulk upload failed:", error);
+    setStatus(error.message || "Bulk upload failed.", "error", bulkUploadStatus);
+  } finally {
+    setButtonLoading(bulkUploadProductsBtn, false);
   }
 }
 
@@ -882,218 +986,6 @@ async function handleLogout() {
   }
 }
 
-bulkImageFiles?.addEventListener("change", () => {
-  const files = Array.from(bulkImageFiles.files || []);
-
-  if (!files.length) {
-    if (bulkPreviewImage) {
-      bulkPreviewImage.src = "";
-      bulkPreviewImage.classList.add("hidden");
-    }
-    if (bulkPreviewText) {
-      bulkPreviewText.textContent = "Choose multiple image files to begin.";
-    }
-    return;
-  }
-
-  const firstFile = files[0];
-  previewImageFromFile(firstFile, bulkPreviewImage, bulkPreviewText);
-
-  if (bulkPreviewText) {
-    bulkPreviewText.textContent =
-      files.length === 1
-        ? `1 image selected: ${firstFile.name}`
-        : `${files.length} images selected. First image: ${firstFile.name}`;
-  }
-});
-
-clearBulkUploadBtn?.addEventListener("click", resetBulkUploadForm);
-bulkUploadProductsBtn?.addEventListener("click", handleBulkUploadProducts);
-
-const bulkBaseTitle = document.getElementById("bulkBaseTitle");
-const bulkPrice = document.getElementById("bulkPrice");
-const bulkAge = document.getElementById("bulkAge");
-const bulkDescription = document.getElementById("bulkDescription");
-const bulkImageFiles = document.getElementById("bulkImageFiles");
-const bulkPreviewImage = document.getElementById("bulkPreviewImage");
-const bulkPreviewText = document.getElementById("bulkPreviewText");
-const bulkUploadProductsBtn = document.getElementById("bulkUploadProductsBtn");
-const clearBulkUploadBtn = document.getElementById("clearBulkUploadBtn");
-const bulkUploadStatus = document.getElementById("bulkUploadStatus");
-
-function resetBulkUploadForm() {
-  if (bulkBaseTitle) bulkBaseTitle.value = "";
-  if (bulkPrice) bulkPrice.value = "";
-  if (bulkAge) bulkAge.value = "";
-  if (bulkDescription) bulkDescription.value = "";
-  if (bulkImageFiles) bulkImageFiles.value = "";
-
-  if (bulkPreviewImage) {
-    bulkPreviewImage.src = "";
-    bulkPreviewImage.classList.add("hidden");
-  }
-
-  if (bulkPreviewText) {
-    bulkPreviewText.textContent = "Choose multiple image files to begin.";
-  }
-
-  setStatus("", "info", bulkUploadStatus);
-}
-
-function getNextProductNumber(products) {
-  let max = 0;
-
-  for (const product of products) {
-    const match = String(product.id || "").match(/(\d+)$/);
-    if (match) {
-      const num = Number(match[1]);
-      if (!Number.isNaN(num) && num > max) {
-        max = num;
-      }
-    }
-  }
-
-  return max + 1;
-}
-
-function buildBulkProductId(number) {
-  return `DRESS-${String(number).padStart(3, "0")}`;
-}
-
-function buildBulkProductTitle(file, index) {
-  const base = bulkBaseTitle?.value.trim();
-
-  if (base) {
-    return `${base} ${index + 1}`;
-  }
-
-  const rawName = String(file?.name || "")
-    .replace(/\.[^.]+$/, "")
-    .replace(/[_-]+/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-
-  return rawName || `Product ${index + 1}`;
-}
-
-async function handleBulkUploadProducts() {
-  const user = auth.currentUser;
-  if (!user) {
-    setStatus("You must log in first.", "error", bulkUploadStatus);
-    return;
-  }
-
-  const price = Number(bulkPrice?.value);
-  const ageCategory = bulkAge?.value.trim();
-  const description = bulkDescription?.value.trim();
-  const files = Array.from(bulkImageFiles?.files || []);
-
-  if (Number.isNaN(price) || price < 0) {
-    setStatus("Enter a valid bulk price.", "error", bulkUploadStatus);
-    return;
-  }
-
-  if (!ageCategory) {
-    setStatus("Select an age category for the bulk upload.", "error", bulkUploadStatus);
-    return;
-  }
-
-  if (!files.length) {
-    setStatus("Choose one or more images to upload.", "error", bulkUploadStatus);
-    return;
-  }
-
-  const ok = window.confirm(
-    `Create ${files.length} product${files.length > 1 ? "s" : ""} with the same price and age category?`
-  );
-  if (!ok) return;
-
-  setButtonLoading(
-    bulkUploadProductsBtn,
-    true,
-    `Uploading ${files.length} item${files.length > 1 ? "s" : ""}...`
-  );
-  setStatus("Uploading bulk products...", "info", bulkUploadStatus);
-
-  try {
-    let nextNumber = getNextProductNumber(allProducts);
-    let createdCount = 0;
-
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      const imageUrl = await uploadImageIfNeeded(file, "");
-      const productIdValue = buildBulkProductId(nextNumber++);
-      const title = buildBulkProductTitle(file, i);
-
-      await withTimeout(
-        addDoc(collection(db, "products"), {
-          id: productIdValue,
-          title,
-          price,
-          description: description || "",
-          ageCategory,
-          available: true,
-          images: imageUrl ? [imageUrl] : [],
-          createdAt: new Date().toISOString()
-        }),
-        12000,
-        `Adding bulk product failed for ${file.name}.`
-      );
-
-      createdCount += 1;
-      setStatus(
-        `Uploaded ${createdCount} of ${files.length} product${files.length > 1 ? "s" : ""}...`,
-        "info",
-        bulkUploadStatus
-      );
-    }
-
-    resetBulkUploadForm();
-    await loadAdminProducts();
-
-    setStatus(
-      `${createdCount} bulk product${createdCount > 1 ? "s" : ""} added successfully.`,
-      "success",
-      bulkUploadStatus
-    );
-
-    goToPage("inventoryPage");
-  } catch (error) {
-    console.error("Bulk upload failed:", error);
-    setStatus(error.message || "Bulk upload failed.", "error", bulkUploadStatus);
-  } finally {
-    setButtonLoading(bulkUploadProductsBtn, false);
-  }
-}
-
-bulkImageFiles?.addEventListener("change", () => {
-  const files = Array.from(bulkImageFiles.files || []);
-
-  if (!files.length) {
-    if (bulkPreviewImage) {
-      bulkPreviewImage.src = "";
-      bulkPreviewImage.classList.add("hidden");
-    }
-    if (bulkPreviewText) {
-      bulkPreviewText.textContent = "Choose multiple image files to begin.";
-    }
-    return;
-  }
-
-  const firstFile = files[0];
-  previewImageFromFile(firstFile, bulkPreviewImage, bulkPreviewText);
-
-  if (bulkPreviewText) {
-    bulkPreviewText.textContent =
-      files.length === 1
-        ? `1 image selected: ${firstFile.name}`
-        : `${files.length} images selected. First image: ${firstFile.name}`;
-  }
-});
-
-clearBulkUploadBtn?.addEventListener("click", resetBulkUploadForm);
-bulkUploadProductsBtn?.addEventListener("click", handleBulkUploadProducts);
-
 /* =========================
    DATA REFRESH
 ========================= */
@@ -1103,97 +995,6 @@ async function refreshAllData() {
     loadPurchases()
   ]);
 }
-
-async function handleBulkUploadProducts() {
-  const user = auth.currentUser;
-  if (!user) {
-    setStatus("You must log in first.", "error", bulkUploadStatus);
-    return;
-  }
-
-  const price = Number(bulkPrice?.value);
-  const ageCategory = bulkAge?.value.trim();
-  const description = bulkDescription?.value.trim();
-  const files = Array.from(bulkImageFiles?.files || []);
-
-  if (Number.isNaN(price) || price < 0) {
-    setStatus("Enter a valid bulk price.", "error", bulkUploadStatus);
-    return;
-  }
-
-  if (!ageCategory) {
-    setStatus("Select an age category for the bulk upload.", "error", bulkUploadStatus);
-    return;
-  }
-
-  if (!files.length) {
-    setStatus("Choose one or more images to upload.", "error", bulkUploadStatus);
-    return;
-  }
-
-  const ok = window.confirm(
-    `Create ${files.length} product${files.length > 1 ? "s" : ""} with the same price and age category?`
-  );
-  if (!ok) return;
-
-  setButtonLoading(
-    bulkUploadProductsBtn,
-    true,
-    `Uploading ${files.length} item${files.length > 1 ? "s" : ""}...`
-  );
-  setStatus("Uploading bulk products...", "info", bulkUploadStatus);
-
-  try {
-    let nextNumber = getNextProductNumber(allProducts);
-    let createdCount = 0;
-
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      const imageUrl = await uploadImageIfNeeded(file, "");
-      const productIdValue = buildBulkProductId(nextNumber++);
-      const title = buildBulkProductTitle(file, i);
-
-      await withTimeout(
-        addDoc(collection(db, "products"), {
-          id: productIdValue,
-          title,
-          price,
-          description: description || "",
-          ageCategory,
-          available: true,
-          images: imageUrl ? [imageUrl] : [],
-          createdAt: new Date().toISOString()
-        }),
-        12000,
-        `Adding bulk product failed for ${file.name}.`
-      );
-
-      createdCount += 1;
-      setStatus(
-        `Uploaded ${createdCount} of ${files.length} product${files.length > 1 ? "s" : ""}...`,
-        "info",
-        bulkUploadStatus
-      );
-    }
-
-    resetBulkUploadForm();
-    await loadAdminProducts();
-
-    setStatus(
-      `${createdCount} bulk product${createdCount > 1 ? "s" : ""} added successfully.`,
-      "success",
-      bulkUploadStatus
-    );
-
-    goToPage("inventoryPage");
-  } catch (error) {
-    console.error("Bulk upload failed:", error);
-    setStatus(error.message || "Bulk upload failed.", "error", bulkUploadStatus);
-  } finally {
-    setButtonLoading(bulkUploadProductsBtn, false);
-  }
-}
-
 
 /* =========================
    EVENTS
@@ -1276,6 +1077,34 @@ editProductImageUrl?.addEventListener("input", () => {
   if (url && editProductImageFile) editProductImageFile.value = "";
   previewImageFromUrl(url, editImagePreview, editImagePreviewText, "Choose a replacement image file or URL.");
 });
+
+bulkImageFiles?.addEventListener("change", () => {
+  const files = Array.from(bulkImageFiles.files || []);
+
+  if (!files.length) {
+    if (bulkPreviewImage) {
+      bulkPreviewImage.src = "";
+      bulkPreviewImage.classList.add("hidden");
+    }
+    if (bulkPreviewText) {
+      bulkPreviewText.textContent = "Choose multiple image files to begin.";
+    }
+    return;
+  }
+
+  const firstFile = files[0];
+  previewImageFromFile(firstFile, bulkPreviewImage, bulkPreviewText);
+
+  if (bulkPreviewText) {
+    bulkPreviewText.textContent =
+      files.length === 1
+        ? `1 image selected: ${firstFile.name}`
+        : `${files.length} images selected. First image: ${firstFile.name}`;
+  }
+});
+
+clearBulkUploadBtn?.addEventListener("click", resetBulkUploadForm);
+bulkUploadProductsBtn?.addEventListener("click", handleBulkUploadProducts);
 
 searchInput?.addEventListener("input", () => {
   renderProductList(applyInventoryFilters(allProducts));
