@@ -127,6 +127,17 @@ const purchaseDrawerBody = document.getElementById("purchaseDrawerBody");
 const purchaseDrawerSub = document.getElementById("purchaseDrawerSub");
 const closePurchaseDrawerBtn = document.getElementById("closePurchaseDrawerBtn");
 
+const bulkBaseTitle = document.getElementById("bulkBaseTitle");
+const bulkPrice = document.getElementById("bulkPrice");
+const bulkAge = document.getElementById("bulkAge");
+const bulkDescription = document.getElementById("bulkDescription");
+const bulkImageFiles = document.getElementById("bulkImageFiles");
+const bulkPreviewImage = document.getElementById("bulkPreviewImage");
+const bulkPreviewText = document.getElementById("bulkPreviewText");
+const bulkUploadProductsBtn = document.getElementById("bulkUploadProductsBtn");
+const clearBulkUploadBtn = document.getElementById("clearBulkUploadBtn");
+const bulkUploadStatus = document.getElementById("bulkUploadStatus");
+
 /* =========================
    STATE
 ========================= */
@@ -377,6 +388,60 @@ function getPurchaseItemsWithImages(purchase) {
   });
 }
 
+function resetBulkUploadForm() {
+  if (bulkBaseTitle) bulkBaseTitle.value = "";
+  if (bulkPrice) bulkPrice.value = "";
+  if (bulkAge) bulkAge.value = "";
+  if (bulkDescription) bulkDescription.value = "";
+  if (bulkImageFiles) bulkImageFiles.value = "";
+
+  if (bulkPreviewImage) {
+    bulkPreviewImage.src = "";
+    bulkPreviewImage.classList.add("hidden");
+  }
+
+  if (bulkPreviewText) {
+    bulkPreviewText.textContent = "Choose multiple image files to begin.";
+  }
+
+  setStatus("", "info", bulkUploadStatus);
+}
+
+function getNextProductNumber(products) {
+  let max = 0;
+
+  for (const product of products) {
+    const match = String(product.id || "").match(/(\d+)$/);
+    if (match) {
+      const num = Number(match[1]);
+      if (!Number.isNaN(num) && num > max) {
+        max = num;
+      }
+    }
+  }
+
+  return max + 1;
+}
+
+function buildBulkProductId(number) {
+  return `DRESS-${String(number).padStart(3, "0")}`;
+}
+
+function buildBulkProductTitle(file, index) {
+  const base = bulkBaseTitle?.value.trim();
+
+  if (base) {
+    return `${base} ${index + 1}`;
+  }
+
+  const rawName = String(file?.name || "")
+    .replace(/\.[^.]+$/, "")
+    .replace(/[_-]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  return rawName || `Product ${index + 1}`;
+}
 /* =========================
    DASHBOARD + STATS
 ========================= */
@@ -817,6 +882,218 @@ async function handleLogout() {
   }
 }
 
+bulkImageFiles?.addEventListener("change", () => {
+  const files = Array.from(bulkImageFiles.files || []);
+
+  if (!files.length) {
+    if (bulkPreviewImage) {
+      bulkPreviewImage.src = "";
+      bulkPreviewImage.classList.add("hidden");
+    }
+    if (bulkPreviewText) {
+      bulkPreviewText.textContent = "Choose multiple image files to begin.";
+    }
+    return;
+  }
+
+  const firstFile = files[0];
+  previewImageFromFile(firstFile, bulkPreviewImage, bulkPreviewText);
+
+  if (bulkPreviewText) {
+    bulkPreviewText.textContent =
+      files.length === 1
+        ? `1 image selected: ${firstFile.name}`
+        : `${files.length} images selected. First image: ${firstFile.name}`;
+  }
+});
+
+clearBulkUploadBtn?.addEventListener("click", resetBulkUploadForm);
+bulkUploadProductsBtn?.addEventListener("click", handleBulkUploadProducts);
+
+const bulkBaseTitle = document.getElementById("bulkBaseTitle");
+const bulkPrice = document.getElementById("bulkPrice");
+const bulkAge = document.getElementById("bulkAge");
+const bulkDescription = document.getElementById("bulkDescription");
+const bulkImageFiles = document.getElementById("bulkImageFiles");
+const bulkPreviewImage = document.getElementById("bulkPreviewImage");
+const bulkPreviewText = document.getElementById("bulkPreviewText");
+const bulkUploadProductsBtn = document.getElementById("bulkUploadProductsBtn");
+const clearBulkUploadBtn = document.getElementById("clearBulkUploadBtn");
+const bulkUploadStatus = document.getElementById("bulkUploadStatus");
+
+function resetBulkUploadForm() {
+  if (bulkBaseTitle) bulkBaseTitle.value = "";
+  if (bulkPrice) bulkPrice.value = "";
+  if (bulkAge) bulkAge.value = "";
+  if (bulkDescription) bulkDescription.value = "";
+  if (bulkImageFiles) bulkImageFiles.value = "";
+
+  if (bulkPreviewImage) {
+    bulkPreviewImage.src = "";
+    bulkPreviewImage.classList.add("hidden");
+  }
+
+  if (bulkPreviewText) {
+    bulkPreviewText.textContent = "Choose multiple image files to begin.";
+  }
+
+  setStatus("", "info", bulkUploadStatus);
+}
+
+function getNextProductNumber(products) {
+  let max = 0;
+
+  for (const product of products) {
+    const match = String(product.id || "").match(/(\d+)$/);
+    if (match) {
+      const num = Number(match[1]);
+      if (!Number.isNaN(num) && num > max) {
+        max = num;
+      }
+    }
+  }
+
+  return max + 1;
+}
+
+function buildBulkProductId(number) {
+  return `DRESS-${String(number).padStart(3, "0")}`;
+}
+
+function buildBulkProductTitle(file, index) {
+  const base = bulkBaseTitle?.value.trim();
+
+  if (base) {
+    return `${base} ${index + 1}`;
+  }
+
+  const rawName = String(file?.name || "")
+    .replace(/\.[^.]+$/, "")
+    .replace(/[_-]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  return rawName || `Product ${index + 1}`;
+}
+
+async function handleBulkUploadProducts() {
+  const user = auth.currentUser;
+  if (!user) {
+    setStatus("You must log in first.", "error", bulkUploadStatus);
+    return;
+  }
+
+  const price = Number(bulkPrice?.value);
+  const ageCategory = bulkAge?.value.trim();
+  const description = bulkDescription?.value.trim();
+  const files = Array.from(bulkImageFiles?.files || []);
+
+  if (Number.isNaN(price) || price < 0) {
+    setStatus("Enter a valid bulk price.", "error", bulkUploadStatus);
+    return;
+  }
+
+  if (!ageCategory) {
+    setStatus("Select an age category for the bulk upload.", "error", bulkUploadStatus);
+    return;
+  }
+
+  if (!files.length) {
+    setStatus("Choose one or more images to upload.", "error", bulkUploadStatus);
+    return;
+  }
+
+  const ok = window.confirm(
+    `Create ${files.length} product${files.length > 1 ? "s" : ""} with the same price and age category?`
+  );
+  if (!ok) return;
+
+  setButtonLoading(
+    bulkUploadProductsBtn,
+    true,
+    `Uploading ${files.length} item${files.length > 1 ? "s" : ""}...`
+  );
+  setStatus("Uploading bulk products...", "info", bulkUploadStatus);
+
+  try {
+    let nextNumber = getNextProductNumber(allProducts);
+    let createdCount = 0;
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const imageUrl = await uploadImageIfNeeded(file, "");
+      const productIdValue = buildBulkProductId(nextNumber++);
+      const title = buildBulkProductTitle(file, i);
+
+      await withTimeout(
+        addDoc(collection(db, "products"), {
+          id: productIdValue,
+          title,
+          price,
+          description: description || "",
+          ageCategory,
+          available: true,
+          images: imageUrl ? [imageUrl] : [],
+          createdAt: new Date().toISOString()
+        }),
+        12000,
+        `Adding bulk product failed for ${file.name}.`
+      );
+
+      createdCount += 1;
+      setStatus(
+        `Uploaded ${createdCount} of ${files.length} product${files.length > 1 ? "s" : ""}...`,
+        "info",
+        bulkUploadStatus
+      );
+    }
+
+    resetBulkUploadForm();
+    await loadAdminProducts();
+
+    setStatus(
+      `${createdCount} bulk product${createdCount > 1 ? "s" : ""} added successfully.`,
+      "success",
+      bulkUploadStatus
+    );
+
+    goToPage("inventoryPage");
+  } catch (error) {
+    console.error("Bulk upload failed:", error);
+    setStatus(error.message || "Bulk upload failed.", "error", bulkUploadStatus);
+  } finally {
+    setButtonLoading(bulkUploadProductsBtn, false);
+  }
+}
+
+bulkImageFiles?.addEventListener("change", () => {
+  const files = Array.from(bulkImageFiles.files || []);
+
+  if (!files.length) {
+    if (bulkPreviewImage) {
+      bulkPreviewImage.src = "";
+      bulkPreviewImage.classList.add("hidden");
+    }
+    if (bulkPreviewText) {
+      bulkPreviewText.textContent = "Choose multiple image files to begin.";
+    }
+    return;
+  }
+
+  const firstFile = files[0];
+  previewImageFromFile(firstFile, bulkPreviewImage, bulkPreviewText);
+
+  if (bulkPreviewText) {
+    bulkPreviewText.textContent =
+      files.length === 1
+        ? `1 image selected: ${firstFile.name}`
+        : `${files.length} images selected. First image: ${firstFile.name}`;
+  }
+});
+
+clearBulkUploadBtn?.addEventListener("click", resetBulkUploadForm);
+bulkUploadProductsBtn?.addEventListener("click", handleBulkUploadProducts);
+
 /* =========================
    DATA REFRESH
 ========================= */
@@ -826,6 +1103,97 @@ async function refreshAllData() {
     loadPurchases()
   ]);
 }
+
+async function handleBulkUploadProducts() {
+  const user = auth.currentUser;
+  if (!user) {
+    setStatus("You must log in first.", "error", bulkUploadStatus);
+    return;
+  }
+
+  const price = Number(bulkPrice?.value);
+  const ageCategory = bulkAge?.value.trim();
+  const description = bulkDescription?.value.trim();
+  const files = Array.from(bulkImageFiles?.files || []);
+
+  if (Number.isNaN(price) || price < 0) {
+    setStatus("Enter a valid bulk price.", "error", bulkUploadStatus);
+    return;
+  }
+
+  if (!ageCategory) {
+    setStatus("Select an age category for the bulk upload.", "error", bulkUploadStatus);
+    return;
+  }
+
+  if (!files.length) {
+    setStatus("Choose one or more images to upload.", "error", bulkUploadStatus);
+    return;
+  }
+
+  const ok = window.confirm(
+    `Create ${files.length} product${files.length > 1 ? "s" : ""} with the same price and age category?`
+  );
+  if (!ok) return;
+
+  setButtonLoading(
+    bulkUploadProductsBtn,
+    true,
+    `Uploading ${files.length} item${files.length > 1 ? "s" : ""}...`
+  );
+  setStatus("Uploading bulk products...", "info", bulkUploadStatus);
+
+  try {
+    let nextNumber = getNextProductNumber(allProducts);
+    let createdCount = 0;
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const imageUrl = await uploadImageIfNeeded(file, "");
+      const productIdValue = buildBulkProductId(nextNumber++);
+      const title = buildBulkProductTitle(file, i);
+
+      await withTimeout(
+        addDoc(collection(db, "products"), {
+          id: productIdValue,
+          title,
+          price,
+          description: description || "",
+          ageCategory,
+          available: true,
+          images: imageUrl ? [imageUrl] : [],
+          createdAt: new Date().toISOString()
+        }),
+        12000,
+        `Adding bulk product failed for ${file.name}.`
+      );
+
+      createdCount += 1;
+      setStatus(
+        `Uploaded ${createdCount} of ${files.length} product${files.length > 1 ? "s" : ""}...`,
+        "info",
+        bulkUploadStatus
+      );
+    }
+
+    resetBulkUploadForm();
+    await loadAdminProducts();
+
+    setStatus(
+      `${createdCount} bulk product${createdCount > 1 ? "s" : ""} added successfully.`,
+      "success",
+      bulkUploadStatus
+    );
+
+    goToPage("inventoryPage");
+  } catch (error) {
+    console.error("Bulk upload failed:", error);
+    setStatus(error.message || "Bulk upload failed.", "error", bulkUploadStatus);
+  } finally {
+    setButtonLoading(bulkUploadProductsBtn, false);
+  }
+}
+
 
 /* =========================
    EVENTS
